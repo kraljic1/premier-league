@@ -1,0 +1,40 @@
+{
+  "name": "premier-league-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:open": "next dev & sleep 3 && open http://localhost:3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "refresh": "node scripts/refresh-data.js",
+    "setup-cron": "chmod +x scripts/setup-cron.sh && ./scripts/setup-cron.sh"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.84.0",
+    "@tanstack/react-query": "^5.28.0",
+    "axios": "^1.7.0",
+    "cheerio": "^1.0.0",
+    "clsx": "^2.1.0",
+    "ics": "^3.4.0",
+    "next": "^14.2.0",
+    "puppeteer": "^24.31.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tailwind-merge": "^2.2.0",
+    "typescript": "^5.4.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1"
+  }
+}
