@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { scrapeScorers } from "@/lib/scrapers/scorers";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseServer } from "@/lib/supabase";
 import { Scorer } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
@@ -72,7 +72,7 @@ export async function GET() {
         }));
 
         // Delete existing scorers for this season and insert new ones
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await supabaseServer
           .from('scorers')
           .delete()
           .eq('season', '2025');
@@ -81,7 +81,7 @@ export async function GET() {
           console.error("[Scorers API] Error deleting old scorers:", deleteError);
         }
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await supabaseServer
           .from('scorers')
           .insert(dbScorers);
 
@@ -89,7 +89,7 @@ export async function GET() {
           console.error("[Scorers API] Error storing scorers:", insertError);
         } else {
           // Update cache metadata
-          await supabase
+          await supabaseServer
             .from('cache_metadata')
             .upsert({
               key: 'scorers',

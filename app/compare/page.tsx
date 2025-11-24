@@ -17,7 +17,9 @@ type ClubFixtureData = {
 };
 
 async function fetchFixtures(): Promise<Fixture[]> {
-  const res = await fetch("/api/fixtures");
+  const res = await fetch("/api/fixtures", {
+    next: { revalidate: 1800 }, // Revalidate every 30 minutes
+  });
   if (!res.ok) throw new Error("Failed to fetch fixtures");
   return res.json();
 }

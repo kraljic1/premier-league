@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { scrapeFixtures } from "@/lib/scrapers/fixtures";
 import { scrapeResults } from "@/lib/scrapers/results";
+import { scrapeFixturesFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
+import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { scrapeStandings } from "@/lib/scrapers/standings";
 import { scrapeScorers } from "@/lib/scrapers/scorers";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseServer } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
 export async function POST() {
@@ -12,9 +14,26 @@ export async function POST() {
     console.log("[Refresh] Starting data refresh at", new Date().toISOString());
     
     // Trigger scraping for all endpoints using separate scrapers
+    // Use OneFootball scrapers first (faster, more reliable), fallback to official site
     const [fixtures, results, standings, scorers] = await Promise.allSettled([
-      scrapeFixtures(),      // Scrapes fixtures from /matches
-      scrapeResults(),       // Scrapes results from /results
+      (async () => {
+        try {
+          console.log("[Refresh] Attempting to scrape fixtures from OneFootball...");
+          return await scrapeFixturesFromOneFootball();
+        } catch (error) {
+          console.warn("[Refresh] OneFootball fixtures failed, using official site:", error);
+          return await scrapeFixtures();
+        }
+      })(),
+      (async () => {
+        try {
+          console.log("[Refresh] Attempting to scrape results from OneFootball...");
+          return await scrapeResultsFromOneFootball();
+        } catch (error) {
+          console.warn("[Refresh] OneFootball results failed, using official site:", error);
+          return await scrapeResults();
+        }
+      })(),
       scrapeStandings(),
       scrapeScorers(),
     ]);
@@ -52,7 +71,7 @@ export async function POST() {
         is_derby: fixture.isDerby || false
       }));
 
-      const { error: fixturesError } = await supabase
+      const { error: fixturesError } = await supabaseServer
         .from('fixtures')
         .upsert(dbFixtures, { onConflict: 'id' });
 
@@ -60,7 +79,7 @@ export async function POST() {
         console.error("[Refresh] Error storing fixtures:", fixturesError);
       } else {
         // Update cache metadata
-        await supabase
+        await supabaseServer
           .from('cache_metadata')
           .upsert({
             key: 'fixtures',
@@ -87,7 +106,7 @@ export async function POST() {
         is_derby: result.isDerby || false
       }));
 
-      const { error: resultsError } = await supabase
+      const { error: resultsError } = await supabaseServer
         .from('fixtures')
         .upsert(dbResults, { onConflict: 'id' });
 
@@ -117,8 +136,8 @@ export async function POST() {
       }));
 
       // Delete existing standings and insert new ones
-      await supabase.from('standings').delete().eq('season', '2025');
-      const { error: standingsError } = await supabase
+      await supabaseServer.from('standings').delete().eq('season', '2025');
+      const { error: standingsError } = await supabaseServer
         .from('standings')
         .insert(dbStandings);
 
@@ -126,7 +145,7 @@ export async function POST() {
         console.error("[Refresh] Error storing standings:", standingsError);
       } else {
         // Update cache metadata
-        await supabase
+        await supabaseServer
           .from('cache_metadata')
           .upsert({
             key: 'standings',
@@ -150,8 +169,8 @@ export async function POST() {
       }));
 
       // Delete existing scorers and insert new ones
-      await supabase.from('scorers').delete().eq('season', '2025');
-      const { error: scorersError } = await supabase
+      await supabaseServer.from('scorers').delete().eq('season', '2025');
+      const { error: scorersError } = await supabaseServer
         .from('scorers')
         .insert(dbScorers);
 
@@ -159,7 +178,7 @@ export async function POST() {
         console.error("[Refresh] Error storing scorers:", scorersError);
       } else {
         // Update cache metadata
-        await supabase
+        await supabaseServer
           .from('cache_metadata')
           .upsert({
             key: 'scorers',

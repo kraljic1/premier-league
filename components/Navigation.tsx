@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -14,15 +15,21 @@ const navItems = [
 ];
 
 export function Navigation() {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              // Only apply active state after component mounts to avoid hydration mismatch
+              const isActive = mounted && pathname === item.href;
               return (
                 <Link
                   key={item.href}

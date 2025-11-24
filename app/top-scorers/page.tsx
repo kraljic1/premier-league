@@ -8,7 +8,9 @@ import { EmptyState } from "@/components/EmptyState";
 import { Scorer } from "@/lib/types";
 
 async function fetchScorers(): Promise<Scorer[]> {
-  const res = await fetch("/api/scorers");
+  const res = await fetch("/api/scorers", {
+    next: { revalidate: 1800 }, // Revalidate every 30 minutes
+  });
   if (!res.ok) throw new Error("Failed to fetch scorers");
   return res.json();
 }
@@ -22,6 +24,10 @@ export default function TopScorersPage() {
   } = useQuery({
     queryKey: ["scorers"],
     queryFn: fetchScorers,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
   return (

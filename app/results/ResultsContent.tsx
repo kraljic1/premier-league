@@ -13,7 +13,7 @@ import { formatDate } from "@/lib/utils";
 
 async function fetchResults(): Promise<Fixture[]> {
   const res = await fetch("/api/results", {
-    cache: "no-store",
+    next: { revalidate: 1800 }, // Revalidate every 30 minutes
   });
   if (!res.ok) throw new Error("Failed to fetch results");
   const data = await res.json();
@@ -36,9 +36,10 @@ export default function ResultsContent() {
   } = useQuery({
     queryKey: ["results"],
     queryFn: fetchResults,
-    refetchOnMount: true,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 0, // Always consider data stale to ensure fresh fetches
+    staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
   const handleScrollToMatchweek = (matchweek: number) => {

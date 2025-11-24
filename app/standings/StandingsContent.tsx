@@ -9,7 +9,7 @@ import { Standing } from "@/lib/types";
 
 async function fetchStandings(): Promise<Standing[]> {
   const res = await fetch("/api/standings", {
-    cache: "no-store",
+    next: { revalidate: 1800 }, // Revalidate every 30 minutes
   });
   if (!res.ok) throw new Error("Failed to fetch standings");
   const data = await res.json();
@@ -39,8 +39,10 @@ export default function StandingsContent() {
   } = useQuery({
     queryKey: ["standings"],
     queryFn: fetchStandings,
-    refetchOnMount: true,
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
+    staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
   return (

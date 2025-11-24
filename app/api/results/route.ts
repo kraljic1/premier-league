@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { scrapeResults } from "@/lib/scrapers/results";
-import { supabase } from "@/lib/supabase";
+import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
+import { supabase, supabaseServer } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
@@ -9,14 +10,24 @@ const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
 export async function GET() {
   try {
-    // Check database for finished fixtures
+    // Check database for finished fixtures and cache metadata in parallel
     console.log("[Results API] Checking database for finished matches...");
 
-    const { data: resultsData, error: dbError } = await supabase
-      .from('fixtures')
-      .select('*')
-      .eq('status', 'finished')
-      .order('date', { ascending: true });
+    const [resultsResult, cacheMetaResult] = await Promise.all([
+      supabase
+        .from('fixtures')
+        .select('*')
+        .eq('status', 'finished')
+        .order('date', { ascending: true }),
+      supabase
+        .from('cache_metadata')
+        .select('last_updated')
+        .eq('key', 'fixtures') // Use fixtures cache metadata since results come from fixtures
+        .single()
+    ]);
+
+    const { data: resultsData, error: dbError } = resultsResult;
+    const { data: cacheMeta } = cacheMetaResult;
 
     if (dbError) {
       console.error("[Results API] Database error:", dbError);
@@ -24,13 +35,6 @@ export async function GET() {
 
     // Check if data exists and is recent
     if (resultsData && resultsData.length > 0) {
-      // Check cache metadata for last update time
-      const { data: cacheMeta } = await supabase
-        .from('cache_metadata')
-        .select('last_updated')
-        .eq('key', 'fixtures') // Use fixtures cache metadata since results come from fixtures
-        .single();
-
       const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
       const now = new Date();
       const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
@@ -62,7 +66,22 @@ export async function GET() {
     // Data is stale or doesn't exist, scrape fresh results
     console.log("[Results API] Data is stale or missing. Scraping fresh results...");
     try {
-      const scrapedResults = await scrapeResults();
+      // Try OneFootball first (simpler, faster, no Puppeteer needed)
+      let scrapedResults: Fixture[] = [];
+      let scrapeSource = 'unknown';
+      
+      try {
+        console.log("[Results API] Attempting to scrape results from OneFootball...");
+        scrapedResults = await scrapeResultsFromOneFootball();
+        scrapeSource = 'onefootball';
+        console.log(`[Results API] Successfully scraped ${scrapedResults.length} results from OneFootball`);
+      } catch (onefootballError) {
+        console.warn("[Results API] OneFootball scraping failed, falling back to official site:", onefootballError);
+        // Fallback to official Premier League site scraper
+        scrapedResults = await scrapeResults();
+        scrapeSource = 'official-site';
+        console.log(`[Results API] Successfully scraped ${scrapedResults.length} results from official site`);
+      }
 
       if (scrapedResults.length > 0) {
         // Store in database (these will be marked as finished)
@@ -81,7 +100,8 @@ export async function GET() {
         }));
 
         // Upsert results
-        const { error: insertError } = await supabase
+        // Use server client to bypass RLS for server-side operations
+        const { error: insertError } = await supabaseServer
           .from('fixtures')
           .upsert(dbResults, { onConflict: 'id' });
 
@@ -89,7 +109,7 @@ export async function GET() {
           console.error("[Results API] Error storing results:", insertError);
         } else {
           // Update cache metadata
-          await supabase
+          await supabaseServer
             .from('cache_metadata')
             .upsert({
               key: 'fixtures',
@@ -102,6 +122,7 @@ export async function GET() {
       return NextResponse.json(scrapedResults, {
         headers: {
           "X-Cache": "MISS-SCRAPED",
+          "X-Source": scrapeSource,
         },
       });
     } catch (scrapeError) {

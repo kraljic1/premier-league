@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { scrapeFixtures } from "@/lib/scrapers/fixtures";
-import { supabase } from "@/lib/supabase";
+import { scrapeFixturesFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
+import { supabase, supabaseServer } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
@@ -9,13 +10,23 @@ const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
 export async function GET() {
   try {
-    // Check database first
+    // Check database and cache metadata in parallel
     console.log("[Fixtures API] Checking database for fixtures...");
 
-    const { data: fixturesData, error: dbError } = await supabase
-      .from('fixtures')
-      .select('*')
-      .order('date', { ascending: true });
+    const [fixturesResult, cacheMetaResult] = await Promise.all([
+      supabase
+        .from('fixtures')
+        .select('*')
+        .order('date', { ascending: true }),
+      supabase
+        .from('cache_metadata')
+        .select('last_updated')
+        .eq('key', 'fixtures')
+        .single()
+    ]);
+
+    const { data: fixturesData, error: dbError } = fixturesResult;
+    const { data: cacheMeta } = cacheMetaResult;
 
     if (dbError) {
       console.error("[Fixtures API] Database error:", dbError);
@@ -23,13 +34,6 @@ export async function GET() {
 
     // Check if data exists and is recent (within cache duration)
     if (fixturesData && fixturesData.length > 0) {
-      // Check cache metadata for last update time
-      const { data: cacheMeta } = await supabase
-        .from('cache_metadata')
-        .select('last_updated')
-        .eq('key', 'fixtures')
-        .single();
-
       const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
       const now = new Date();
       const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
@@ -61,7 +65,22 @@ export async function GET() {
     // Data is stale or doesn't exist, scrape fresh data
     console.log("[Fixtures API] Data is stale or missing. Scraping fresh fixtures...");
     try {
-      const scrapedFixtures = await scrapeFixtures();
+      // Try OneFootball first (simpler, faster, no Puppeteer needed)
+      let scrapedFixtures: Fixture[] = [];
+      let scrapeSource = 'unknown';
+      
+      try {
+        console.log("[Fixtures API] Attempting to scrape from OneFootball...");
+        scrapedFixtures = await scrapeFixturesFromOneFootball();
+        scrapeSource = 'onefootball';
+        console.log(`[Fixtures API] Successfully scraped ${scrapedFixtures.length} fixtures from OneFootball`);
+      } catch (onefootballError) {
+        console.warn("[Fixtures API] OneFootball scraping failed, falling back to official site:", onefootballError);
+        // Fallback to official Premier League site scraper
+        scrapedFixtures = await scrapeFixtures();
+        scrapeSource = 'official-site';
+        console.log(`[Fixtures API] Successfully scraped ${scrapedFixtures.length} fixtures from official site`);
+      }
 
       if (scrapedFixtures.length > 0) {
         // Store in database
@@ -81,7 +100,8 @@ export async function GET() {
         }));
 
         // Upsert fixtures (update if exists, insert if not)
-        const { error: insertError } = await supabase
+        // Use server client to bypass RLS for server-side operations
+        const { error: insertError } = await supabaseServer
           .from('fixtures')
           .upsert(dbFixtures, { onConflict: 'id' });
 
@@ -89,7 +109,7 @@ export async function GET() {
           console.error("[Fixtures API] Error storing fixtures:", insertError);
         } else {
           // Update cache metadata
-          await supabase
+          await supabaseServer
             .from('cache_metadata')
             .upsert({
               key: 'fixtures',
@@ -102,6 +122,7 @@ export async function GET() {
       return NextResponse.json(scrapedFixtures, {
         headers: {
           "X-Cache": "MISS-SCRAPED",
+          "X-Source": scrapeSource,
         },
       });
     } catch (scrapeError) {
