@@ -163,7 +163,7 @@ export async function scrapeFixturesFromOneFootball(): Promise<Fixture[]> {
 /**
  * Fallback: Scrape fixtures from HTML if JSON parsing fails
  */
-async function scrapeFixturesFromHTML($: cheerio.CheerioAPI): Promise<Fixture[]> {
+async function scrapeFixturesFromHTML($: ReturnType<typeof cheerio.load>): Promise<Fixture[]> {
   const fixtures: Fixture[] = [];
   const matchCards = $('a.MatchCard_matchCard__iOv4G');
 
