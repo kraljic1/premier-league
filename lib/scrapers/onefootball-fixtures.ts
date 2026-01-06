@@ -167,7 +167,7 @@ async function scrapeFixturesFromHTML($: ReturnType<typeof cheerio.load>): Promi
   const fixtures: Fixture[] = [];
   const matchCards = $('a.MatchCard_matchCard__iOv4G');
 
-  matchCards.each((index, element) => {
+  matchCards.each((_index: number, element: cheerio.Element) => {
     try {
       const $card = $(element);
       const cardText = $card.text().replace(/\s+/g, ' ').trim();
@@ -436,7 +436,7 @@ export async function scrapeStandingsFromOneFootball() {
     // Find all standings rows
     const rows = $('li.Standing_standings__row__5sdZG');
 
-    rows.each((index, element) => {
+    rows.each((index: number, element: cheerio.Element) => {
       const $row = $(element);
       
       const positionEl = $row.find('div.Standing_standings__cell__5Kd0W').first();
