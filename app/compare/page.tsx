@@ -46,6 +46,11 @@ export default function ComparePage() {
   const { myClubs } = useAppStore();
   const [futureMatchesCount, setFutureMatchesCount] = useState<number | null>(5);
   
+  const handleFutureMatchesCountChange = (count: number | null) => {
+    console.log("[ComparePage] Updating futureMatchesCount to:", count);
+    setFutureMatchesCount(count);
+  };
+  
   const {
     data: fixtures = [],
     isLoading,
@@ -74,6 +79,7 @@ export default function ComparePage() {
       (f: Fixture) => f.homeTeam === clubName || f.awayTeam === clubName
     );
     const futureFixtures = getFutureFixtures(clubAllFixtures, futureMatchesCount);
+    console.log(`[ComparePage] Club: ${clubName}, Future fixtures count: ${futureFixtures.length}, Limit: ${futureMatchesCount}`);
     
     // Ensure matchweek numbers are correct - they should already be in fixture data
     // but we validate them here
@@ -103,7 +109,7 @@ export default function ComparePage() {
       {clubNames.length > 0 && !isLoading && !error && (
         <FutureMatchesFilter
           selectedCount={futureMatchesCount}
-          onSelect={setFutureMatchesCount}
+          onSelect={handleFutureMatchesCountChange}
         />
       )}
 
