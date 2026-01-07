@@ -14,7 +14,8 @@ export async function scrapeResults(): Promise<Fixture[]> {
   
   try {
     // Start directly at matchweek 1 - more reliable
-    const startUrl = `https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek=1&month=11`;
+    // Matchweek 1 is in August (month 8)
+    const startUrl = `https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek=1&month=8`;
     
     console.log("[Results] Opening Premier League matches page at matchweek 1...");
     page = await scrapePage(startUrl, undefined, 30000);
@@ -31,7 +32,7 @@ export async function scrapeResults(): Promise<Fixture[]> {
     // If not at matchweek 1, navigate there directly
     if (currentMatchweek > 1) {
       console.log(`[Results] Not at matchweek 1 (current: ${currentMatchweek}), navigating...`);
-      const targetUrl = `https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek=1&month=11`;
+      const targetUrl = `https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek=1&month=8`;
       await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 30000 });
       await new Promise(resolve => setTimeout(resolve, 2000));
       currentMatchweek = await getCurrentMatchweek(page);
@@ -46,8 +47,11 @@ export async function scrapeResults(): Promise<Fixture[]> {
     
     for (let targetMatchweek = 1; targetMatchweek <= 38; targetMatchweek++) {
       // Navigate directly to target matchweek URL
-      // URL format: https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek={N}&month=11
-      const targetUrl = `https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek=${targetMatchweek}&month=11`;
+      // Calculate approximate month based on matchweek (season starts August, ~4 weeks per month)
+      // Matchweek 1-4: August (8), 5-8: September (9), 9-12: October (10), etc.
+      const approximateMonth = Math.min(12, Math.max(8, Math.floor((targetMatchweek - 1) / 4) + 8));
+      // URL format: https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek={N}&month={M}
+      const targetUrl = `https://www.premierleague.com/en/matches?competition=8&season=2025&matchweek=${targetMatchweek}&month=${approximateMonth}`;
       console.log(`[Results] Navigating to matchweek ${targetMatchweek}...`);
       
       try {

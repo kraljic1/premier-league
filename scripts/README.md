@@ -37,6 +37,41 @@ chmod +x scripts/setup-cron.sh
 ./scripts/setup-cron.sh
 ```
 
+### `fetch-results-until-date.js`
+Fetches all finished results from the current season until a specified date and saves them to a JSON file.
+
+**Usage:**
+```bash
+# Default: fetches until 2026-01-07
+node scripts/fetch-results-until-date.js
+
+# Custom end date
+node scripts/fetch-results-until-date.js 2026-01-07
+
+# Custom end date and output file
+END_DATE=2026-01-07 OUTPUT_FILE=my-results.json node scripts/fetch-results-until-date.js
+
+# Custom API URL (if server is not on localhost:3000)
+API_URL=https://your-domain.com node scripts/fetch-results-until-date.js 2026-01-07
+```
+
+**Note:** This script requires your Next.js server to be running. It calls the `/api/results` endpoint.
+
+**Output:** Creates a JSON file (default: `results-until-date.json`) with:
+- Metadata (fetch date, end date, total results, matchweeks)
+- All results filtered by date and status
+
+### `fetch-results-until-date.ts`
+TypeScript version that runs scrapers directly (doesn't require server to be running).
+
+**Usage:**
+```bash
+# Requires tsx: npm install -g tsx
+npx tsx scripts/fetch-results-until-date.ts 2026-01-07
+```
+
+**Note:** This version runs the scrapers directly without needing the API server.
+
 ## Manual Cron Setup
 
 If you prefer to set up cron manually:

@@ -602,7 +602,7 @@ async function fetchAllResultsFromOneFootball(): Promise<Map<number, Fixture[]>>
 
 /**
  * Groups matches without matchweek info into matchweeks based on date ranges
- * Uses the earliest match date as matchweek 1 start
+ * Uses the actual season start date (August 17th) instead of earliest match date
  */
 function assignMatchweeksByDate(fixtures: Fixture[]): Fixture[] {
   if (fixtures.length === 0) {
@@ -612,15 +612,30 @@ function assignMatchweeksByDate(fixtures: Fixture[]): Fixture[] {
   // Sort by date
   fixtures.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  // Find earliest date (season start)
-  const earliestDate = new Date(fixtures[0].date);
+  // Determine the season start date (August 17th)
+  // Premier League season typically starts mid-August
+  const firstMatchDate = new Date(fixtures[0].date);
+  const firstMatchYear = firstMatchDate.getFullYear();
+  const firstMatchMonth = firstMatchDate.getMonth(); // 0-11 (Jan=0, Aug=7)
+  
+  // If match is before August, season started in previous year
+  // If match is August or later, season started in current year
+  let seasonYear = firstMatchYear;
+  if (firstMatchMonth < 7) { // Before August (month < 7)
+    seasonYear = firstMatchYear - 1;
+  }
+  
+  // Season starts August 17th
+  const seasonStartDate = new Date(seasonYear, 7, 17); // August 17th (month 7 = August)
+  
+  console.log(`[OneFootball] Assigning matchweeks: Season start ${seasonStartDate.toISOString().split('T')[0]}, First match ${firstMatchDate.toISOString().split('T')[0]}`);
   
   // Group into matchweeks (each matchweek is ~7 days)
   const grouped: Map<number, Fixture[]> = new Map();
   
   for (const fixture of fixtures) {
     const date = new Date(fixture.date);
-    const daysDiff = Math.floor((date.getTime() - earliestDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.floor((date.getTime() - seasonStartDate.getTime()) / (1000 * 60 * 60 * 24));
     const matchweek = Math.max(1, Math.min(38, Math.floor(daysDiff / 7) + 1));
     
     if (!grouped.has(matchweek)) {
