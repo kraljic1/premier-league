@@ -30,7 +30,7 @@ export interface Standing {
   goalsAgainst: number;
   goalDifference: number;
   points: number;
-  form: string; // e.g., "WWDLWD"
+  form: string | null; // e.g., "WWDLWD"
 }
 
 export interface Scorer {

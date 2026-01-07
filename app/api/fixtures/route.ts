@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { scrapeFixtures } from "@/lib/scrapers/fixtures";
 import { scrapeFixturesFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
-import { supabase, supabaseServer } from "@/lib/supabase";
+import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+
+// Type for cache metadata result
+type CacheMetaResult = { last_updated: string } | null;
 
 export async function GET() {
   try {
@@ -25,8 +28,9 @@ export async function GET() {
         .single()
     ]);
 
-    const { data: fixturesData, error: dbError } = fixturesResult;
-    const { data: cacheMeta } = cacheMetaResult;
+    const fixturesData = fixturesResult.data as FixtureRow[] | null;
+    const dbError = fixturesResult.error;
+    const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
     if (dbError) {
       console.error("[Fixtures API] Database error:", dbError);

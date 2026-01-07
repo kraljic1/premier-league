@@ -102,7 +102,7 @@ export async function POST() {
         home_score: result.homeScore,
         away_score: result.awayScore,
         matchweek: result.matchweek,
-        status: 'finished', // Results are always finished
+        status: 'finished' as const, // Results are always finished
         is_derby: result.isDerby || false
       }));
 

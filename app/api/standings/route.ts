@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { scrapeStandings } from "@/lib/scrapers/standings";
-import { supabase, supabaseServer } from "@/lib/supabase";
+import { supabase, supabaseServer, StandingRow } from "@/lib/supabase";
 import { Standing } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+
+// Type for cache metadata result
+type CacheMetaResult = { last_updated: string } | null;
 
 export async function GET() {
   try {
@@ -25,8 +28,9 @@ export async function GET() {
         .single()
     ]);
 
-    const { data: standingsData, error: dbError } = standingsResult;
-    const { data: cacheMeta } = cacheMetaResult;
+    const standingsData = standingsResult.data as StandingRow[] | null;
+    const dbError = standingsResult.error;
+    const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
     if (dbError) {
       console.error("[Standings API] Database error:", dbError);

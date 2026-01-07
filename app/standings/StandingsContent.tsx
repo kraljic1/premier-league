@@ -125,7 +125,7 @@ function StandingRow({ standing }: { standing: Standing }) {
       <td className="p-2 text-center font-bold">{standing.points}</td>
       <td className="p-2">
         <div className="flex gap-1 justify-center">
-          {standing.form.split("").map((result, idx) => (
+          {standing.form?.split("").map((result, idx) => (
             <div
               key={idx}
               className={`w-5 h-5 rounded ${getFormColor(result)}`}

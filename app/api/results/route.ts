@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { scrapeResults } from "@/lib/scrapers/results";
 import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
-import { supabase, supabaseServer } from "@/lib/supabase";
+import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+
+// Type for cache metadata result
+type CacheMetaResult = { last_updated: string } | null;
 
 export async function GET() {
   try {
@@ -26,8 +29,9 @@ export async function GET() {
         .single()
     ]);
 
-    const { data: resultsData, error: dbError } = resultsResult;
-    const { data: cacheMeta } = cacheMetaResult;
+    const resultsData = resultsResult.data as FixtureRow[] | null;
+    const dbError = resultsResult.error;
+    const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
     if (dbError) {
       console.error("[Results API] Database error:", dbError);
@@ -95,7 +99,7 @@ export async function GET() {
           home_score: result.homeScore,
           away_score: result.awayScore,
           matchweek: result.matchweek,
-          status: 'finished', // Results are always finished matches
+          status: 'finished' as const, // Results are always finished matches
           is_derby: result.isDerby || false
         }));
 

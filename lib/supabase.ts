@@ -35,6 +35,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       fixtures: {
         Row: {
@@ -76,6 +77,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       standings: {
         Row: {
@@ -129,6 +131,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       scorers: {
         Row: {
@@ -161,6 +164,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       cache_metadata: {
         Row: {
@@ -184,27 +188,47 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+// Only throw during runtime, not during build
+const isBuildTime = process.env.NODE_ENV === 'production' && !supabaseUrl
+
+if (!isBuildTime && (!supabaseUrl || !supabaseAnonKey)) {
+  console.warn('Missing Supabase environment variables - database features will be unavailable')
 }
 
 // Public client for client-side use
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+// Creates a dummy client if env vars are missing (for build time)
+export const supabase = createClient<Database>(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+)
 
 // Server-side client with service role (bypasses RLS) for API routes
 // Falls back to anon key if service role key is not available
 export const supabaseServer = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceRoleKey || supabaseAnonKey,
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseServiceRoleKey || supabaseAnonKey || 'placeholder-key',
   {
     auth: {
       autoRefreshToken: false,
@@ -212,3 +236,9 @@ export const supabaseServer = createClient<Database>(
     }
   }
 )
+
+// Export row types for use in API routes
+export type FixtureRow = Database['public']['Tables']['fixtures']['Row']
+export type StandingRow = Database['public']['Tables']['standings']['Row']
+export type ScorerRow = Database['public']['Tables']['scorers']['Row']
+export type CacheMetadataRow = Database['public']['Tables']['cache_metadata']['Row']

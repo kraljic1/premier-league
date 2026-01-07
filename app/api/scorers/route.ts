@@ -1,22 +1,28 @@
 import { NextResponse } from "next/server";
 import { scrapeScorers } from "@/lib/scrapers/scorers";
-import { supabase, supabaseServer } from "@/lib/supabase";
+import { supabase, supabaseServer, ScorerRow } from "@/lib/supabase";
 import { Scorer } from "@/lib/types";
 
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
+// Type for cache metadata result
+type CacheMetaResult = { last_updated: string } | null;
+
 export async function GET() {
   try {
     // Check database first
     console.log("[Scorers API] Checking database for scorers...");
 
-    const { data: scorersData, error: dbError } = await supabase
+    const scorersResult = await supabase
       .from('scorers')
       .select('*')
       .eq('season', '2025')
       .order('goals', { ascending: false });
+    
+    const scorersData = scorersResult.data as ScorerRow[] | null;
+    const dbError = scorersResult.error;
 
     if (dbError) {
       console.error("[Scorers API] Database error:", dbError);
@@ -25,11 +31,12 @@ export async function GET() {
     // Check if data exists and is recent
     if (scorersData && scorersData.length > 0) {
       // Check cache metadata for last update time
-      const { data: cacheMeta } = await supabase
+      const cacheMetaResult = await supabase
         .from('cache_metadata')
         .select('last_updated')
         .eq('key', 'scorers')
         .single();
+      const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
       const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
       const now = new Date();
