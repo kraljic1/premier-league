@@ -11,7 +11,6 @@ const navItems = [
   { href: "/results", label: "Results" },
   { href: "/standings", label: "Standings" },
   { href: "/compare", label: "Compare" },
-  { href: "/top-scorers", label: "Top Scorers" },
 ];
 
 export function Navigation() {

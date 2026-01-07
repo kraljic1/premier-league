@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
+import { FutureMatchesFilter } from "@/components/FutureMatchesFilter";
+import { ClubFixtureCard } from "@/components/ClubFixtureCard";
 import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture, Club } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { getCurrentMatchweek } from "@/lib/utils";
 
 type ClubFixtureData = {
   club: string;
@@ -24,8 +27,25 @@ async function fetchFixtures(): Promise<Fixture[]> {
   return res.json();
 }
 
+/**
+ * Filters fixtures to only include future matches.
+ */
+function getFutureFixtures(fixtures: Fixture[], limit: number | null): Fixture[] {
+  const now = new Date();
+  const futureFixtures = fixtures
+    .filter((f: Fixture) => new Date(f.date) > now)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (limit === null) {
+    return futureFixtures;
+  }
+  return futureFixtures.slice(0, limit);
+}
+
 export default function ComparePage() {
   const { myClubs } = useAppStore();
+  const [futureMatchesCount, setFutureMatchesCount] = useState<number | null>(5);
+  
   const {
     data: fixtures = [],
     isLoading,
@@ -40,20 +60,52 @@ export default function ComparePage() {
     .map((id: string) => CLUBS[id]?.name)
     .filter((name): name is string => Boolean(name));
 
-  const clubFixtures: ClubFixtureData[] = clubNames.map((clubName: string) => ({
-    club: clubName,
-    clubData: getClubByName(clubName),
-    fixtures: fixtures.filter(
+  // Determine current matchweek from finished matches
+  const currentMatchweek = getCurrentMatchweek(fixtures);
+  
+  // Log for debugging
+  if (currentMatchweek > 0) {
+    const finishedCount = fixtures.filter(f => f.status === "finished").length;
+    console.log(`[Compare] Current matchweek: ${currentMatchweek}, Finished matches: ${finishedCount}`);
+  }
+
+  const clubFixtures: ClubFixtureData[] = clubNames.map((clubName: string) => {
+    const clubAllFixtures = fixtures.filter(
       (f: Fixture) => f.homeTeam === clubName || f.awayTeam === clubName
-    ),
-  }));
+    );
+    const futureFixtures = getFutureFixtures(clubAllFixtures, futureMatchesCount);
+    
+    // Ensure matchweek numbers are correct - they should already be in fixture data
+    // but we validate them here
+    const validatedFixtures = futureFixtures.map(fixture => {
+      // Matchweek should already be correct from scraper
+      // If it's less than current matchweek, something is wrong
+      if (currentMatchweek > 0 && fixture.matchweek < currentMatchweek) {
+        console.warn(`[Compare] Matchweek mismatch for ${fixture.homeTeam} vs ${fixture.awayTeam}: fixture has MW ${fixture.matchweek}, but current is MW ${currentMatchweek}`);
+      }
+      return fixture;
+    });
+    
+    return {
+      club: clubName,
+      clubData: getClubByName(clubName),
+      fixtures: validatedFixtures,
+    };
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Compare Clubs</h1>
+    <div className="compare-page">
+      <div className="compare-page__header">
+        <h1 className="compare-page__title">Compare Clubs</h1>
         <RefreshButton />
       </div>
+      
+      {clubNames.length > 0 && !isLoading && !error && (
+        <FutureMatchesFilter
+          selectedCount={futureMatchesCount}
+          onSelect={setFutureMatchesCount}
+        />
+      )}
 
       {clubNames.length === 0 ? (
         <EmptyState
@@ -68,58 +120,14 @@ export default function ComparePage() {
           onRetry={() => refetch()}
         />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="compare-page__grid">
           {clubFixtures.map(({ club, clubData, fixtures }: ClubFixtureData) => (
-            <div
+            <ClubFixtureCard
               key={club}
-              className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
-            >
-              <div
-                className="p-4 text-white font-semibold"
-                style={{
-                  backgroundColor: clubData?.primaryColor || "#000",
-                }}
-              >
-                {club}
-              </div>
-              <div className="p-4 space-y-3">
-                {fixtures.length === 0 ? (
-                  <div className="text-sm text-gray-500">No fixtures found</div>
-                ) : (
-                  fixtures.map((fixture: Fixture) => (
-                    <div
-                      key={fixture.id}
-                      className="text-sm border-b border-gray-200 dark:border-gray-700 pb-2"
-                    >
-                      <div className="font-medium">
-                        {fixture.homeTeam === club ? (
-                          <>
-                            <span className="font-bold">vs {fixture.awayTeam}</span>
-                            <span className="text-gray-500 ml-2">(H)</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="font-bold">@ {fixture.homeTeam}</span>
-                            <span className="text-gray-500 ml-2">(A)</span>
-                          </>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                        {formatDate(fixture.date)} - MW {fixture.matchweek}
-                      </div>
-                      {fixture.homeScore !== null &&
-                        fixture.awayScore !== null && (
-                          <div className="text-xs font-semibold mt-1">
-                            {fixture.homeTeam === club
-                              ? `${fixture.homeScore} - ${fixture.awayScore}`
-                              : `${fixture.awayScore} - ${fixture.homeScore}`}
-                          </div>
-                        )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+              club={club}
+              clubData={clubData}
+              fixtures={fixtures}
+            />
           ))}
         </div>
       )}

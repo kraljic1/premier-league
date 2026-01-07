@@ -33,13 +33,6 @@ export interface Standing {
   form: string | null; // e.g., "WWDLWD"
 }
 
-export interface Scorer {
-  name: string;
-  club: string;
-  goals: number;
-  assists: number;
-}
-
 export interface DerbyPair {
   club1: string;
   club2: string;

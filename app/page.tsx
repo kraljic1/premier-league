@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { MatchCountdown } from "@/components/MatchCountdown";
 import { ClubSelector } from "@/components/ClubSelector";
 import { RefreshButton } from "@/components/RefreshButton";
-import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
@@ -81,9 +80,6 @@ export default function HomePage() {
   const nextMatch = getNextMatch(fixtures, myClubs);
   const todayFixtures = getTodayFixtures(fixtures);
   const weekendFixtures = getWeekendFixtures(fixtures);
-  const clubNames = myClubs
-    .map((id) => CLUBS[id]?.name)
-    .filter(Boolean) as string[];
 
   return (
     <div className="space-y-8">
@@ -116,11 +112,6 @@ export default function HomePage() {
           <div>
             <h2 className="text-2xl font-semibold mb-4">My Clubs</h2>
             <ClubSelector />
-            {myClubs.length > 0 && (
-              <div className="mt-4">
-                <AddToCalendarButton fixtures={fixtures} clubNames={clubNames} />
-              </div>
-            )}
           </div>
 
           {todayFixtures.length > 0 && (

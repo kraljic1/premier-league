@@ -4,7 +4,6 @@ const urlsToCache = [
   "/fixtures",
   "/standings",
   "/compare",
-  "/top-scorers",
 ];
 
 self.addEventListener("install", (event) => {

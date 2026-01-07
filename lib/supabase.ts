@@ -133,39 +133,6 @@ export type Database = {
         }
         Relationships: []
       }
-      scorers: {
-        Row: {
-          id: string
-          name: string
-          club: string
-          goals: number
-          assists: number
-          season: string
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          club: string
-          goals?: number
-          assists?: number
-          season?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          club?: string
-          goals?: number
-          assists?: number
-          season?: string
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       cache_metadata: {
         Row: {
           key: string
@@ -240,5 +207,4 @@ export const supabaseServer = createClient<Database>(
 // Export row types for use in API routes
 export type FixtureRow = Database['public']['Tables']['fixtures']['Row']
 export type StandingRow = Database['public']['Tables']['standings']['Row']
-export type ScorerRow = Database['public']['Tables']['scorers']['Row']
 export type CacheMetadataRow = Database['public']['Tables']['cache_metadata']['Row']

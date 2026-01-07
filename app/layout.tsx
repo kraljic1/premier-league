@@ -31,13 +31,7 @@ export default function RootLayout({
         <Providers>
           <ClubTheme />
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <header
-              className="border-b border-gray-200 dark:border-gray-800"
-              style={{
-                backgroundColor: "var(--club-primary)",
-                color: "var(--club-text)",
-              }}
-            >
+            <header className="header-bar">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
                 <h1 className="text-xl font-bold">Premier League Tracker</h1>
                 <ThemeToggle />

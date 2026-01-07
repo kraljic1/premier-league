@@ -5,7 +5,6 @@ import { scrapeResults } from "@/lib/scrapers/results";
 import { scrapeFixturesFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { scrapeStandings } from "@/lib/scrapers/standings";
-import { scrapeScorers } from "@/lib/scrapers/scorers";
 import { supabase, supabaseServer } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
@@ -15,7 +14,7 @@ export async function POST() {
     
     // Trigger scraping for all endpoints using separate scrapers
     // Use OneFootball scrapers first (faster, more reliable), fallback to official site
-    const [fixtures, results, standings, scorers] = await Promise.allSettled([
+    const [fixtures, results, standings] = await Promise.allSettled([
       (async () => {
         try {
           console.log("[Refresh] Attempting to scrape fixtures from OneFootball...");
@@ -35,19 +34,16 @@ export async function POST() {
         }
       })(),
       scrapeStandings(),
-      scrapeScorers(),
     ]);
     
     const refreshResults = {
       fixtures: fixtures.status === "fulfilled" ? fixtures.value.length : 0,
       results: results.status === "fulfilled" ? results.value.length : 0,
       standings: standings.status === "fulfilled" ? standings.value.length : 0,
-      scorers: scorers.status === "fulfilled" ? scorers.value.length : 0,
       errors: {
         fixtures: fixtures.status === "rejected" ? fixtures.reason?.message : null,
         results: results.status === "rejected" ? results.reason?.message : null,
         standings: standings.status === "rejected" ? standings.reason?.message : null,
-        scorers: scorers.status === "rejected" ? scorers.reason?.message : null,
       },
     };
 
@@ -155,49 +151,14 @@ export async function POST() {
       }
     }
 
-    // Store scorers
-    if (scorers.status === "fulfilled") {
-      const scorersData = scorers.value;
-      console.log(`[Refresh] Storing ${scorersData.length} scorers...`);
-
-      const dbScorers = scorersData.map(scorer => ({
-        name: scorer.name,
-        club: scorer.club,
-        goals: scorer.goals,
-        assists: scorer.assists,
-        season: '2025'
-      }));
-
-      // Delete existing scorers and insert new ones
-      await supabaseServer.from('scorers').delete().eq('season', '2025');
-      const { error: scorersError } = await supabaseServer
-        .from('scorers')
-        .insert(dbScorers);
-
-      if (scorersError) {
-        console.error("[Refresh] Error storing scorers:", scorersError);
-      } else {
-        // Update cache metadata
-        await supabaseServer
-          .from('cache_metadata')
-          .upsert({
-            key: 'scorers',
-            last_updated: new Date().toISOString(),
-            data_count: scorersData.length
-          }, { onConflict: 'key' });
-      }
-    }
-    
     // Revalidate Next.js cache paths
     revalidatePath("/api/fixtures");
     revalidatePath("/api/results");
     revalidatePath("/api/standings");
-    revalidatePath("/api/scorers");
     revalidatePath("/");
     revalidatePath("/fixtures");
     revalidatePath("/results");
     revalidatePath("/standings");
-    revalidatePath("/top-scorers");
     
     console.log("[Refresh] Data refresh completed:", refreshResults);
     
