@@ -26,7 +26,7 @@ export async function GET() {
     ]);
 
     const { data: standingsData, error: dbError } = standingsResult;
-    const { data: cacheMeta } = cacheMetaResult as { data: { last_updated: string } | null };
+    const { data: cacheMeta } = cacheMetaResult;
 
     if (dbError) {
       console.error("[Standings API] Database error:", dbError);
