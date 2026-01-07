@@ -98,10 +98,10 @@ export async function scrapeScorers(): Promise<Scorer[]> {
               
               // Extract assists (usually last cell)
               const assistsText = cells[cells.length - 1]?.textContent?.trim() || "0";
-              const assists = parseInt(assistsText) || 0;
+              const assistCount = parseInt(assistsText) || 0;
 
               if (name) {
-                assists.push({ name, assists });
+                assists.push({ name, assists: assistCount });
               }
             });
             
