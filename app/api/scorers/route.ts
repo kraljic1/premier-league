@@ -29,7 +29,7 @@ export async function GET() {
         .from('cache_metadata')
         .select('last_updated')
         .eq('key', 'scorers')
-        .single();
+        .single() as { data: { last_updated: string } | null };
 
       const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
       const now = new Date();

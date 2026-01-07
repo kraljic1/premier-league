@@ -26,7 +26,7 @@ export async function GET() {
     ]);
 
     const { data: fixturesData, error: dbError } = fixturesResult;
-    const { data: cacheMeta } = cacheMetaResult;
+    const { data: cacheMeta } = cacheMetaResult as { data: { last_updated: string } | null };
 
     if (dbError) {
       console.error("[Fixtures API] Database error:", dbError);

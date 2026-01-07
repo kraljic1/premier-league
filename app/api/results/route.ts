@@ -27,7 +27,7 @@ export async function GET() {
     ]);
 
     const { data: resultsData, error: dbError } = resultsResult;
-    const { data: cacheMeta } = cacheMetaResult;
+    const { data: cacheMeta } = cacheMetaResult as { data: { last_updated: string } | null };
 
     if (dbError) {
       console.error("[Results API] Database error:", dbError);
