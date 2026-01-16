@@ -12,8 +12,21 @@ const urlsToCache = [
   "/icon-512.png"
 ];
 
+// Check if a URL scheme is cacheable (only http/https)
+const isCacheableScheme = (url) => {
+  const scheme = url.protocol;
+  return scheme === 'http:' || scheme === 'https:';
+};
+
 // Cache strategies
 const cacheFirst = async (request) => {
+  const url = new URL(request.url);
+  
+  // Skip caching for unsupported schemes (chrome-extension, moz-extension, etc.)
+  if (!isCacheableScheme(url)) {
+    return fetch(request);
+  }
+  
   const cachedResponse = await caches.match(request);
   if (cachedResponse) {
     return cachedResponse;
@@ -32,6 +45,13 @@ const cacheFirst = async (request) => {
 };
 
 const networkFirst = async (request) => {
+  const url = new URL(request.url);
+  
+  // Skip caching for unsupported schemes
+  if (!isCacheableScheme(url)) {
+    return fetch(request);
+  }
+  
   try {
     const networkResponse = await fetch(request);
     if (networkResponse.ok) {
@@ -47,6 +67,13 @@ const networkFirst = async (request) => {
 };
 
 const staleWhileRevalidate = async (request) => {
+  const url = new URL(request.url);
+  
+  // Skip caching for unsupported schemes
+  if (!isCacheableScheme(url)) {
+    return fetch(request);
+  }
+  
   const cache = await caches.open(API_CACHE);
   const cachedResponse = await cache.match(request);
 
@@ -101,6 +128,11 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
+  // Skip unsupported URL schemes (chrome-extension, moz-extension, etc.)
+  if (!isCacheableScheme(url)) {
+    return; // Let browser handle it natively
+  }
+
   // API routes - Network first with cache fallback
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirst(request));
@@ -114,7 +146,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   // HTML pages - Stale while revalidate
-  if (request.headers.get('accept').includes('text/html')) {
+  if (request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { useAppStore } from "@/lib/store";
 import { CLUBS } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { ClubLogo } from "@/components/ClubLogo";
+import { SafeImage } from "@/components/SafeImage";
 
 export function ClubSelector() {
   const [mounted, setMounted] = useState(false);
@@ -57,16 +57,14 @@ export function ClubSelector() {
             >
               <div className="flex items-center gap-2 mb-1">
                 {(club.logoUrlFromDb || club.logoUrl) && (
-                  <Image
+                  <SafeImage
                     src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
                     width={24}
                     height={24}
                     className="w-6 h-6 object-contain"
                     loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
+                    unoptimized={(club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg')}
                   />
                 )}
                 <div className="text-sm font-medium">{club.shortName}</div>
@@ -141,16 +139,14 @@ function PrimaryClubDropdown({
           {selectedClub ? (
             <>
               {(selectedClub.logoUrlFromDb || selectedClub.logoUrl) && (
-                <Image
+                <SafeImage
                   src={selectedClub.logoUrlFromDb || selectedClub.logoUrl!}
                   alt={`${selectedClub.name} logo`}
                   width={20}
                   height={20}
                   className="w-5 h-5 object-contain"
                   loading="lazy"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
+                  unoptimized={(selectedClub.logoUrlFromDb || selectedClub.logoUrl)?.endsWith('.svg')}
                 />
               )}
               <span>{selectedClub.name}</span>
@@ -204,16 +200,14 @@ function PrimaryClubDropdown({
                 }`}
               >
                 {(club.logoUrlFromDb || club.logoUrl) && (
-                  <Image
+                  <SafeImage
                     src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
                     width={20}
                     height={20}
                     className="w-5 h-5 object-contain"
                     loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
+                    unoptimized={(club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg')}
                   />
                 )}
                 <span>{club.name}</span>

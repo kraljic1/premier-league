@@ -15,11 +15,28 @@
   included_files = ["lib/**"]
   directory = "netlify/functions"
 
-# Scheduled function for auto-updating match results
-# Runs every 30 minutes but only scrapes when matches have likely finished
-# (checks for matches that started 90-150 minutes ago)
+# Daily scheduler - analyzes fixtures and creates update schedule
+# Runs once daily at 2 AM UTC to schedule updates for upcoming matches
+# Calculates when each match will finish (start + 120 min) and stores in scheduled_updates table
+[functions."schedule-updates"]
+  schedule = "0 2 * * *"
+
+# Auto-update function - runs when matches finish
+# Uses pre-calculated schedule from schedule-updates function:
+# - Runs every 5 minutes (just to check if it's time)
+# - Checks scheduled_updates table for updates that should run now
+# - If scheduled update found → updates results & standings
+# - If no scheduled updates → exits immediately (<1 second, minimal cost)
+# - This way it ONLY runs when matches actually finish (based on schedule)
 [functions."auto-update"]
-  schedule = "*/30 * * * *"
+  schedule = "*/5 * * * *"
+
+# Scheduled function for updating standings (backup/fallback)
+# Runs every 6 hours as a safety net to keep standings fresh
+# Note: Standings are also updated automatically by auto-update function
+# when matches finish (120 minutes after match start)
+[functions."update-standings"]
+  schedule = "0 */6 * * *"
 
 # Comprehensive security headers
 [[headers]]

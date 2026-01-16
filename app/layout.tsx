@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Footer } from "@/components/Footer";
 import { ServiceWorkerRegistration } from "./sw-register";
 import { ClubTheme } from "@/components/ClubTheme";
+import { PortalFix } from "@/components/PortalFix";
 
 // Optimize font loading with display swap for better performance
 const inter = Inter({
@@ -47,13 +48,21 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://supabase.co" />
       </head>
       <body className={`${inter.variable} ${inter.className}`} suppressHydrationWarning>
+        <PortalFix />
         <ServiceWorkerRegistration />
         <Providers>
           <ClubTheme />
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <header className="header-bar">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-                <h1 className="text-xl font-bold">Premier League Tracker</h1>
+                <div className="flex items-center">
+                  <img
+                    src="/premier-league-trophy.png"
+                    alt="Premier League Trophy"
+                    className="h-10 w-10 mr-3 object-contain"
+                  />
+                  <h1 className="text-xl font-bold">Premier League Tracker</h1>
+                </div>
                 <ThemeToggle />
               </div>
             </header>

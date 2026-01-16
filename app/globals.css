@@ -434,3 +434,29 @@ body {
   display: inline-block;
 }
 
+/* Fix Next.js portal element issues */
+nextjs-portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+/* Hide empty or zero-sized portals */
+nextjs-portal:empty {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Hide portals with zero dimensions */
+nextjs-portal[data-cursor-element-id] {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Only show portal when it has content */
+nextjs-portal:not(:empty) {
+  display: block;
+}
+

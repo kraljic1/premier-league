@@ -3,12 +3,22 @@ import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
 
 /**
- * Netlify Scheduled Function - Smart Auto Update Results
+ * Netlify Scheduled Function - Scheduled Auto Update
  * 
- * Runs every 30 minutes but ONLY updates when there are matches
- * that started 90-150 minutes ago (likely just finished).
+ * Uses pre-calculated schedule from schedule-updates function:
+ * - Checks scheduled_updates table FIRST (super quick database query)
+ * - Only runs when matches are scheduled to finish (pre-calculated)
+ * - Updates both match results and standings automatically
  * 
- * This is much more efficient than updating every 15 minutes blindly.
+ * Schedule: Runs every 5 minutes (just to check if it's time)
+ * 
+ * How it works:
+ * 1. Daily scheduler (schedule-updates) analyzes fixtures and creates schedule
+ * 2. This function checks scheduled_updates table every 5 minutes
+ * 3. If update_time matches current time → scrape & update
+ * 4. If no scheduled updates → exit immediately (<1 second)
+ * 
+ * This way it ONLY runs when matches actually finish (based on pre-calculated schedule)
  */
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -17,6 +27,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const REZULTATI_URL = "https://www.rezultati.com/nogomet/engleska/premier-league/rezultati/";
+const REZULTATI_STANDINGS_URL = "https://www.rezultati.com/nogomet/engleska/premier-league/tablica/";
 
 // Match duration: 45min + 15min halftime + 45min + ~10min added time = ~115min
 // Adding buffer for delays: check matches that started 120-180 minutes ago
@@ -40,32 +51,88 @@ interface ScheduledMatch {
   status: string;
 }
 
+interface Standing {
+  position: number;
+  club: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+  form: string;
+}
+
 /**
- * Check if there are any matches that likely just finished
- * (started 90-150 minutes ago and still marked as scheduled)
+ * Check scheduled_updates table to see if it's time to update
+ * Uses pre-calculated schedule from daily scheduler function
  */
 async function getMatchesToUpdate(): Promise<ScheduledMatch[]> {
   const now = new Date();
   
-  // Matches that started 90-150 minutes ago
-  const windowStart = new Date(now.getTime() - CHECK_WINDOW_END_MS);
-  const windowEnd = new Date(now.getTime() - CHECK_WINDOW_START_MS);
+  // Check scheduled_updates table for updates that should run now
+  // Allow 5 minute window: check if update_time is within last 5 minutes
+  const timeWindowStart = new Date(now.getTime() - 5 * 60 * 1000); // 5 min ago
+  const timeWindowEnd = new Date(now.getTime() + 1 * 60 * 1000); // 1 min in future
   
-  console.log(`[AutoUpdate] Checking for matches between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`);
+  console.log(`[AutoUpdate] Checking scheduled updates:`);
+  console.log(`  Time window: ${timeWindowStart.toISOString()} to ${timeWindowEnd.toISOString()}`);
+  
+  // First try scheduled_updates table (if it exists)
+  const { data: scheduledUpdates, error: scheduledError } = await supabase
+    .from("scheduled_updates")
+    .select("match_id, home_team, away_team, match_start")
+    .gte("update_time", timeWindowStart.toISOString())
+    .lte("update_time", timeWindowEnd.toISOString())
+    .order("update_time", { ascending: true });
+  
+  if (!scheduledError && scheduledUpdates && scheduledUpdates.length > 0) {
+    console.log(`[AutoUpdate] Found ${scheduledUpdates.length} scheduled update(s):`);
+    scheduledUpdates.forEach(s => {
+      console.log(`  - ${s.home_team} vs ${s.away_team} (scheduled update)`);
+    });
+    
+    // Get full match details from fixtures table
+    const matchIds = scheduledUpdates.map(s => s.match_id);
+    const { data: fixtures } = await supabase
+      .from("fixtures")
+      .select("id, date, home_team, away_team, status")
+      .in("id", matchIds)
+      .eq("status", "scheduled");
+    
+    return fixtures || [];
+  }
+  
+  // Fallback: If scheduled_updates table doesn't exist or is empty, use old method
+  console.log(`[AutoUpdate] No scheduled updates found, checking fixtures calendar (fallback)...`);
+  
+  const windowStart = new Date(now.getTime() - CHECK_WINDOW_END_MS); // 180 min ago
+  const windowEnd = new Date(now.getTime() - CHECK_WINDOW_START_MS); // 120 min ago
   
   const { data, error } = await supabase
     .from("fixtures")
     .select("id, date, home_team, away_team, status")
     .eq("status", "scheduled")
     .gte("date", windowStart.toISOString())
-    .lte("date", windowEnd.toISOString());
+    .lte("date", windowEnd.toISOString())
+    .order("date", { ascending: true });
   
   if (error) {
-    console.error("[AutoUpdate] Error fetching scheduled matches:", error);
+    console.error("[AutoUpdate] Error querying fixtures:", error);
     return [];
   }
   
-  return data || [];
+  const matches = data || [];
+  
+  if (matches.length > 0) {
+    console.log(`[AutoUpdate] Found ${matches.length} match(es) via fallback method`);
+  } else {
+    console.log(`[AutoUpdate] No matches found - skipping update`);
+  }
+  
+  return matches;
 }
 
 /**
@@ -175,6 +242,164 @@ async function fetchResults(): Promise<MatchResult[]> {
 }
 
 /**
+ * Normalize team name to match database format
+ */
+function normalizeTeamName(name: string): string {
+  const mappings: Record<string, string> = {
+    "manchester city": "Man City",
+    "manchester united": "Man Utd",
+    "tottenham hotspur": "Tottenham",
+    "brighton & hove albion": "Brighton",
+    "west ham united": "West Ham",
+    "wolverhampton wanderers": "Wolves",
+    "nottingham forest": "Nott'm Forest",
+    "afc bournemouth": "Bournemouth",
+  };
+  const normalized = name.toLowerCase().trim();
+  return mappings[normalized] || name;
+}
+
+/**
+ * Scrape standings from Rezultati.com
+ */
+async function scrapeStandings(): Promise<Standing[]> {
+  console.log("[AutoUpdate] Fetching standings from Rezultati.com...");
+
+  const response = await fetch(REZULTATI_STANDINGS_URL, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch standings: ${response.status}`);
+  }
+
+  const html = await response.text();
+  const $ = cheerio.load(html);
+  const standings: Standing[] = [];
+
+  // Try multiple table selectors
+  $("table tbody tr, .table__row, .standings-table tbody tr").each((index, row) => {
+    const $row = $(row);
+    if ($row.find("th").length > 0) return;
+
+    const cells = $row.find("td, .table__cell");
+    if (cells.length < 8) return;
+
+    const position = parseInt($(cells[0]).text().trim()) || index + 1;
+    let club = $(cells[1]).text().trim().replace(/\d+$/, "").trim();
+    club = normalizeTeamName(club);
+
+    if (!club || club.length < 3) return;
+
+    const played = parseInt($(cells[2]).text().trim()) || 0;
+    const won = parseInt($(cells[3]).text().trim()) || 0;
+    const drawn = parseInt($(cells[4]).text().trim()) || 0;
+    const lost = parseInt($(cells[5]).text().trim()) || 0;
+    const goalsFor = parseInt($(cells[6]).text().trim()) || 0;
+    const goalsAgainst = parseInt($(cells[7]).text().trim()) || 0;
+    const goalDifference = parseInt($(cells[8]).text().trim()) || goalsFor - goalsAgainst;
+    const points = parseInt($(cells[cells.length - 1]).text().trim()) || 0;
+
+    // Extract form
+    const formCell = $row.find("[class*='form'], [class*='last']");
+    let form = "";
+    if (formCell.length > 0) {
+      formCell.find("span, div").each((_, el) => {
+        const className = $(el).attr("class") || "";
+        const text = $(el).text().trim().toUpperCase();
+        if (className.includes("win") || text === "W") form += "W";
+        else if (className.includes("draw") || text === "D") form += "D";
+        else if (className.includes("loss") || text === "L") form += "L";
+      });
+      form = form.slice(0, 6);
+    }
+
+    standings.push({
+      position,
+      club,
+      played,
+      won,
+      drawn,
+      lost,
+      goalsFor,
+      goalsAgainst,
+      goalDifference,
+      points,
+      form,
+    });
+  });
+
+  console.log(`[AutoUpdate] Scraped ${standings.length} standings`);
+  return standings.slice(0, 20); // Ensure max 20 teams
+}
+
+/**
+ * Update standings in database
+ */
+async function updateStandings(): Promise<number> {
+  try {
+    const standings = await scrapeStandings();
+
+    if (standings.length === 0) {
+      console.log("[AutoUpdate] No standings scraped, skipping update");
+      return 0;
+    }
+
+    const dbStandings = standings.map((s) => ({
+      position: s.position,
+      club: s.club,
+      played: s.played,
+      won: s.won,
+      drawn: s.drawn,
+      lost: s.lost,
+      goals_for: s.goalsFor,
+      goals_against: s.goalsAgainst,
+      goal_difference: s.goalDifference,
+      points: s.points,
+      form: s.form,
+      season: "2025",
+    }));
+
+    // Delete existing standings for season 2025
+    const { error: deleteError } = await supabase
+      .from("standings")
+      .delete()
+      .eq("season", "2025");
+
+    if (deleteError) {
+      console.error("[AutoUpdate] Error deleting old standings:", deleteError);
+    }
+
+    // Insert new standings
+    const { error: insertError } = await supabase.from("standings").insert(dbStandings);
+
+    if (insertError) {
+      console.error("[AutoUpdate] Error inserting standings:", insertError);
+      throw insertError;
+    }
+
+    // Update cache metadata
+    await supabase.from("cache_metadata").upsert(
+      {
+        key: "standings",
+        last_updated: new Date().toISOString(),
+        data_count: standings.length,
+      },
+      { onConflict: "key" }
+    );
+
+    console.log(`[AutoUpdate] Successfully updated ${standings.length} standings`);
+    return standings.length;
+  } catch (error) {
+    console.error("[AutoUpdate] Error updating standings:", error);
+    return 0;
+  }
+}
+
+/**
  * Update results in database
  */
 async function updateDatabase(results: MatchResult[]): Promise<number> {
@@ -220,9 +445,42 @@ async function updateDatabase(results: MatchResult[]): Promise<number> {
   return results.length;
 }
 
-// Schedule: Check every 30 minutes, but only scrape when matches need updating
-export const handler = schedule("*/30 * * * *", async (event, context) => {
-  console.log("[AutoUpdate] Checking if update is needed...");
+/**
+ * Get upcoming matches for logging/debugging
+ */
+async function getUpcomingMatches(): Promise<void> {
+  const now = new Date();
+  const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  
+  const { data } = await supabase
+    .from("fixtures")
+    .select("date, home_team, away_team, status")
+    .eq("status", "scheduled")
+    .gte("date", now.toISOString())
+    .lte("date", next24Hours.toISOString())
+    .order("date", { ascending: true })
+    .limit(5);
+  
+  if (data && data.length > 0) {
+    console.log(`[AutoUpdate] Next matches in fixtures calendar:`);
+    data.forEach(m => {
+      const matchTime = new Date(m.date);
+      const hoursUntil = ((matchTime.getTime() - now.getTime()) / (60 * 60 * 1000)).toFixed(1);
+      console.log(`  - ${m.home_team} vs ${m.away_team} (in ${hoursUntil}h)`);
+    });
+  }
+}
+
+// Schedule: Run every 5 minutes - but ONLY does work when matches finish
+// Uses fixtures calendar: checks fixtures table first, exits immediately if no matches
+// This is efficient because:
+// - Super quick database query (checks fixtures calendar)
+// - Only scrapes when matches are detected (120 min after match start)
+// - Exits in <1 second when no matches need updating (minimal cost)
+export const handler = schedule("*/5 * * * *", async (event, context) => {
+  console.log("[AutoUpdate] =========================================");
+  console.log("[AutoUpdate] Checking fixtures calendar for updates...");
+  console.log("[AutoUpdate] =========================================");
   const startTime = Date.now();
 
   try {
@@ -230,18 +488,25 @@ export const handler = schedule("*/30 * * * *", async (event, context) => {
       throw new Error("Missing Supabase configuration");
     }
 
-    // Step 1: Check if there are matches that likely just finished
+    // Step 1: Check fixtures calendar for matches that likely just finished
     const matchesToUpdate = await getMatchesToUpdate();
 
     if (matchesToUpdate.length === 0) {
-      console.log("[AutoUpdate] No matches to update. Skipping scrape.");
+      // Show upcoming matches for visibility
+      await getUpcomingMatches();
+      
+      const duration = Math.round((Date.now() - startTime) / 1000);
+      console.log(`[AutoUpdate] No matches to update. Exited in ${duration}s (minimal cost).`);
+      
       return {
         statusCode: 200,
         body: JSON.stringify({
           success: true,
-          message: "No matches to update at this time",
+          message: "No matches to update - checked fixtures calendar",
           matchesChecked: 0,
           resultsUpdated: 0,
+          standingsUpdated: 0,
+          duration: `${duration}s`,
           timestamp: new Date().toISOString(),
         }),
       };
@@ -258,9 +523,14 @@ export const handler = schedule("*/30 * * * *", async (event, context) => {
     // Step 3: Update database with new results
     const updatedCount = await updateDatabase(results);
 
+    // Step 4: Update standings 120 minutes after matches begin
+    // This ensures standings are updated whenever matches finish (120 min after start)
+    console.log("[AutoUpdate] Updating standings (120 minutes after match start)...");
+    const standingsUpdated = await updateStandings();
+
     const duration = Math.round((Date.now() - startTime) / 1000);
 
-    console.log(`[AutoUpdate] Completed in ${duration}s. Updated ${updatedCount} results.`);
+    console.log(`[AutoUpdate] Completed in ${duration}s. Updated ${updatedCount} results and ${standingsUpdated} standings.`);
 
     return {
       statusCode: 200,
@@ -269,6 +539,7 @@ export const handler = schedule("*/30 * * * *", async (event, context) => {
         message: "Auto-update completed",
         matchesChecked: matchesToUpdate.length,
         resultsUpdated: updatedCount,
+        standingsUpdated: standingsUpdated,
         duration: `${duration}s`,
         timestamp: new Date().toISOString(),
       }),

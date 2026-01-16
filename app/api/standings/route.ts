@@ -180,6 +180,8 @@ export async function GET() {
 
         if (insertError) {
           console.error("[Standings API] Error storing standings:", insertError);
+          // Continue and return scraped data even if database storage fails
+          console.log("[Standings API] Returning scraped standings despite database error");
         } else {
           // Update cache metadata
           await supabaseServer
@@ -224,6 +226,22 @@ export async function GET() {
             "X-Cache": "FALLBACK",
           },
         });
+      }
+
+      // TEMPORARY: Try scraping one more time and return results even if database storage fails
+      console.log("[Standings API] Attempting emergency scrape...");
+      try {
+        const emergencyStandings = await scrapeStandings();
+        if (emergencyStandings.length > 0) {
+          console.log(`[Standings API] Emergency scrape successful: ${emergencyStandings.length} standings`);
+          return NextResponse.json(emergencyStandings, {
+            headers: {
+              "X-Cache": "EMERGENCY-SCRAPE",
+            },
+          });
+        }
+      } catch (emergencyError) {
+        console.error("[Standings API] Emergency scrape also failed:", emergencyError);
       }
 
       return NextResponse.json([], {

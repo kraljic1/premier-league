@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { Club } from "@/lib/types";
 import { getClubByName } from "@/lib/clubs";
+import { SafeImage } from "@/components/SafeImage";
 
 interface ClubLogoProps {
   clubName: string;
@@ -68,23 +68,27 @@ export function ClubLogo({ clubName, size = 24, className = "" }: ClubLogoProps)
     return <span className={className}>{clubName}</span>;
   }
 
+  // Normalize URL - ensure it's properly formatted
+  const normalizedUrl = displayLogoUrl 
+    ? (displayLogoUrl.includes('%25') ? decodeURIComponent(displayLogoUrl) : displayLogoUrl)
+    : null;
+
+  if (!normalizedUrl) {
+    return <span className={className}>{clubName}</span>;
+  }
+
+  const isSvg = normalizedUrl.endsWith('.svg') || normalizedUrl.includes('.svg');
+
   return (
     <div className={`club-logo ${className}`}>
-      <Image
-        src={displayLogoUrl}
+      <SafeImage
+        src={normalizedUrl}
         alt={`${clubName} logo`}
         className="club-logo__image"
         width={size}
         height={size}
         loading="lazy"
-        {...(size >= 40 ? {
-          placeholder: "blur" as const,
-          blurDataURL: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2Y5ZmFmYiIvPgo8L3N2Zz4K"
-        } : {})}
-        onError={() => {
-          // Use setTimeout to defer state update and avoid render-time warnings
-          setTimeout(() => setImageError(true), 0);
-        }}
+        unoptimized={isSvg}
       />
       <span className="club-logo__name">{clubName}</span>
     </div>
