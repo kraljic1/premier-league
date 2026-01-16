@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const season = `${seasonYear}/${parseInt(seasonYear) + 1}`;
+    // Use short season format to match import script (e.g., "2024/25" not "2024/2025")
+    const nextYear = (parseInt(seasonYear) + 1).toString().slice(-2);
+    const season = `${seasonYear}/${nextYear}`;
 
     // Fetch fixtures for this season from database
     const { data: fixturesData, error: fetchError } = await supabaseServer

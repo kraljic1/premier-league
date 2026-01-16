@@ -10,6 +10,32 @@ import {
   fetchHistoricalSeason,
   scrapeHistoricalSeason,
 } from "../api/compare-season-api";
+import { Fixture } from "../types";
+
+// Current season identifiers (both formats for compatibility)
+// Short format used by import script: "2025/26"
+// Full format used by database default: "2025/2026"
+const CURRENT_SEASON_SHORT = "2025/26";
+const CURRENT_SEASON_FULL = "2025/2026";
+// Season 2025/26 runs from approximately August 2025 to May 2026
+const CURRENT_SEASON_START = new Date("2025-08-01");
+const CURRENT_SEASON_END = new Date("2026-06-30");
+
+/**
+ * Filters fixtures to only include those from the current season.
+ * Handles both season format variants and falls back to date range.
+ */
+function filterCurrentSeasonFixtures(fixtures: Fixture[]): Fixture[] {
+  return fixtures.filter((f) => {
+    // If fixture has season field set, check both formats
+    if (f.season) {
+      return f.season === CURRENT_SEASON_SHORT || f.season === CURRENT_SEASON_FULL;
+    }
+    // Otherwise, filter by date range (for fixtures without season field)
+    const fixtureDate = new Date(f.date);
+    return fixtureDate >= CURRENT_SEASON_START && fixtureDate <= CURRENT_SEASON_END;
+  });
+}
 
 export function useCompareSeason() {
   const [selectedClub, setSelectedClub] = useState<string | null>(null);
@@ -18,7 +44,7 @@ export function useCompareSeason() {
   const [scrapingError, setScrapingError] = useState<string | null>(null);
 
   const {
-    data: currentFixtures = [],
+    data: allFixtures = [],
     isLoading: isLoadingCurrent,
     error: currentError,
     refetch: refetchCurrent,
@@ -26,6 +52,11 @@ export function useCompareSeason() {
     queryKey: ["currentFixtures"],
     queryFn: fetchCurrentSeasonFixtures,
   });
+
+  // Filter fixtures for current season only (by season field or date range)
+  const currentFixtures = useMemo(() => {
+    return filterCurrentSeasonFixtures(allFixtures);
+  }, [allFixtures]);
 
   const {
     data: historicalFixtures = [],
