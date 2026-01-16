@@ -14,6 +14,15 @@ export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
+// Current season identifiers (both formats for compatibility)
+// Short format used by import script: "2025/26"
+// Full format used by database default: "2025/2026"
+const CURRENT_SEASON_SHORT = "2025/26";
+const CURRENT_SEASON_FULL = "2025/2026";
+// Season 2025/26 runs from approximately August 2025 to May 2026
+const CURRENT_SEASON_START = new Date("2025-08-01");
+const CURRENT_SEASON_END = new Date("2026-06-30");
+
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
 
@@ -112,12 +121,6 @@ export async function GET(request: NextRequest) {
       console.log("[Fixtures API] Checking database for fixtures...");
 
       // Filter for current season fixtures only (both season formats and date range fallback)
-      // Current season identifiers (both formats for compatibility)
-      const CURRENT_SEASON_SHORT = "2025/26";
-      const CURRENT_SEASON_FULL = "2025/2026";
-      // Season 2025/26 runs from approximately August 2025 to May 2026
-      const CURRENT_SEASON_START = new Date("2025-08-01");
-      const CURRENT_SEASON_END = new Date("2026-06-30");
 
       const [fixturesResult, cacheMetaResult] = await Promise.all([
         supabaseServer

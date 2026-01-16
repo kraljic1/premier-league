@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scrapeHistoricalSeason } from "@/lib/api/compare-season-api";
 import { createClient } from "@supabase/supabase-js";
 import { Fixture } from "@/lib/types";
 
