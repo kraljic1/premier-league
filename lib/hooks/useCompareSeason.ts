@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   calculatePointsForClub,
@@ -63,14 +63,29 @@ export function useCompareSeason() {
     isLoading: isLoadingHistorical,
     error: historicalError,
     refetch: refetchHistorical,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: ["historicalFixtures", selectedSeason],
-    queryFn: () => fetchHistoricalSeason(selectedSeason!),
+    queryFn: async () => {
+      console.log(`[useCompareSeason] Fetching historical data for season: "${selectedSeason}"`);
+      const result = await fetchHistoricalSeason(selectedSeason!);
+      console.log(`[useCompareSeason] Received ${result.length} fixtures for "${selectedSeason}"`);
+      return result;
+    },
     enabled: !!selectedSeason,
     // Don't use stale data - always refetch when season changes
     staleTime: 0,
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    gcTime: 0, // Don't cache at all - ensures fresh data for each season
   });
+
+  // Log when historicalFixtures changes
+  useEffect(() => {
+    if (historicalFixtures.length > 0) {
+      console.log(`[useCompareSeason] historicalFixtures updated: ${historicalFixtures.length} fixtures, dataUpdatedAt: ${dataUpdatedAt}`);
+      const firstFixture = historicalFixtures[0];
+      console.log(`[useCompareSeason] First fixture season: ${firstFixture.season}`);
+    }
+  }, [historicalFixtures, dataUpdatedAt]);
 
   const availableSeasons = useMemo(() => {
     const seasons = getAvailableSeasons(currentFixtures);
@@ -103,13 +118,17 @@ export function useCompareSeason() {
 
   const historicalSeasonStats = useMemo(() => {
     if (!selectedClub || !selectedSeason || historicalFixtures.length === 0) {
+      console.log(`[useCompareSeason] historicalSeasonStats: null (selectedClub=${selectedClub}, selectedSeason=${selectedSeason}, fixtures=${historicalFixtures.length})`);
       return null;
     }
-    return calculatePointsForClub(
+    console.log(`[useCompareSeason] Calculating stats for "${selectedClub}" in "${selectedSeason}" (${historicalFixtures.length} fixtures, matchweek ${currentMatchweek})`);
+    const stats = calculatePointsForClub(
       historicalFixtures,
       selectedClub,
       currentMatchweek
     );
+    console.log(`[useCompareSeason] Stats result: ${JSON.stringify(stats)}`);
+    return stats;
   }, [selectedClub, selectedSeason, historicalFixtures, currentMatchweek]);
 
   const handleScrapeSeason = async () => {

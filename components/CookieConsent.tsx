@@ -28,12 +28,12 @@ export function CookieConsent() {
     if (typeof window !== "undefined") {
       localStorage.setItem("cookie-consent", "accepted");
       localStorage.setItem("cookie-consent-date", new Date().toISOString());
+      // Dispatch custom event to notify other components of consent change
+      window.dispatchEvent(new CustomEvent("cookie-consent-changed", {
+        detail: { consent: "accepted" }
+      }));
     }
     setShowBanner(false);
-    // Reload to initialize GA4
-    if (typeof window !== "undefined") {
-      window.location.reload();
-    }
   };
 
   const handleReject = () => {

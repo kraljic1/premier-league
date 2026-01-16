@@ -14,13 +14,30 @@ export async function fetchCurrentSeasonFixtures(): Promise<Fixture[]> {
 
 export async function fetchHistoricalSeason(seasonYear: string): Promise<Fixture[]> {
   const year = seasonYear.split("/")[0];
+  const url = `/api/historical-season?seasonYear=${year}`;
+  
+  console.log(`[fetchHistoricalSeason] Called with seasonYear: "${seasonYear}", extracted year: "${year}"`);
+  console.log(`[fetchHistoricalSeason] Fetching URL: ${url}`);
+  
   // Use cache: 'no-store' to ensure fresh data for each season request
-  const res = await fetch(`/api/historical-season?seasonYear=${year}`, {
+  const res = await fetch(url, {
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error("Failed to fetch historical season");
+  
+  if (!res.ok) {
+    console.error(`[fetchHistoricalSeason] API error: ${res.status} ${res.statusText}`);
+    throw new Error("Failed to fetch historical season");
+  }
+  
   const data = await res.json();
-  console.log(`[fetchHistoricalSeason] Fetched ${data.fixtures?.length || 0} fixtures for season ${data.season}`);
+  console.log(`[fetchHistoricalSeason] Response for season "${data.season}": ${data.fixtures?.length || 0} fixtures`);
+  
+  // Log sample fixture to verify correct season data
+  if (data.fixtures && data.fixtures.length > 0) {
+    const sample = data.fixtures[0];
+    console.log(`[fetchHistoricalSeason] Sample fixture: ${sample.homeTeam} vs ${sample.awayTeam}, matchweek ${sample.matchweek}, season: ${sample.season}`);
+  }
+  
   return data.fixtures || [];
 }
 
