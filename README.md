@@ -84,6 +84,7 @@ npm run dev
 - `GET /api/standings` - League table
 - `GET /api/scorers` - Top goal scorers
 - `POST /api/refresh` - Refresh all data from Premier League website
+- `GET /api/keep-alive` - Keep Supabase project active (for cron jobs)
 
 ## Data Flow
 
@@ -146,6 +147,10 @@ For Netlify deployment, you may need to:
 1. Set environment variables in Netlify dashboard
 2. Configure build settings
 3. Ensure the database is accessible from the deployment environment
+
+### Preventing Supabase Project Pause
+
+To prevent your Supabase project from pausing due to inactivity, set up a cron job to call `/api/keep-alive` every 24 hours. See `KEEP_ALIVE_SETUP.md` for detailed instructions.
 
 ## Contributing
 
