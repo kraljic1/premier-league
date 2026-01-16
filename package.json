@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "refresh": "node scripts/refresh-data.js",
-    "setup-cron": "chmod +x scripts/setup-cron.sh && ./scripts/setup-cron.sh"
+    "setup-cron": "chmod +x scripts/setup-cron.sh && ./scripts/setup-cron.sh",
+    "fetch-all-fixtures": "npx tsx scripts/fetch-all-remaining-fixtures.ts",
+    "cleanup-duplicates": "npx tsx scripts/cleanup-duplicate-fixtures.ts"
   },
   "dependencies": {
     "@netlify/functions": "^5.1.2",
