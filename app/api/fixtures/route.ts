@@ -22,6 +22,8 @@ const CURRENT_SEASON_FULL = "2025/2026";
 // Season 2025/26 runs from approximately August 2025 to May 2026
 const CURRENT_SEASON_START = new Date("2025-08-01");
 const CURRENT_SEASON_END = new Date("2026-06-30");
+// Supabase filter for current season (matches any season format or null)
+const SEASON_FILTER = `season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL},season.is.null`;
 
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
@@ -120,14 +122,15 @@ export async function GET(request: NextRequest) {
       // Check database and cache metadata in parallel
       console.log("[Fixtures API] Checking database for fixtures...");
 
-      // Filter for current season fixtures only (both season formats and date range fallback)
+      // Filter for current season fixtures only
 
       const [fixturesResult, cacheMetaResult] = await Promise.all([
         supabaseServer
           .from('fixtures')
           .select('*')
-          .or(`season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL}`)
-          .or(`season.is.null,date.gte.${CURRENT_SEASON_START.toISOString()},date.lte.${CURRENT_SEASON_END.toISOString()}`)
+          .or(SEASON_FILTER)
+          .gte('date', CURRENT_SEASON_START.toISOString())
+          .lte('date', CURRENT_SEASON_END.toISOString())
           .order('date', { ascending: true }),
         supabaseServer
           .from('cache_metadata')
@@ -260,8 +263,9 @@ export async function GET(request: NextRequest) {
       const { data: allFixturesData, error: fetchError } = await supabaseServer
         .from('fixtures')
         .select('*')
-        .or(`season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL}`)
-        .or(`season.is.null,date.gte.${CURRENT_SEASON_START.toISOString()},date.lte.${CURRENT_SEASON_END.toISOString()}`)
+        .or(SEASON_FILTER)
+        .gte('date', CURRENT_SEASON_START.toISOString())
+        .lte('date', CURRENT_SEASON_END.toISOString())
         .order('date', { ascending: true });
 
       if (fetchError) {

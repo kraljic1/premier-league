@@ -49,6 +49,8 @@ export async function GET(request: NextRequest) {
     const nextYear = (parseInt(seasonYear) + 1).toString().slice(-2);
     const season = `${seasonYear}/${nextYear}`;
 
+    console.log(`[Historical Season API] Fetching season: ${season} (from year param: ${seasonYear})`);
+
     // Fetch fixtures for this season from database
     const { data: fixturesData, error: fetchError } = await supabaseServer
       .from("fixtures")
@@ -57,6 +59,8 @@ export async function GET(request: NextRequest) {
       .eq("status", "finished")
       .order("matchweek", { ascending: true })
       .order("date", { ascending: true });
+
+    console.log(`[Historical Season API] Found ${fixturesData?.length || 0} fixtures for season ${season}`);
 
     if (fetchError) {
       console.error("[Historical Season API] Error fetching fixtures:", fetchError);

@@ -67,6 +67,9 @@ export function useCompareSeason() {
     queryKey: ["historicalFixtures", selectedSeason],
     queryFn: () => fetchHistoricalSeason(selectedSeason!),
     enabled: !!selectedSeason,
+    // Don't use stale data - always refetch when season changes
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
   const availableSeasons = useMemo(() => {

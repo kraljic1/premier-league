@@ -14,11 +14,13 @@ export async function fetchCurrentSeasonFixtures(): Promise<Fixture[]> {
 
 export async function fetchHistoricalSeason(seasonYear: string): Promise<Fixture[]> {
   const year = seasonYear.split("/")[0];
+  // Use cache: 'no-store' to ensure fresh data for each season request
   const res = await fetch(`/api/historical-season?seasonYear=${year}`, {
-    next: { revalidate: 3600 },
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error("Failed to fetch historical season");
   const data = await res.json();
+  console.log(`[fetchHistoricalSeason] Fetched ${data.fixtures?.length || 0} fixtures for season ${data.season}`);
   return data.fixtures || [];
 }
 

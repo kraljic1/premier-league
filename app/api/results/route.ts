@@ -38,13 +38,16 @@ export async function GET(request: Request) {
     // Season 2025/26 runs from approximately August 2025 to May 2026
     const CURRENT_SEASON_START = new Date("2025-08-01");
     const CURRENT_SEASON_END = new Date("2026-06-30");
+    // Supabase filter for current season (matches any season format or null)
+    const SEASON_FILTER = `season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL},season.is.null`;
 
     let query = supabaseServer
       .from('fixtures')
       .select('*')
       .eq('status', 'finished')
-      .or(`season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL}`)
-      .or(`season.is.null,date.gte.${CURRENT_SEASON_START.toISOString()},date.lte.${CURRENT_SEASON_END.toISOString()}`);
+      .or(SEASON_FILTER)
+      .gte('date', CURRENT_SEASON_START.toISOString())
+      .lte('date', CURRENT_SEASON_END.toISOString());
     
     if (matchweek !== null) {
       query = query.eq('matchweek', matchweek);
