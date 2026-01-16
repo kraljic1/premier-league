@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getTimeUntil } from "@/lib/utils";
+import { ClubLogo } from "@/components/ClubLogo";
 import { Fixture } from "@/lib/types";
 
 interface MatchCountdownProps {
@@ -29,8 +30,11 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
 
   return (
     <div className="match-countdown text-center p-6 rounded-lg">
-      <h3 className="text-sm font-medium mb-4 opacity-90">
-        Next Match: {fixture.homeTeam} vs {fixture.awayTeam}
+      <h3 className="text-sm font-medium mb-4 opacity-90 flex items-center justify-center gap-2 flex-wrap">
+        <span>Next Match:</span>
+        <ClubLogo clubName={fixture.homeTeam} size={20} />
+        <span>vs</span>
+        <ClubLogo clubName={fixture.awayTeam} size={20} />
       </h3>
       <div className="flex justify-center gap-4">
         <TimeUnit value={timeLeft.days} label="Days" />

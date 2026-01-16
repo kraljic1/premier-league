@@ -414,3 +414,23 @@ body {
   border-color: #7c3aed;
 }
 
+/* Club Logo */
+.club-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.club-logo__image {
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.club-logo__name {
+  display: inline-block;
+}
+
+.club-logo__fallback {
+  display: inline-block;
+}
+

@@ -402,7 +402,78 @@ async function scrapeFixturesFromHTML($: ReturnType<typeof cheerio.load>): Promi
 }
 
 /**
- * Cleans team name by removing duplicates and extra whitespace
+ * Mapping of various team name variations to canonical names
+ * These names match those in lib/clubs.ts
+ */
+const TEAM_NAME_NORMALIZATION: Record<string, string> = {
+  // Bournemouth variations
+  "AFC Bournemouth": "Bournemouth",
+  "Bournemouth": "Bournemouth",
+  
+  // Brighton variations
+  "Brighton": "Brighton & Hove Albion",
+  "Brighton & Hove Albion": "Brighton & Hove Albion",
+  "Brighton Hove Albion": "Brighton & Hove Albion",
+  
+  // Burnley
+  "Burnley": "Burnley",
+  "Burnley FC": "Burnley",
+  
+  // Chelsea
+  "Chelsea": "Chelsea",
+  "Chelsea FC": "Chelsea",
+  
+  // Leeds variations
+  "Leeds": "Leeds United",
+  "Leeds United": "Leeds United",
+  "Leeds Utd": "Leeds United",
+  
+  // Liverpool variations
+  "Liverpool": "Liverpool",
+  "Liverpool FC": "Liverpool",
+  "Liverpool F.C.": "Liverpool",
+  
+  // Manchester City variations
+  "Manchester City": "Manchester City",
+  "Man City": "Manchester City",
+  "Man. City": "Manchester City",
+  
+  // Manchester United variations
+  "Manchester United": "Manchester United",
+  "Manchester Utd": "Manchester United",
+  "Man United": "Manchester United",
+  "Man Utd": "Manchester United",
+  
+  // Newcastle variations
+  "Newcastle": "Newcastle United",
+  "Newcastle United": "Newcastle United",
+  "Newcastle Utd": "Newcastle United",
+  
+  // Nottingham Forest variations
+  "Nottingham Forest": "Nottingham Forest",
+  "Nottingham": "Nottingham Forest",
+  "Nott'm Forest": "Nottingham Forest",
+  
+  // Tottenham variations
+  "Tottenham": "Tottenham Hotspur",
+  "Tottenham Hotspur": "Tottenham Hotspur",
+  "Spurs": "Tottenham Hotspur",
+  
+  // West Ham variations
+  "West Ham": "West Ham United",
+  "West Ham United": "West Ham United",
+  "West Ham Utd": "West Ham United",
+  
+  // Wolves variations
+  "Wolves": "Wolverhampton Wanderers",
+  "Wolverhampton": "Wolverhampton Wanderers",
+  "Wolverhampton Wanderers": "Wolverhampton Wanderers",
+  "Wolverhampton W.": "Wolverhampton Wanderers",
+};
+
+/**
+ * Cleans team name by removing duplicates and extra whitespace,
+ * then normalizes to canonical name
  */
 function cleanTeamName(name: string): string {
   if (!name) return '';
@@ -432,7 +503,10 @@ function cleanTeamName(name: string): string {
     }
   }
   
-  return cleaned.join(' ').trim();
+  const cleanedName = cleaned.join(' ').trim();
+  
+  // Normalize to canonical name
+  return TEAM_NAME_NORMALIZATION[cleanedName] || cleanedName;
 }
 
 /**

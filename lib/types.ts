@@ -5,6 +5,7 @@ export interface Club {
   primaryColor: string;
   secondaryColor: string;
   textColor: string;
+  logoUrl?: string;
 }
 
 export interface Fixture {

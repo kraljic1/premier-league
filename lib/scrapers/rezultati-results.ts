@@ -58,7 +58,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
       var seenFixtureIds = new Set();
       
       // Helper function to parse date from various formats
-      var parseDate = function(dateStr) {
+      var parseDate = function(dateStr: string) {
         if (!dateStr) return null;
         
         // Try ISO format first
@@ -94,7 +94,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
         }
         
         // Try DD MMM YYYY format
-        var monthMap = {
+        var monthMap: Record<string, number> = {
           'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
           'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11,
           'sij': 0, 'velj': 1, 'ožu': 2, 'tra': 3, 'svi': 4, 'lip': 5,
@@ -105,7 +105,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
         if (ddmmyyyy3) {
           var day = parseInt(ddmmyyyy3[1]);
           var monthStr = ddmmyyyy3[2].toLowerCase().substring(0, 3);
-          var month = monthMap[monthStr];
+          var month = monthMap[monthStr] as number;
           var year = parseInt(ddmmyyyy3[3]);
           if (month !== undefined && !isNaN(day) && !isNaN(year)) {
             var date = new Date(year, month, day);
@@ -133,7 +133,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
         '[class*="event__round"]',
       ];
 
-      var matchElements = [];
+      var matchElements: Element[] = [];
       
       // Try each selector
       for (var i = 0; i < matchSelectors.length; i++) {

@@ -12,6 +12,7 @@ export type Database = {
           primary_color: string | null
           secondary_color: string | null
           text_color: string | null
+          logo_url: string | null
           created_at: string
           updated_at: string
         }
@@ -22,6 +23,7 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           text_color?: string | null
+          logo_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -32,6 +34,7 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           text_color?: string | null
+          logo_url?: string | null
           created_at?: string
           updated_at?: string
         }

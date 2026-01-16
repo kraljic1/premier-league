@@ -5,6 +5,7 @@ import { RefreshButton } from "@/components/RefreshButton";
 import { TableSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
+import { ClubLogo } from "@/components/ClubLogo";
 import { Standing } from "@/lib/types";
 
 async function fetchStandings(): Promise<Standing[]> {
@@ -111,7 +112,9 @@ function StandingRow({ standing }: { standing: Standing }) {
       }`}
     >
       <td className="p-2 font-semibold">{standing.position}</td>
-      <td className="p-2 font-medium">{standing.club}</td>
+      <td className="p-2 font-medium">
+        <ClubLogo clubName={standing.club} size={20} />
+      </td>
       <td className="p-2 text-center">{standing.played}</td>
       <td className="p-2 text-center">{standing.won}</td>
       <td className="p-2 text-center">{standing.drawn}</td>

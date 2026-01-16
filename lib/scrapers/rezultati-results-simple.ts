@@ -149,8 +149,8 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
                      el.querySelector('time[datetime]');
         
         // If we don't have score elements, try to extract from text
-        var homeScore = null;
-        var awayScore = null;
+        var homeScore: number | null = null;
+        var awayScore: number | null = null;
         
         if (homeScoreEl && awayScoreEl) {
           homeScore = parseInt((homeScoreEl.textContent || '').trim());
@@ -158,7 +158,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
         }
         
         // Fallback: extract from text
-        if (isNaN(homeScore) || isNaN(awayScore)) {
+        if (homeScore === null || awayScore === null || isNaN(homeScore) || isNaN(awayScore)) {
           var scoreMatch = text.match(/(\d+)\s*[-–]\s*(\d+)/);
           if (scoreMatch) {
             homeScore = parseInt(scoreMatch[1]);
@@ -190,6 +190,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
         
         // Only add if we have all required data (scores are required for results)
         if (homeTeam && awayTeam && homeTeam.length >= 3 && awayTeam.length >= 3 && 
+            homeScore !== null && awayScore !== null && 
             !isNaN(homeScore) && !isNaN(awayScore) && homeScore >= 0 && awayScore >= 0) {
           matches.push({
             homeTeam: homeTeam,

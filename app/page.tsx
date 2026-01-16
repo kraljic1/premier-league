@@ -11,6 +11,7 @@ import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { ClubLogo } from "@/components/ClubLogo";
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
@@ -154,8 +155,10 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
       <div className="text-sm text-gray-600 dark:text-gray-400">
         {formatDate(fixture.date)}
       </div>
-      <div className="mt-2 font-semibold">
-        {fixture.homeTeam} vs {fixture.awayTeam}
+      <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
+        <ClubLogo clubName={fixture.homeTeam} size={20} />
+        <span>vs</span>
+        <ClubLogo clubName={fixture.awayTeam} size={20} />
       </div>
       {fixture.homeScore !== null && fixture.awayScore !== null ? (
         <div className="text-lg font-bold mt-2">

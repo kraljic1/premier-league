@@ -8,6 +8,7 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { SearchBar } from "@/components/SearchBar";
 import { MatchweekSelector } from "@/components/MatchweekSelector";
+import { ClubLogo } from "@/components/ClubLogo";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -252,8 +253,10 @@ function MatchCard({ fixture, isResult }: { fixture: Fixture; isResult: boolean 
       <div className="text-sm text-gray-600 dark:text-gray-400">
         {formatDate(fixture.date)}
       </div>
-      <div className="mt-2 font-semibold">
-        {fixture.homeTeam} vs {fixture.awayTeam}
+      <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
+        <ClubLogo clubName={fixture.homeTeam} size={20} />
+        <span>vs</span>
+        <ClubLogo clubName={fixture.awayTeam} size={20} />
       </div>
       {hasScore ? (
         <div className={`text-lg font-bold mt-2 ${isResult ? "text-gray-900 dark:text-gray-100" : ""}`}>

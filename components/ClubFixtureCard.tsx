@@ -2,6 +2,7 @@
 
 import { Fixture, Club } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { ClubLogo } from "@/components/ClubLogo";
 
 interface ClubFixtureCardProps {
   club: string;
@@ -22,7 +23,9 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
           backgroundColor: clubData?.primaryColor || "#37003c",
         }}
       >
-        <h3 className="club-fixture-card__club-name">{club}</h3>
+        <h3 className="club-fixture-card__club-name">
+          <ClubLogo clubName={club} size={28} />
+        </h3>
       </div>
       <div className="club-fixture-card__content">
         {fixtures.length === 0 ? (
@@ -67,13 +70,17 @@ function MatchItem({ fixture, club }: MatchItemProps) {
           {isHome ? (
             <>
               <span className="match-item__vs">vs</span>
-              <span className="match-item__opponent">{opponent}</span>
+              <span className="match-item__opponent">
+                <ClubLogo clubName={opponent} size={16} />
+              </span>
               <span className="match-item__venue">(H)</span>
             </>
           ) : (
             <>
               <span className="match-item__vs">@</span>
-              <span className="match-item__opponent">{opponent}</span>
+              <span className="match-item__opponent">
+                <ClubLogo clubName={opponent} size={16} />
+              </span>
               <span className="match-item__venue">(A)</span>
             </>
           )}
