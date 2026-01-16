@@ -54,7 +54,7 @@ export function Footer() {
 
           {/* Copyright */}
           <p className="text-gray-500 dark:text-gray-500 text-xs">
-            © 2025 Premier League Tracker. Made with ❤️ for football fans.
+            © 2026 Premier League Tracker. Made with ❤️ for football fans.
           </p>
         </div>
       </div>
