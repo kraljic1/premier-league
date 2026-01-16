@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useAppStore } from "@/lib/store";
 import { CLUBS } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
@@ -44,10 +45,13 @@ export function ClubSelector() {
             >
               <div className="flex items-center gap-2 mb-1">
                 {(club.logoUrlFromDb || club.logoUrl) && (
-                  <img
-                    src={club.logoUrlFromDb || club.logoUrl}
+                  <Image
+                    src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
+                    width={24}
+                    height={24}
                     className="w-6 h-6 object-contain"
+                    loading="lazy"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
@@ -125,10 +129,13 @@ function PrimaryClubDropdown({
           {selectedClub ? (
             <>
               {(selectedClub.logoUrlFromDb || selectedClub.logoUrl) && (
-                <img
-                  src={selectedClub.logoUrlFromDb || selectedClub.logoUrl}
+                <Image
+                  src={selectedClub.logoUrlFromDb || selectedClub.logoUrl!}
                   alt={`${selectedClub.name} logo`}
+                  width={20}
+                  height={20}
                   className="w-5 h-5 object-contain"
+                  loading="lazy"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
@@ -185,10 +192,13 @@ function PrimaryClubDropdown({
                 }`}
               >
                 {(club.logoUrlFromDb || club.logoUrl) && (
-                  <img
-                    src={club.logoUrlFromDb || club.logoUrl}
+                  <Image
+                    src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
+                    width={20}
+                    height={20}
                     className="w-5 h-5 object-contain"
+                    loading="lazy"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}

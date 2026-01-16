@@ -30,6 +30,17 @@
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Compression headers for better performance
+[[headers]]
+  for = "/*.{js,css,json,html,txt}"
+  [headers.values]
+    Content-Encoding = "gzip"
+
+[[headers]]
+  for = "/*.{js,css,json,html,txt}"
+  [headers.values]
+    Content-Encoding = "br"
+
 # API routes set their own Cache-Control headers for optimal performance
 # Background refresh pattern ensures fast responses while keeping data fresh
 

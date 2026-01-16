@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { MatchCountdown } from "@/components/MatchCountdown";
-import { ClubSelector } from "@/components/ClubSelector";
+import dynamic from "next/dynamic";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
@@ -11,7 +10,19 @@ import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
-import { ClubLogo } from "@/components/ClubLogo";
+
+// Dynamically import heavy components for better code splitting
+const MatchCountdown = dynamic(() => import("@/components/MatchCountdown").then(mod => ({ default: mod.MatchCountdown })), {
+  loading: () => <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+});
+
+const ClubSelector = dynamic(() => import("@/components/ClubSelector").then(mod => ({ default: mod.ClubSelector })), {
+  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+});
+
+const ClubLogo = dynamic(() => import("@/components/ClubLogo").then(mod => ({ default: mod.ClubLogo })), {
+  loading: () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>
+});
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {

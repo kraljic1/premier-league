@@ -7,7 +7,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ServiceWorkerRegistration } from "./sw-register";
 import { ClubTheme } from "@/components/ClubTheme";
 
-const inter = Inter({ subsets: ["latin"] });
+// Optimize font loading with display swap for better performance
+const inter = Inter({
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true,
+  variable: '--font-inter'
+});
 
 export const metadata: Metadata = {
   title: "Premier League Tracker 2025/26",
@@ -31,7 +37,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <head>
+        {/* Resource hints for better performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://upload.wikimedia.org" />
+        <link rel="preconnect" href="https://resources.premierleague.com" />
+        <link rel="dns-prefetch" href="https://supabase.co" />
+
+        {/* Preload critical resources */}
+        <link rel="preload" href="/icon-192.png" as="image" />
+        <link rel="preload" href="/manifest.json" as="fetch" />
+
+        {/* Optimize font display */}
+        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
+      </head>
+      <body className={`${inter.variable} ${inter.className}`}>
         <ServiceWorkerRegistration />
         <Providers>
           <ClubTheme />

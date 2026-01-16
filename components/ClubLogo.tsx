@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Club } from "@/lib/types";
 import { getClubByName } from "@/lib/clubs";
 
@@ -69,11 +70,15 @@ export function ClubLogo({ clubName, size = 24, className = "" }: ClubLogoProps)
 
   return (
     <div className={`club-logo ${className}`}>
-      <img
+      <Image
         src={displayLogoUrl}
         alt={`${clubName} logo`}
         className="club-logo__image"
-        style={{ width: `${size}px`, height: `${size}px` }}
+        width={size}
+        height={size}
+        loading="lazy"
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2Y5ZmFmYiIvPgo8L3N2Zz4K"
         onError={() => setImageError(true)}
       />
       <span className="club-logo__name">{clubName}</span>
