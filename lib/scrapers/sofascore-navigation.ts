@@ -386,7 +386,7 @@ export async function selectMatchweekFromDropdown(page: any, targetMatchweek: nu
     
     // Only log if we found actual round options (not false positives)
     if (availableOptions.length > 0 && availableOptions.length <= 38) {
-      const hasActualRounds = availableOptions.some(opt => opt.text.match(/Round\s*\d+/i) || opt.text.match(/^\d+$/));
+      const hasActualRounds = availableOptions.some((opt: { tag: string; text: string }) => opt.text.match(/Round\s*\d+/i) || opt.text.match(/^\d+$/));
       if (hasActualRounds) {
         console.log(`[SofaScore Navigation] Found ${availableOptions.length} round options in dropdown`);
       }
