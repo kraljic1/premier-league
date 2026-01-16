@@ -7,6 +7,7 @@ interface MatchweekSelectorProps {
   selectedMatchweek: number | null;
   onSelect: (matchweek: number | null) => void;
   onScrollTo?: (matchweek: number) => void;
+  currentMatchweek?: number | null;
 }
 
 const TOTAL_MATCHWEEKS = 38;
@@ -16,6 +17,7 @@ export function MatchweekSelector({
   selectedMatchweek,
   onSelect,
   onScrollTo,
+  currentMatchweek,
 }: MatchweekSelectorProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,9 @@ export function MatchweekSelector({
           }`}
         >
           MW {mw}
+          {mw === currentMatchweek && (
+            <span className="ml-1 text-xs">●</span>
+          )}
         </button>
       ))}
 

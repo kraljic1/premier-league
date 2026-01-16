@@ -220,21 +220,19 @@ async function updateDatabase(results: MatchResult[]): Promise<number> {
   return results.length;
 }
 
-/**
- * Main handler - Smart update logic
- */
-const handler: Handler = async (event, context) => {
+// Schedule: Check every 30 minutes, but only scrape when matches need updating
+export const handler = schedule("*/30 * * * *", async (event, context) => {
   console.log("[AutoUpdate] Checking if update is needed...");
   const startTime = Date.now();
-  
+
   try {
     if (!supabaseUrl || !supabaseKey) {
       throw new Error("Missing Supabase configuration");
     }
-    
+
     // Step 1: Check if there are matches that likely just finished
     const matchesToUpdate = await getMatchesToUpdate();
-    
+
     if (matchesToUpdate.length === 0) {
       console.log("[AutoUpdate] No matches to update. Skipping scrape.");
       return {
@@ -248,22 +246,22 @@ const handler: Handler = async (event, context) => {
         }),
       };
     }
-    
+
     console.log(`[AutoUpdate] Found ${matchesToUpdate.length} matches that may have finished:`);
     matchesToUpdate.forEach(m => {
       console.log(`  - ${m.home_team} vs ${m.away_team} (${new Date(m.date).toLocaleString()})`);
     });
-    
+
     // Step 2: Fetch results from Rezultati.com
     const results = await fetchResults();
-    
+
     // Step 3: Update database with new results
     const updatedCount = await updateDatabase(results);
-    
+
     const duration = Math.round((Date.now() - startTime) / 1000);
-    
+
     console.log(`[AutoUpdate] Completed in ${duration}s. Updated ${updatedCount} results.`);
-    
+
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -277,7 +275,7 @@ const handler: Handler = async (event, context) => {
     };
   } catch (error) {
     console.error("[AutoUpdate] Error:", error);
-    
+
     return {
       statusCode: 500,
       body: JSON.stringify({
@@ -287,9 +285,4 @@ const handler: Handler = async (event, context) => {
       }),
     };
   }
-};
-
-// Schedule: Check every 30 minutes, but only scrape when matches need updating
-export const autoUpdate = schedule("*/30 * * * *", handler);
-
-export { handler };
+});

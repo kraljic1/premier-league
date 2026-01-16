@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
@@ -76,6 +76,18 @@ export default function FixturesResultsContent() {
 
   // Get upcoming fixtures (not finished)
   const upcomingFixtures = fixtures.filter(f => f.status !== "finished");
+
+  // Find the current matchweek (earliest upcoming fixture's matchweek)
+  const currentMatchweek = upcomingFixtures.length > 0 
+    ? Math.min(...upcomingFixtures.map(f => f.matchweek))
+    : null;
+
+  // Auto-select current matchweek when switching to fixtures tab
+  useEffect(() => {
+    if (activeTab === "fixtures" && currentMatchweek && !selectedMatchweek) {
+      setSelectedMatchweek(currentMatchweek);
+    }
+  }, [activeTab, currentMatchweek, selectedMatchweek]);
 
   // Get available matchweeks based on active tab
   const currentData = activeTab === "fixtures" ? upcomingFixtures : results;
@@ -166,6 +178,7 @@ export default function FixturesResultsContent() {
           selectedMatchweek={selectedMatchweek}
           onSelect={setSelectedMatchweek}
           onScrollTo={handleScrollToMatchweek}
+          currentMatchweek={activeTab === "fixtures" ? currentMatchweek : null}
         />
       </div>
 
