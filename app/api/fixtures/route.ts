@@ -1,8 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { scrapeFixtures } from "@/lib/scrapers/fixtures";
 import { scrapeFixturesFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
+import {
+  logApiRequest,
+  createSecureResponse,
+  sanitizeError,
+  validateEnvironment
+} from "@/lib/security";
 
 export const revalidate = 1800; // 30 minutes
 
@@ -75,8 +81,22 @@ async function refreshFixturesInBackground() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
+    // Validate environment configuration
+    const envValidation = validateEnvironment();
+    if (!envValidation.valid) {
+      console.error("[Fixtures API] Missing environment variables:", envValidation.missing);
+      const response = createSecureResponse(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+      logApiRequest(request, response, startTime, { error: "env_config" });
+      return response;
+    }
+
     // Check if Supabase is configured
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -291,18 +311,21 @@ export async function GET() {
         });
       }
 
-      return NextResponse.json([], {
-        headers: {
-          "X-Cache": "ERROR",
-        },
+      return createSecureResponse([], {
+        additionalHeaders: { "X-Cache": "ERROR" }
       });
     }
   } catch (error) {
+    const sanitizedError = sanitizeError(error);
     console.error("Error fetching fixtures:", error);
-    return NextResponse.json(
+
+    const response = createSecureResponse(
       { error: "Failed to fetch fixtures" },
       { status: 500 }
     );
+
+    logApiRequest(request, response, startTime, { error: "internal_error" });
+    return response;
   }
 }
 

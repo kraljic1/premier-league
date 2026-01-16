@@ -21,7 +21,7 @@
 [functions."auto-update"]
   schedule = "*/30 * * * *"
 
-# Headers for security and caching
+# Comprehensive security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -29,6 +29,26 @@
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+# API-specific security headers
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; frame-ancestors 'none'"
+    X-Permitted-Cross-Domain-Policies = "none"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+
+# Sensitive API endpoints - additional restrictions
+[[headers]]
+  for = "/api/refresh"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
 
 # Compression headers for better performance
 [[headers]]

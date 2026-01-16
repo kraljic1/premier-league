@@ -11,7 +11,8 @@
     "refresh": "node scripts/refresh-data.js",
     "setup-cron": "chmod +x scripts/setup-cron.sh && ./scripts/setup-cron.sh",
     "fetch-all-fixtures": "npx tsx scripts/fetch-all-remaining-fixtures.ts",
-    "cleanup-duplicates": "npx tsx scripts/cleanup-duplicate-fixtures.ts"
+    "cleanup-duplicates": "npx tsx scripts/cleanup-duplicate-fixtures.ts",
+    "generate-api-keys": "node scripts/generate-api-keys.js"
   },
   "dependencies": {
     "@netlify/functions": "^5.1.2",
@@ -28,6 +29,7 @@
     "react-dom": "^18.3.0",
     "tailwind-merge": "^2.2.0",
     "typescript": "^5.4.0",
+    "zod": "^4.3.5",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

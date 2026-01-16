@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { scrapeFixtures } from "@/lib/scrapers/fixtures";
 import { scrapeResults } from "@/lib/scrapers/results";
@@ -7,44 +7,135 @@ import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixture
 import { scrapeStandings } from "@/lib/scrapers/standings";
 import { supabase, supabaseServer } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
+import {
+  authenticateRequest,
+  validateRequestBody,
+  validationSchemas,
+  logApiRequest,
+  createSecureResponse,
+  sanitizeError,
+  validateEnvironment
+} from "@/lib/security";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    console.log("[Refresh] Starting data refresh at", new Date().toISOString());
-    
+    // Validate environment configuration
+    const envValidation = validateEnvironment();
+    if (!envValidation.valid) {
+      console.error("[Refresh] Missing environment variables:", envValidation.missing);
+      const response = createSecureResponse(
+        { error: "Service configuration error" },
+        { status: 503 }
+      );
+      logApiRequest(request, response, startTime, { error: "env_config" });
+      return response;
+    }
+
+    // Authenticate request (requires write access)
+    const auth = authenticateRequest(request, 'write');
+    if (!auth.success) {
+      const response = createSecureResponse(
+        { error: auth.error },
+        { status: 401 }
+      );
+      logApiRequest(request, response, startTime, { error: "auth_failed" });
+      return response;
+    }
+
+    // Parse and validate request body
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
+
+    const validation = validateRequestBody(validationSchemas.refreshRequest, body);
+    if (!validation.success) {
+      const response = createSecureResponse(
+        { error: validation.error },
+        { status: 400 }
+      );
+      logApiRequest(request, response, startTime, { error: "validation_failed" });
+      return response;
+    }
+
+    const { force, source, matchweek } = validation.data;
+
+    console.log("[Refresh] Starting secure data refresh at", new Date().toISOString(), {
+      force,
+      source,
+      matchweek,
+      authenticated: true
+    });
+
     // Trigger scraping for all endpoints using separate scrapers
     // Use OneFootball scrapers first (faster, more reliable), fallback to official site
     const [fixtures, results, standings] = await Promise.allSettled([
       (async () => {
         try {
           console.log("[Refresh] Attempting to scrape fixtures from OneFootball...");
-          return await scrapeFixturesFromOneFootball();
+          const data = await scrapeFixturesFromOneFootball();
+
+          // Filter by matchweek if specified
+          if (matchweek && Array.isArray(data)) {
+            return data.filter(fixture => fixture.matchweek === matchweek);
+          }
+
+          return data;
         } catch (error) {
-          console.warn("[Refresh] OneFootball fixtures failed, using official site:", error);
-          return await scrapeFixtures();
+          console.warn("[Refresh] OneFootball fixtures failed, using official site:", sanitizeError(error));
+          const fallbackData = await scrapeFixtures();
+
+          // Filter by matchweek if specified
+          if (matchweek && Array.isArray(fallbackData)) {
+            return fallbackData.filter(fixture => fixture.matchweek === matchweek);
+          }
+
+          return fallbackData;
         }
       })(),
       (async () => {
         try {
           console.log("[Refresh] Attempting to scrape results from OneFootball...");
-          return await scrapeResultsFromOneFootball();
+          const data = await scrapeResultsFromOneFootball();
+
+          // Filter by matchweek if specified
+          if (matchweek && Array.isArray(data)) {
+            return data.filter(result => result.matchweek === matchweek);
+          }
+
+          return data;
         } catch (error) {
-          console.warn("[Refresh] OneFootball results failed, using official site:", error);
-          return await scrapeResults();
+          console.warn("[Refresh] OneFootball results failed, using official site:", sanitizeError(error));
+          const fallbackData = await scrapeResults();
+
+          // Filter by matchweek if specified
+          if (matchweek && Array.isArray(fallbackData)) {
+            return fallbackData.filter(result => result.matchweek === matchweek);
+          }
+
+          return fallbackData;
         }
       })(),
       scrapeStandings(),
     ]);
-    
+
     const refreshResults = {
       fixtures: fixtures.status === "fulfilled" ? fixtures.value.length : 0,
       results: results.status === "fulfilled" ? results.value.length : 0,
       standings: standings.status === "fulfilled" ? standings.value.length : 0,
       errors: {
-        fixtures: fixtures.status === "rejected" ? fixtures.reason?.message : null,
-        results: results.status === "rejected" ? results.reason?.message : null,
-        standings: standings.status === "rejected" ? standings.reason?.message : null,
+        fixtures: fixtures.status === "rejected" ? "Scraping failed" : null,
+        results: results.status === "rejected" ? "Scraping failed" : null,
+        standings: standings.status === "rejected" ? "Scraping failed" : null,
       },
+      filters: {
+        matchweek: matchweek || null,
+        source: source || 'auto'
+      }
     };
 
     // Store scraped data in Supabase database
@@ -159,21 +250,41 @@ export async function POST() {
     revalidatePath("/fixtures");
     revalidatePath("/results");
     revalidatePath("/standings");
-    
-    console.log("[Refresh] Data refresh completed:", refreshResults);
-    
-    return NextResponse.json({
+
+    console.log("[Refresh] Secure data refresh completed:", {
+      ...refreshResults,
+      timestamp: new Date().toISOString(),
+      authenticated: true
+    });
+
+    const response = createSecureResponse({
       success: true,
       message: "Data refreshed and stored in database",
       results: refreshResults,
       timestamp: new Date().toISOString(),
+    }, {
+      cacheControl: 'no-cache, no-store, must-revalidate'
     });
+
+    logApiRequest(request, response, startTime, {
+      success: true,
+      fixturesCount: refreshResults.fixtures,
+      resultsCount: refreshResults.results
+    });
+
+    return response;
   } catch (error) {
+    const sanitizedError = sanitizeError(error);
     console.error("[Refresh] Error refreshing data:", error);
-    return NextResponse.json(
-      { error: "Failed to refresh data", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+
+    const response = createSecureResponse(
+      { error: "Failed to refresh data" },
+      { status: 500, cacheControl: 'no-cache' }
     );
+
+    logApiRequest(request, response, startTime, { error: "internal_error" });
+
+    return response;
   }
 }
 
