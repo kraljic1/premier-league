@@ -11,6 +11,7 @@ import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { useClubs } from "@/lib/hooks/useClubs";
 
 // Dynamically import heavy components for better code splitting
 // Using ssr: false to prevent hydration mismatches with browser-only code
@@ -103,6 +104,9 @@ export default function HomePage() {
     queryKey: ["fixtures"],
     queryFn: fetchFixtures,
   });
+  
+  // Fetch all clubs in one API call to avoid rate limiting
+  const { clubs } = useClubs();
 
   useEffect(() => {
     setMounted(true);
@@ -152,7 +156,7 @@ export default function HomePage() {
               <h2 className="text-2xl font-semibold mb-4">Today&apos;s Fixtures</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {todayFixtures.map((fixture) => (
-                  <FixtureCard key={fixture.id} fixture={fixture} />
+                  <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
                 ))}
               </div>
             </div>
@@ -163,7 +167,7 @@ export default function HomePage() {
               <h2 className="text-2xl font-semibold mb-4">Weekend Fixtures</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {weekendFixtures.map((fixture) => (
-                  <FixtureCard key={fixture.id} fixture={fixture} />
+                  <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
                 ))}
               </div>
             </div>
@@ -174,8 +178,15 @@ export default function HomePage() {
   );
 }
 
-function FixtureCard({ fixture }: { fixture: Fixture }) {
+function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<string, any> }) {
   const club = getClubByName(fixture.homeTeam);
+  
+  // Get logo URLs from clubs object
+  const homeClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
+  const awayClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
+  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
+  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
+  
   return (
     <div
       className={`p-4 rounded-lg border ${
@@ -188,9 +199,9 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
         {formatDate(fixture.date)}
       </div>
       <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
-        <ClubLogo clubName={fixture.homeTeam} size={20} />
+        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} />
         <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} />
+        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} />
       </div>
       {fixture.homeScore !== null && fixture.awayScore !== null ? (
         <div className="text-lg font-bold mt-2">

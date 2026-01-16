@@ -3,6 +3,7 @@
 import { Fixture, Club } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { ClubLogo } from "@/components/ClubLogo";
+import { useClubs } from "@/lib/hooks/useClubs";
 
 interface ClubFixtureCardProps {
   club: string;
@@ -15,6 +16,13 @@ interface ClubFixtureCardProps {
  * Styled to match Premier League design aesthetics.
  */
 export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardProps) {
+  // Fetch all clubs in one API call to avoid rate limiting
+  const { clubs } = useClubs();
+  
+  // Get logo URL from clubs object
+  const clubEntry = Object.values(clubs).find((c: any) => c.name === club);
+  const logoUrl = clubEntry?.logoUrlFromDb || null;
+  
   return (
     <div className="club-fixture-card">
       <div
@@ -24,7 +32,7 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
         }}
       >
         <h3 className="club-fixture-card__club-name">
-          <ClubLogo clubName={club} size={28} />
+          <ClubLogo clubName={club} size={28} logoUrl={logoUrl} />
         </h3>
       </div>
       <div className="club-fixture-card__content">
@@ -38,6 +46,7 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
                 fixture={fixture}
                 club={club}
                 clubData={clubData}
+                clubs={clubs}
               />
             ))}
           </div>
@@ -51,16 +60,21 @@ interface MatchItemProps {
   fixture: Fixture;
   club: string;
   clubData: Club | undefined;
+  clubs: Record<string, any>;
 }
 
 /**
  * Individual match item within a club fixture card.
  */
-function MatchItem({ fixture, club, clubData }: MatchItemProps) {
+function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
   const isHome = fixture.homeTeam === club;
   const opponent = isHome ? fixture.awayTeam : fixture.homeTeam;
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
   const primaryColor = clubData?.primaryColor || "#37003c";
+  
+  // Get logo URL for opponent from clubs object
+  const opponentClubEntry = Object.values(clubs).find((c: any) => c.name === opponent);
+  const opponentLogoUrl = opponentClubEntry?.logoUrlFromDb || null;
 
   return (
     <div 
@@ -77,7 +91,7 @@ function MatchItem({ fixture, club, clubData }: MatchItemProps) {
             <>
               <span className="match-item__vs">vs</span>
               <span className="match-item__opponent">
-                <ClubLogo clubName={opponent} size={16} />
+                <ClubLogo clubName={opponent} size={16} logoUrl={opponentLogoUrl} />
               </span>
               <span className="match-item__venue">(H)</span>
             </>
@@ -85,7 +99,7 @@ function MatchItem({ fixture, club, clubData }: MatchItemProps) {
             <>
               <span className="match-item__vs">@</span>
               <span className="match-item__opponent">
-                <ClubLogo clubName={opponent} size={16} />
+                <ClubLogo clubName={opponent} size={16} logoUrl={opponentLogoUrl} />
               </span>
               <span className="match-item__venue">(A)</span>
             </>

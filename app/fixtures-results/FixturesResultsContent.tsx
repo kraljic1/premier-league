@@ -11,6 +11,7 @@ import { MatchweekSelector } from "@/components/MatchweekSelector";
 import { ClubLogo } from "@/components/ClubLogo";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { useClubs } from "@/lib/hooks/useClubs";
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
@@ -39,6 +40,9 @@ export default function FixturesResultsContent() {
   const [selectedMatchweek, setSelectedMatchweek] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const matchweekRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  
+  // Fetch all clubs in one API call to avoid rate limiting
+  const { clubs } = useClubs();
 
   const {
     data: fixtures = [],
@@ -225,7 +229,7 @@ export default function FixturesResultsContent() {
                       : (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
                     )
                     .map((match) => (
-                      <MatchCard key={match.id} fixture={match} isResult={activeTab === "results"} />
+                      <MatchCard key={match.id} fixture={match} isResult={activeTab === "results"} clubs={clubs} />
                     ))}
                 </div>
               </div>
@@ -236,9 +240,15 @@ export default function FixturesResultsContent() {
   );
 }
 
-function MatchCard({ fixture, isResult }: { fixture: Fixture; isResult: boolean }) {
+function MatchCard({ fixture, isResult, clubs }: { fixture: Fixture; isResult: boolean; clubs: Record<string, any> }) {
   const isFinished = fixture.status === "finished";
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
+
+  // Get logo URLs from clubs object
+  const homeClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
+  const awayClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
+  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
+  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
 
   return (
     <div
@@ -254,9 +264,9 @@ function MatchCard({ fixture, isResult }: { fixture: Fixture; isResult: boolean 
         {formatDate(fixture.date)}
       </div>
       <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
-        <ClubLogo clubName={fixture.homeTeam} size={20} />
+        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} />
         <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} />
+        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} />
       </div>
       {hasScore ? (
         <div className={`text-lg font-bold mt-2 ${isResult ? "text-gray-900 dark:text-gray-100" : ""}`}>
