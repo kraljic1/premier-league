@@ -9,9 +9,8 @@ export function Footer() {
         <div className="text-center space-y-6">
           {/* Description */}
           <p className="text-gray-600 dark:text-gray-400 text-sm max-w-3xl mx-auto leading-relaxed">
-            Stranica je napravljena za zabavu i za lude fanove Premier lige,
-            koji svakodnevno prate svoj klub i događanja oko njega,
-            te im treba neki tool s kojim bi si olakšali usporedbu utakmica s drugim klubovima.
+            This site is made for fun and for crazy Premier League fans who follow their club daily
+            and the events around it, and they need some tool to make it easier to compare matches with other clubs.
           </p>
 
           {/* Social Links */}
