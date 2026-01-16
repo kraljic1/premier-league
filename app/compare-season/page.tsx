@@ -118,6 +118,13 @@ export default function CompareSeasonPage() {
                     {selectedSeason} Season (first {currentMatchweek}{" "}
                     matchweeks)
                   </h2>
+                  {/* Debug info - remove after fixing */}
+                  <div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                    <p>Debug: selectedSeason = "{selectedSeason}"</p>
+                    <p>Debug: historicalFixtures.length = {historicalFixtures.length}</p>
+                    <p>Debug: First fixture season = {historicalFixtures[0]?.season || "N/A"}</p>
+                    <p>Debug: isLoadingHistorical = {isLoadingHistorical ? "true" : "false"}</p>
+                  </div>
                   {isLoadingHistorical ? (
                     <LoadingSkeleton />
                   ) : historicalFixtures.length === 0 ? (
