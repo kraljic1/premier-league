@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Navigation } from "@/components/Navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Footer } from "@/components/Footer";
 import { ServiceWorkerRegistration } from "./sw-register";
 import { ClubTheme } from "@/components/ClubTheme";
 
@@ -67,6 +68,7 @@ export default function RootLayout({
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               {children}
             </main>
+            <Footer />
           </div>
         </Providers>
       </body>
