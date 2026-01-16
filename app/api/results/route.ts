@@ -29,8 +29,8 @@ export async function GET(request: Request) {
     // Check database for finished fixtures and cache metadata in parallel
     console.log(`[Results API] Checking database for finished matches${matchweek ? ` (matchweek ${matchweek})` : ''}...`);
 
-    // Build query
-    let query = supabase
+    // Build query - use supabaseServer to bypass RLS and get all data
+    let query = supabaseServer
       .from('fixtures')
       .select('*')
       .eq('status', 'finished');
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     
     const [resultsResult, cacheMetaResult] = await Promise.all([
       query.order('date', { ascending: true }),
-      supabase
+      supabaseServer
         .from('cache_metadata')
         .select('last_updated')
         .eq('key', 'fixtures') // Use fixtures cache metadata since results come from fixtures
@@ -55,6 +55,9 @@ export async function GET(request: Request) {
     if (dbError) {
       console.error("[Results API] Database error:", dbError);
     }
+
+    // Log database count for debugging
+    console.log(`[Results API] Database returned ${resultsData?.length || 0} finished fixtures${matchweek ? ` for matchweek ${matchweek}` : ''}`);
 
     // Check if data exists and is recent
     const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
@@ -119,7 +122,7 @@ export async function GET(request: Request) {
 
       if (scrapedResults.length > 0) {
         // Store in database (these will be marked as finished)
-        console.log(`[Results API] Storing ${scrapedResults.length} results in database...`);
+        console.log(`[Results API] Storing ${scrapedResults.length} scraped results in database...`);
 
         const dbResults = scrapedResults.map(result => ({
           id: result.id,
@@ -133,7 +136,7 @@ export async function GET(request: Request) {
           is_derby: result.isDerby || false
         }));
 
-        // Upsert results
+        // Upsert results (merge with existing data, don't replace)
         // Use server client to bypass RLS for server-side operations
         const { error: insertError } = await supabaseServer
           .from('fixtures')
@@ -153,7 +156,48 @@ export async function GET(request: Request) {
         }
       }
 
-      return NextResponse.json(scrapedResults, {
+      // After upserting, fetch ALL results from database (including previously stored ones)
+      // This ensures we return all results, not just the ones we just scraped
+      let allResultsQuery = supabaseServer
+        .from('fixtures')
+        .select('*')
+        .eq('status', 'finished');
+      
+      if (matchweek !== null) {
+        allResultsQuery = allResultsQuery.eq('matchweek', matchweek);
+      }
+      
+      const { data: allResultsData, error: fetchError } = await allResultsQuery
+        .order('date', { ascending: true });
+
+      if (fetchError) {
+        console.error("[Results API] Error fetching all results after upsert:", fetchError);
+        // Fallback to returning scraped results if fetch fails
+        return NextResponse.json(scrapedResults, {
+          headers: {
+            "X-Cache": "MISS-SCRAPED",
+            "X-Source": scrapeSource,
+            "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
+          },
+        });
+      }
+
+      // Convert database format to app format
+      const allResults: Fixture[] = (allResultsData || []).map(row => ({
+        id: row.id,
+        date: row.date,
+        homeTeam: row.home_team,
+        awayTeam: row.away_team,
+        homeScore: row.home_score,
+        awayScore: row.away_score,
+        matchweek: row.matchweek,
+        status: row.status as Fixture['status'],
+        isDerby: row.is_derby
+      }));
+
+      console.log(`[Results API] Returning ${allResults.length} total results from database (${scrapedResults.length} newly scraped)`);
+
+      return NextResponse.json(allResults, {
         headers: {
           "X-Cache": "MISS-SCRAPED",
           "X-Source": scrapeSource,

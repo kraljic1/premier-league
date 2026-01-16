@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   title: "Premier League Tracker 2025/26",
   description: "Personal Premier League tracker",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    shortcut: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {

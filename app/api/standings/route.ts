@@ -67,12 +67,12 @@ export async function GET() {
     console.log("[Standings API] Checking database for standings...");
 
     const [standingsResult, cacheMetaResult] = await Promise.all([
-      supabase
+      supabaseServer
         .from('standings')
         .select('*')
         .eq('season', '2025')
         .order('position', { ascending: true }),
-      supabase
+      supabaseServer
         .from('cache_metadata')
         .select('last_updated')
         .eq('key', 'standings')
@@ -86,6 +86,9 @@ export async function GET() {
     if (dbError) {
       console.error("[Standings API] Database error:", dbError);
     }
+
+    // Log database count for debugging
+    console.log(`[Standings API] Database returned ${standingsData?.length || 0} standings for season 2025`);
 
     // Check if data exists and is recent
     const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;

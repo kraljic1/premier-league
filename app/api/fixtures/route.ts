@@ -72,11 +72,11 @@ export async function GET() {
     console.log("[Fixtures API] Checking database for fixtures...");
 
     const [fixturesResult, cacheMetaResult] = await Promise.all([
-      supabase
+      supabaseServer
         .from('fixtures')
         .select('*')
         .order('date', { ascending: true }),
-      supabase
+      supabaseServer
         .from('cache_metadata')
         .select('last_updated')
         .eq('key', 'fixtures')
@@ -90,6 +90,11 @@ export async function GET() {
     if (dbError) {
       console.error("[Fixtures API] Database error:", dbError);
     }
+
+    // Log database count for debugging
+    const finishedCount = fixturesData?.filter(f => f.status === 'finished').length || 0;
+    const upcomingCount = fixturesData?.filter(f => f.status !== 'finished').length || 0;
+    console.log(`[Fixtures API] Database returned ${fixturesData?.length || 0} total fixtures (${finishedCount} finished, ${upcomingCount} upcoming)`);
 
     // Check if data exists and is recent (within cache duration)
     const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
@@ -161,7 +166,7 @@ export async function GET() {
 
       if (scrapedFixtures.length > 0) {
         // Store in database
-        console.log(`[Fixtures API] Storing ${scrapedFixtures.length} fixtures in database...`);
+        console.log(`[Fixtures API] Storing ${scrapedFixtures.length} scraped fixtures in database...`);
 
         // Prepare data for database insertion
         const dbFixtures = scrapedFixtures.map(fixture => ({
@@ -196,7 +201,43 @@ export async function GET() {
         }
       }
 
-      return NextResponse.json(scrapedFixtures, {
+      // After upserting, fetch ALL fixtures from database (including previously stored ones)
+      // This ensures we return all fixtures, not just the ones we just scraped
+      const { data: allFixturesData, error: fetchError } = await supabaseServer
+        .from('fixtures')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (fetchError) {
+        console.error("[Fixtures API] Error fetching all fixtures after upsert:", fetchError);
+        // Fallback to returning scraped fixtures if fetch fails
+        return NextResponse.json(scrapedFixtures, {
+          headers: {
+            "X-Cache": "MISS-SCRAPED",
+            "X-Source": scrapeSource,
+            "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
+          },
+        });
+      }
+
+      // Convert database format to app format
+      const allFixtures: Fixture[] = (allFixturesData || []).map(row => ({
+        id: row.id,
+        date: row.date,
+        homeTeam: row.home_team,
+        awayTeam: row.away_team,
+        homeScore: row.home_score,
+        awayScore: row.away_score,
+        matchweek: row.matchweek,
+        status: row.status as Fixture['status'],
+        isDerby: row.is_derby
+      }));
+
+      const finishedCount = allFixtures.filter(f => f.status === 'finished').length;
+      const upcomingCount = allFixtures.filter(f => f.status !== 'finished').length;
+      console.log(`[Fixtures API] Returning ${allFixtures.length} total fixtures from database (${finishedCount} finished, ${upcomingCount} upcoming, ${scrapedFixtures.length} newly scraped)`);
+
+      return NextResponse.json(allFixtures, {
         headers: {
           "X-Cache": "MISS-SCRAPED",
           "X-Source": scrapeSource,
