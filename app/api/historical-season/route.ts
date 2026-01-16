@@ -61,6 +61,12 @@ export async function GET(request: NextRequest) {
       .order("date", { ascending: true });
 
     console.log(`[Historical Season API] Found ${fixturesData?.length || 0} fixtures for season ${season}`);
+    
+    // Log sample data to verify correct season is being returned
+    if (fixturesData && fixturesData.length > 0) {
+      const sample = fixturesData[0];
+      console.log(`[Historical Season API] Sample fixture: ${sample.home_team} vs ${sample.away_team}, date: ${sample.date}, season: ${sample.season}`);
+    }
 
     if (fetchError) {
       console.error("[Historical Season API] Error fetching fixtures:", fetchError);
@@ -84,11 +90,21 @@ export async function GET(request: NextRequest) {
       season: f.season,
     }));
 
-    return NextResponse.json({
-      season: season,
-      fixtures: fixtures,
-      count: fixtures.length,
-    });
+    // Return with no-cache headers to prevent any caching
+    return NextResponse.json(
+      {
+        season: season,
+        fixtures: fixtures,
+        count: fixtures.length,
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      }
+    );
   } catch (error: any) {
     console.error("[Historical Season API] Error:", error);
     return NextResponse.json(
