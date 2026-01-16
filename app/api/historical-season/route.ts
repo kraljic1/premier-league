@@ -3,6 +3,9 @@ import { scrapeHistoricalSeason } from "@/lib/api/compare-season-api";
 import { createClient } from "@supabase/supabase-js";
 import { Fixture } from "@/lib/types";
 
+// Force dynamic rendering since we use request.url
+export const dynamic = 'force-dynamic';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 

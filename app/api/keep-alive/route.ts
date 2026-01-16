@@ -10,6 +10,9 @@ import {
   validateEnvironment
 } from "@/lib/security";
 
+// Force dynamic rendering since we use request.headers
+export const dynamic = 'force-dynamic';
+
 /**
  * Keep-alive endpoint to prevent Supabase project from pausing
  * This endpoint performs a simple database query to keep the connection active

@@ -4,6 +4,8 @@ import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixture
 import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 
+// Force dynamic rendering since we use request.url
+export const dynamic = 'force-dynamic';
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
