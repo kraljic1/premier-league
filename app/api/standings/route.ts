@@ -10,6 +10,57 @@ const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
 
+/**
+ * Background refresh function - scrapes and stores standings without blocking the response
+ */
+async function refreshStandingsInBackground() {
+  try {
+    console.log("[Standings API] Background refresh started...");
+    
+    const scrapedStandings = await scrapeStandings();
+    console.log(`[Standings API] Background refresh: Successfully scraped ${scrapedStandings.length} standings`);
+
+    if (scrapedStandings.length > 0) {
+      const dbStandings = scrapedStandings.map(standing => ({
+        position: standing.position,
+        club: standing.club,
+        played: standing.played,
+        won: standing.won,
+        drawn: standing.drawn,
+        lost: standing.lost,
+        goals_for: standing.goalsFor,
+        goals_against: standing.goalsAgainst,
+        goal_difference: standing.goalDifference,
+        points: standing.points,
+        form: standing.form,
+        season: '2025'
+      }));
+
+      // Delete existing standings and insert new ones
+      await supabaseServer.from('standings').delete().eq('season', '2025');
+      const { error: insertError } = await supabaseServer
+        .from('standings')
+        .insert(dbStandings);
+
+      if (insertError) {
+        console.error("[Standings API] Background refresh: Error storing standings:", insertError);
+      } else {
+        await supabaseServer
+          .from('cache_metadata')
+          .upsert({
+            key: 'standings',
+            last_updated: new Date().toISOString(),
+            data_count: scrapedStandings.length
+          }, { onConflict: 'key' });
+        
+        console.log("[Standings API] Background refresh: Successfully updated database");
+      }
+    }
+  } catch (error) {
+    console.error("[Standings API] Background refresh: Unexpected error:", error);
+  }
+}
+
 export async function GET() {
   try {
     // Check database and cache metadata in parallel
@@ -37,39 +88,57 @@ export async function GET() {
     }
 
     // Check if data exists and is recent
+    const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
+    const now = new Date();
+    const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+
+    // If we have data in database (even if stale), return it immediately for fast response
+    // Then refresh in background if stale
     if (standingsData && standingsData.length > 0) {
-      const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
-      const now = new Date();
-      const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+      // Convert database format to app format
+      const standings: Standing[] = standingsData.map(row => ({
+        position: row.position,
+        club: row.club,
+        played: row.played,
+        won: row.won,
+        drawn: row.drawn,
+        lost: row.lost,
+        goalsFor: row.goals_for,
+        goalsAgainst: row.goals_against,
+        goalDifference: row.goal_difference,
+        points: row.points,
+        form: row.form
+      }));
 
+      // If data is fresh, return immediately
       if (isDataFresh) {
-        console.log(`[Standings API] Returning ${standingsData.length} standings from database (fresh)`);
-
-        // Convert database format to app format
-        const standings: Standing[] = standingsData.map(row => ({
-          position: row.position,
-          club: row.club,
-          played: row.played,
-          won: row.won,
-          drawn: row.drawn,
-          lost: row.lost,
-          goalsFor: row.goals_for,
-          goalsAgainst: row.goals_against,
-          goalDifference: row.goal_difference,
-          points: row.points,
-          form: row.form
-        }));
-
+        console.log(`[Standings API] Returning ${standings.length} standings from database (fresh)`);
         return NextResponse.json(standings, {
           headers: {
             "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
           },
         });
       }
+
+      // Data exists but is stale - return it immediately and refresh in background
+      console.log(`[Standings API] Returning ${standings.length} standings from database (stale, refreshing in background)`);
+      
+      // Start background refresh (don't await - return immediately)
+      refreshStandingsInBackground().catch(err => {
+        console.error("[Standings API] Background refresh error:", err);
+      });
+
+      return NextResponse.json(standings, {
+        headers: {
+          "X-Cache": "STALE-BACKGROUND-REFRESH",
+          "Cache-Control": "public, s-maxage=0, stale-while-revalidate=3600",
+        },
+      });
     }
 
-    // Data is stale or doesn't exist, scrape fresh data
-    console.log("[Standings API] Data is stale or missing. Scraping fresh standings...");
+    // No data in database - must scrape (this will be slower)
+    console.log("[Standings API] No data in database. Scraping fresh standings...");
     try {
       const scrapedStandings = await scrapeStandings();
 
@@ -123,6 +192,7 @@ export async function GET() {
       return NextResponse.json(scrapedStandings, {
         headers: {
           "X-Cache": "MISS-SCRAPED",
+          "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
         },
       });
     } catch (scrapeError) {

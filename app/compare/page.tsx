@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
@@ -29,17 +29,27 @@ async function fetchFixtures(): Promise<Fixture[]> {
 
 /**
  * Filters fixtures to only include future matches.
+ * Compares dates properly, ignoring time component for more accurate filtering.
  */
 function getFutureFixtures(fixtures: Fixture[], limit: number | null): Fixture[] {
   const now = new Date();
+  now.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+  
   const futureFixtures = fixtures
-    .filter((f: Fixture) => new Date(f.date) > now)
+    .filter((f: Fixture) => {
+      const fixtureDate = new Date(f.date);
+      fixtureDate.setHours(0, 0, 0, 0);
+      return fixtureDate >= now;
+    })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   if (limit === null) {
     return futureFixtures;
   }
-  return futureFixtures.slice(0, limit);
+  
+  const limited = futureFixtures.slice(0, limit);
+  console.log(`[getFutureFixtures] Total future: ${futureFixtures.length}, Limit: ${limit}, Returning: ${limited.length}`);
+  return limited;
 }
 
 export default function ComparePage() {
@@ -61,43 +71,52 @@ export default function ComparePage() {
     queryFn: fetchFixtures,
   });
 
-  const clubNames = myClubs
-    .map((id: string) => CLUBS[id]?.name)
-    .filter((name): name is string => Boolean(name));
+  const clubNames = useMemo(() => {
+    return myClubs
+      .map((id: string) => CLUBS[id]?.name)
+      .filter((name): name is string => Boolean(name));
+  }, [myClubs]);
 
   // Determine current matchweek from finished matches
-  const currentMatchweek = getCurrentMatchweek(fixtures);
+  const currentMatchweek = useMemo(() => getCurrentMatchweek(fixtures), [fixtures]);
   
   // Log for debugging
-  if (currentMatchweek > 0) {
-    const finishedCount = fixtures.filter(f => f.status === "finished").length;
-    console.log(`[Compare] Current matchweek: ${currentMatchweek}, Finished matches: ${finishedCount}`);
-  }
+  useEffect(() => {
+    if (currentMatchweek > 0) {
+      const finishedCount = fixtures.filter(f => f.status === "finished").length;
+      console.log(`[Compare] Current matchweek: ${currentMatchweek}, Finished matches: ${finishedCount}`);
+    }
+  }, [currentMatchweek, fixtures]);
 
-  const clubFixtures: ClubFixtureData[] = clubNames.map((clubName: string) => {
-    const clubAllFixtures = fixtures.filter(
-      (f: Fixture) => f.homeTeam === clubName || f.awayTeam === clubName
-    );
-    const futureFixtures = getFutureFixtures(clubAllFixtures, futureMatchesCount);
-    console.log(`[ComparePage] Club: ${clubName}, Future fixtures count: ${futureFixtures.length}, Limit: ${futureMatchesCount}`);
+  const clubFixtures: ClubFixtureData[] = useMemo(() => {
+    console.log(`[ComparePage] Recalculating clubFixtures with limit: ${futureMatchesCount}`);
     
-    // Ensure matchweek numbers are correct - they should already be in fixture data
-    // but we validate them here
-    const validatedFixtures = futureFixtures.map(fixture => {
-      // Matchweek should already be correct from scraper
-      // If it's less than current matchweek, something is wrong
-      if (currentMatchweek > 0 && fixture.matchweek < currentMatchweek) {
-        console.warn(`[Compare] Matchweek mismatch for ${fixture.homeTeam} vs ${fixture.awayTeam}: fixture has MW ${fixture.matchweek}, but current is MW ${currentMatchweek}`);
-      }
-      return fixture;
+    return clubNames.map((clubName: string) => {
+      const clubAllFixtures = fixtures.filter(
+        (f: Fixture) => f.homeTeam === clubName || f.awayTeam === clubName
+      );
+      
+      const futureFixtures = getFutureFixtures(clubAllFixtures, futureMatchesCount);
+      console.log(`[ComparePage] Club: ${clubName}, All fixtures: ${clubAllFixtures.length}, Future fixtures: ${futureFixtures.length}, Limit: ${futureMatchesCount}`);
+      
+      // Ensure matchweek numbers are correct - they should already be in fixture data
+      // but we validate them here
+      const validatedFixtures = futureFixtures.map(fixture => {
+        // Matchweek should already be correct from scraper
+        // If it's less than current matchweek, something is wrong
+        if (currentMatchweek > 0 && fixture.matchweek < currentMatchweek) {
+          console.warn(`[Compare] Matchweek mismatch for ${fixture.homeTeam} vs ${fixture.awayTeam}: fixture has MW ${fixture.matchweek}, but current is MW ${currentMatchweek}`);
+        }
+        return fixture;
+      });
+      
+      return {
+        club: clubName,
+        clubData: getClubByName(clubName),
+        fixtures: validatedFixtures,
+      };
     });
-    
-    return {
-      club: clubName,
-      clubData: getClubByName(clubName),
-      fixtures: validatedFixtures,
-    };
-  });
+  }, [clubNames, fixtures, futureMatchesCount, currentMatchweek]);
 
   return (
     <div className="compare-page">

@@ -72,6 +72,32 @@ npx tsx scripts/fetch-results-until-date.ts 2026-01-07
 
 **Note:** This version runs the scrapers directly without needing the API server.
 
+### `fetch-results-by-matchweek.ts`
+Fetches all finished results for specific matchweeks and saves them directly to the database.
+
+**Usage:**
+```bash
+# Fetch all matchweeks (1-38)
+npx tsx scripts/fetch-results-by-matchweek.ts
+
+# Fetch specific matchweeks
+npx tsx scripts/fetch-results-by-matchweek.ts 1 5 10
+
+# Fetch range of matchweeks
+npx tsx scripts/fetch-results-by-matchweek.ts --start=1 --end=10
+
+# Using environment variable
+MATCHWEEKS=1,2,3,4,5 npx tsx scripts/fetch-results-by-matchweek.ts
+```
+
+**Note:** This script runs the scrapers directly and saves results to the Supabase database. Requires environment variables for Supabase connection.
+
+**Features:**
+- Fetches results from multiple sources (Rezultati.com, OneFootball, official Premier League site)
+- Automatically saves results to database with proper status ('finished')
+- Groups and displays results by matchweek
+- Shows statistics and matchweek distribution
+
 ## Manual Cron Setup
 
 If you prefer to set up cron manually:

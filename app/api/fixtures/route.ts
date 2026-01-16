@@ -11,6 +11,61 @@ const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
 
+/**
+ * Background refresh function - scrapes and stores fixtures without blocking the response
+ */
+async function refreshFixturesInBackground() {
+  try {
+    console.log("[Fixtures API] Background refresh started...");
+    
+    // Try OneFootball first (simpler, faster, no Puppeteer needed)
+    let scrapedFixtures: Fixture[] = [];
+    
+    try {
+      scrapedFixtures = await scrapeFixturesFromOneFootball();
+      console.log(`[Fixtures API] Background refresh: Successfully scraped ${scrapedFixtures.length} fixtures from OneFootball`);
+    } catch (onefootballError) {
+      console.warn("[Fixtures API] Background refresh: OneFootball failed, trying official site:", onefootballError);
+      scrapedFixtures = await scrapeFixtures();
+      console.log(`[Fixtures API] Background refresh: Successfully scraped ${scrapedFixtures.length} fixtures from official site`);
+    }
+
+    if (scrapedFixtures.length > 0) {
+      const dbFixtures = scrapedFixtures.map(fixture => ({
+        id: fixture.id,
+        date: fixture.date,
+        home_team: fixture.homeTeam,
+        away_team: fixture.awayTeam,
+        home_score: fixture.homeScore,
+        away_score: fixture.awayScore,
+        matchweek: fixture.matchweek,
+        status: fixture.status,
+        is_derby: fixture.isDerby || false
+      }));
+
+      const { error: insertError } = await supabaseServer
+        .from('fixtures')
+        .upsert(dbFixtures, { onConflict: 'id' });
+
+      if (insertError) {
+        console.error("[Fixtures API] Background refresh: Error storing fixtures:", insertError);
+      } else {
+        await supabaseServer
+          .from('cache_metadata')
+          .upsert({
+            key: 'fixtures',
+            last_updated: new Date().toISOString(),
+            data_count: scrapedFixtures.length
+          }, { onConflict: 'key' });
+        
+        console.log("[Fixtures API] Background refresh: Successfully updated database");
+      }
+    }
+  } catch (error) {
+    console.error("[Fixtures API] Background refresh: Unexpected error:", error);
+  }
+}
+
 export async function GET() {
   try {
     // Check database and cache metadata in parallel
@@ -37,37 +92,55 @@ export async function GET() {
     }
 
     // Check if data exists and is recent (within cache duration)
+    const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
+    const now = new Date();
+    const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+
+    // If we have data in database (even if stale), return it immediately for fast response
+    // Then refresh in background if stale
     if (fixturesData && fixturesData.length > 0) {
-      const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
-      const now = new Date();
-      const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+      // Convert database format to app format
+      const fixtures: Fixture[] = fixturesData.map(row => ({
+        id: row.id,
+        date: row.date,
+        homeTeam: row.home_team,
+        awayTeam: row.away_team,
+        homeScore: row.home_score,
+        awayScore: row.away_score,
+        matchweek: row.matchweek,
+        status: row.status as Fixture['status'],
+        isDerby: row.is_derby
+      }));
 
+      // If data is fresh, return immediately
       if (isDataFresh) {
-        console.log(`[Fixtures API] Returning ${fixturesData.length} fixtures from database (fresh)`);
-
-        // Convert database format to app format
-        const fixtures: Fixture[] = fixturesData.map(row => ({
-          id: row.id,
-          date: row.date,
-          homeTeam: row.home_team,
-          awayTeam: row.away_team,
-          homeScore: row.home_score,
-          awayScore: row.away_score,
-          matchweek: row.matchweek,
-          status: row.status as Fixture['status'],
-          isDerby: row.is_derby
-        }));
-
+        console.log(`[Fixtures API] Returning ${fixtures.length} fixtures from database (fresh)`);
         return NextResponse.json(fixtures, {
           headers: {
             "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
           },
         });
       }
+
+      // Data exists but is stale - return it immediately and refresh in background
+      console.log(`[Fixtures API] Returning ${fixtures.length} fixtures from database (stale, refreshing in background)`);
+      
+      // Start background refresh (don't await - return immediately)
+      refreshFixturesInBackground().catch(err => {
+        console.error("[Fixtures API] Background refresh error:", err);
+      });
+
+      return NextResponse.json(fixtures, {
+        headers: {
+          "X-Cache": "STALE-BACKGROUND-REFRESH",
+          "Cache-Control": "public, s-maxage=0, stale-while-revalidate=3600",
+        },
+      });
     }
 
-    // Data is stale or doesn't exist, scrape fresh data
-    console.log("[Fixtures API] Data is stale or missing. Scraping fresh fixtures...");
+    // No data in database - must scrape (this will be slower)
+    console.log("[Fixtures API] No data in database. Scraping fresh fixtures...");
     try {
       // Try OneFootball first (simpler, faster, no Puppeteer needed)
       let scrapedFixtures: Fixture[] = [];
@@ -127,6 +200,7 @@ export async function GET() {
         headers: {
           "X-Cache": "MISS-SCRAPED",
           "X-Source": scrapeSource,
+          "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
         },
       });
     } catch (scrapeError) {

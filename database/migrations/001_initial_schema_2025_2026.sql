@@ -1,5 +1,6 @@
--- Premier League Database Schema
+-- Premier League Database Schema for 2025/2026 Season
 -- Run this in your Supabase SQL Editor
+-- This migration creates all necessary tables for the Premier League tracker
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -77,11 +78,12 @@ CREATE TABLE IF NOT EXISTS cache_metadata (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert some initial club data (you can expand this)
+-- Insert clubs for 2025/2026 season
+-- Updated based on current Premier League teams
 INSERT INTO clubs (name, short_name, primary_color, secondary_color, text_color) VALUES
 ('Arsenal', 'ARS', '#EF0107', '#FFFFFF', '#000000'),
 ('Aston Villa', 'AVL', '#670E36', '#95BFE5', '#FFFFFF'),
-('Bournemouth', 'BOU', '#DA030E', '#000000', '#FFFFFF'),
+('AFC Bournemouth', 'BOU', '#DA030E', '#000000', '#FFFFFF'),
 ('Brentford', 'BRE', '#E30613', '#FFFFFF', '#000000'),
 ('Brighton & Hove Albion', 'BHA', '#0057B8', '#FFFFFF', '#FFFFFF'),
 ('Burnley', 'BUR', '#6C1D45', '#99D6EA', '#FFFFFF'),
@@ -89,7 +91,6 @@ INSERT INTO clubs (name, short_name, primary_color, secondary_color, text_color)
 ('Crystal Palace', 'CRY', '#1B458F', '#C4122E', '#FFFFFF'),
 ('Everton', 'EVE', '#003399', '#FFFFFF', '#FFFFFF'),
 ('Fulham', 'FUL', '#FFFFFF', '#000000', '#000000'),
-('Liverpool', 'LIV', '#C8102E', '#FFFFFF', '#FFFFFF'),
 ('Leeds United', 'LEE', '#FFFFFF', '#1D428A', '#000000'),
 ('Liverpool FC', 'LIV', '#C8102E', '#FFFFFF', '#FFFFFF'),
 ('Manchester City', 'MCI', '#6CABDD', '#1C2C5B', '#FFFFFF'),
@@ -100,15 +101,22 @@ INSERT INTO clubs (name, short_name, primary_color, secondary_color, text_color)
 ('Tottenham Hotspur', 'TOT', '#132257', '#FFFFFF', '#FFFFFF'),
 ('West Ham United', 'WHU', '#7A263A', '#1BB1E7', '#FFFFFF'),
 ('Wolverhampton Wanderers', 'WOL', '#FDB913', '#000000', '#000000')
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (name) DO UPDATE SET
+    short_name = EXCLUDED.short_name,
+    primary_color = EXCLUDED.primary_color,
+    secondary_color = EXCLUDED.secondary_color,
+    text_color = EXCLUDED.text_color,
+    updated_at = NOW();
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS idx_fixtures_date ON fixtures (date);
 CREATE INDEX IF NOT EXISTS idx_fixtures_matchweek ON fixtures (matchweek);
 CREATE INDEX IF NOT EXISTS idx_fixtures_status ON fixtures (status);
+CREATE INDEX IF NOT EXISTS idx_fixtures_home_team ON fixtures (home_team);
+CREATE INDEX IF NOT EXISTS idx_fixtures_away_team ON fixtures (away_team);
 CREATE INDEX IF NOT EXISTS idx_standings_position ON standings (position);
 CREATE INDEX IF NOT EXISTS idx_standings_season ON standings (season);
-CREATE INDEX IF NOT EXISTS idx_scorers_goals ON scorers (goals);
+CREATE INDEX IF NOT EXISTS idx_scorers_goals ON scorers (goals DESC);
 CREATE INDEX IF NOT EXISTS idx_scorers_season ON scorers (season);
 
 -- Create a function to update the updated_at timestamp
@@ -174,18 +182,16 @@ CREATE POLICY "Allow public read access on standings" ON standings FOR SELECT US
 CREATE POLICY "Allow public read access on scorers" ON scorers FOR SELECT USING (true);
 CREATE POLICY "Allow public read access on cache_metadata" ON cache_metadata FOR SELECT USING (true);
 
--- Allow authenticated users to insert/update data (for the refresh endpoint)
--- This prevents anonymous users from modifying data
-CREATE POLICY "Allow authenticated insert on fixtures" ON fixtures FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated update on fixtures" ON fixtures FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated insert on standings" ON standings FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated update on standings" ON standings FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated insert on scorers" ON scorers FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated update on scorers" ON scorers FOR UPDATE USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated insert on cache_metadata" ON cache_metadata FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated update on cache_metadata" ON cache_metadata FOR UPDATE USING (auth.role() = 'authenticated');
-
--- Allow authenticated users to delete data (for cleanup operations)
-CREATE POLICY "Allow authenticated delete on standings" ON standings FOR DELETE USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated delete on scorers" ON scorers FOR DELETE USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow authenticated delete on cache_metadata" ON cache_metadata FOR DELETE USING (auth.role() = 'authenticated');
+-- Allow service role (server-side) to insert/update data (for the refresh endpoint)
+-- This allows the API routes to modify data using service role key
+CREATE POLICY "Allow service role insert on fixtures" ON fixtures FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow service role update on fixtures" ON fixtures FOR UPDATE USING (true);
+CREATE POLICY "Allow service role insert on standings" ON standings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow service role update on standings" ON standings FOR UPDATE USING (true);
+CREATE POLICY "Allow service role insert on scorers" ON scorers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow service role update on scorers" ON scorers FOR UPDATE USING (true);
+CREATE POLICY "Allow service role insert on cache_metadata" ON cache_metadata FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow service role update on cache_metadata" ON cache_metadata FOR UPDATE USING (true);
+CREATE POLICY "Allow service role delete on standings" ON standings FOR DELETE USING (true);
+CREATE POLICY "Allow service role delete on scorers" ON scorers FOR DELETE USING (true);
+CREATE POLICY "Allow service role delete on cache_metadata" ON cache_metadata FOR DELETE USING (true);

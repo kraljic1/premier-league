@@ -11,17 +11,36 @@ const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const matchweekParam = searchParams.get('matchweek');
+    const matchweek = matchweekParam ? parseInt(matchweekParam) : null;
+    
+    // Validate matchweek parameter
+    if (matchweek !== null && (isNaN(matchweek) || matchweek < 1 || matchweek > 38)) {
+      return NextResponse.json(
+        { error: "Invalid matchweek parameter. Must be between 1 and 38." },
+        { status: 400 }
+      );
+    }
+    
     // Check database for finished fixtures and cache metadata in parallel
-    console.log("[Results API] Checking database for finished matches...");
+    console.log(`[Results API] Checking database for finished matches${matchweek ? ` (matchweek ${matchweek})` : ''}...`);
 
+    // Build query
+    let query = supabase
+      .from('fixtures')
+      .select('*')
+      .eq('status', 'finished');
+    
+    if (matchweek !== null) {
+      query = query.eq('matchweek', matchweek);
+    }
+    
     const [resultsResult, cacheMetaResult] = await Promise.all([
-      supabase
-        .from('fixtures')
-        .select('*')
-        .eq('status', 'finished')
-        .order('date', { ascending: true }),
+      query.order('date', { ascending: true }),
       supabase
         .from('cache_metadata')
         .select('last_updated')
@@ -38,37 +57,48 @@ export async function GET() {
     }
 
     // Check if data exists and is recent
+    const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
+    const now = new Date();
+    const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+
+    // If we have data in database (even if stale), return it immediately for fast response
     if (resultsData && resultsData.length > 0) {
-      const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
-      const now = new Date();
-      const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+      // Convert database format to app format
+      const results: Fixture[] = resultsData.map(row => ({
+        id: row.id,
+        date: row.date,
+        homeTeam: row.home_team,
+        awayTeam: row.away_team,
+        homeScore: row.home_score,
+        awayScore: row.away_score,
+        matchweek: row.matchweek,
+        status: row.status as Fixture['status'],
+        isDerby: row.is_derby
+      }));
 
+      // If data is fresh, return immediately
       if (isDataFresh) {
-        console.log(`[Results API] Returning ${resultsData.length} results from database (fresh)`);
-
-        // Convert database format to app format
-        const results: Fixture[] = resultsData.map(row => ({
-          id: row.id,
-          date: row.date,
-          homeTeam: row.home_team,
-          awayTeam: row.away_team,
-          homeScore: row.home_score,
-          awayScore: row.away_score,
-          matchweek: row.matchweek,
-          status: row.status as Fixture['status'],
-          isDerby: row.is_derby
-        }));
-
+        console.log(`[Results API] Returning ${results.length} results from database (fresh)${matchweek ? ` for matchweek ${matchweek}` : ''}`);
         return NextResponse.json(results, {
           headers: {
             "X-Cache": "HIT",
+            "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
           },
         });
       }
+
+      // Data exists but is stale - return it immediately (fixtures API will refresh in background)
+      console.log(`[Results API] Returning ${results.length} results from database (stale)${matchweek ? ` for matchweek ${matchweek}` : ''}`);
+      return NextResponse.json(results, {
+        headers: {
+          "X-Cache": "STALE",
+          "Cache-Control": "public, s-maxage=0, stale-while-revalidate=3600",
+        },
+      });
     }
 
-    // Data is stale or doesn't exist, scrape fresh results
-    console.log("[Results API] Data is stale or missing. Scraping fresh results...");
+    // No data in database - must scrape (this will be slower)
+    console.log("[Results API] No data in database. Scraping fresh results...");
     try {
       // Try OneFootball first (simpler, faster, no Puppeteer needed)
       let scrapedResults: Fixture[] = [];
@@ -127,6 +157,7 @@ export async function GET() {
         headers: {
           "X-Cache": "MISS-SCRAPED",
           "X-Source": scrapeSource,
+          "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
         },
       });
     } catch (scrapeError) {

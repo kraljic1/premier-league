@@ -12,6 +12,8 @@ export async function getBrowser(): Promise<Browser> {
         "--disable-dev-shm-usage",
         "--disable-accelerated-2d-canvas",
         "--disable-gpu",
+        "--disable-blink-features=AutomationControlled", // Hide automation
+        "--disable-features=IsolateOrigins,site-per-process",
       ],
     });
   }
@@ -33,9 +35,30 @@ export async function scrapePage(
   const browser = await getBrowser();
   const page = await browser.newPage();
 
+  // Set realistic user agent
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
   );
+
+  // Hide webdriver property to avoid detection
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => false,
+    });
+    
+    // Override plugins to look more realistic
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3, 4, 5],
+    });
+    
+    // Override languages
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en'],
+    });
+  });
+
+  // Set viewport to realistic size
+  await page.setViewport({ width: 1920, height: 1080 });
 
   // Use 'domcontentloaded' instead of 'networkidle2' for faster loading
   // This waits for DOM to be ready, which is usually sufficient for scraping
