@@ -121,6 +121,11 @@ export default function HomePage() {
         <RefreshButton />
       </div>
 
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">My Clubs</h2>
+        <ClubSelector />
+      </div>
+
       {isLoading ? (
         <LoadingSkeleton />
       ) : error ? (
@@ -141,11 +146,6 @@ export default function HomePage() {
               <MatchCountdown fixture={nextMatch} />
             </div>
           )}
-
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">My Clubs</h2>
-            <ClubSelector />
-          </div>
 
           {todayFixtures.length > 0 && (
             <div>
