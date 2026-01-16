@@ -48,9 +48,22 @@ Koristite fajl `database/migrations/001_initial_schema_2025_2026.sql` za kreiran
    npx tsx scripts/fetch-results-by-matchweek.ts 19 20 21
    ```
 
+## Dodatne migracije:
+
+### 005_fix_rls_policies.sql - Ispravka RLS politika
+
+Ova migracija ispravlja sigurnosne probleme sa RLS politikama koje su bile previše permisivne.
+
+**Kada pokrenuti:** Nakon inicijalne migracije, ako vidite upozorenja u Supabase Database Linter-u.
+
+**Što ispravlja:**
+- Uklanja politike koje koriste `USING (true)` i `WITH CHECK (true)`
+- Zamjenjuje ih sigurnim politikama koje provjeravaju service role
+- Rješava sigurnosne upozorenja za tabele: `cache_metadata`, `fixtures`, `scheduled_updates`, `scorers`, `standings`
+
 ## Napomene:
 
 - Migracija je idempotentna - možete je pokrenuti više puta bez problema
 - Sve postojeće podatke će ažurirati ako već postoje
 - RLS (Row Level Security) je omogućen za sve tabele
-- Service role ima puni pristup za insert/update/delete operacije
+- Service role ima puni pristup za insert/update/delete operacije, ali uz dodatne sigurnosne provjere
