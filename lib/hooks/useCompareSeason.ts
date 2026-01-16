@@ -70,12 +70,21 @@ export function useCompareSeason() {
       console.log(`[useCompareSeason] Fetching historical data for season: "${selectedSeason}"`);
       const result = await fetchHistoricalSeason(selectedSeason!);
       console.log(`[useCompareSeason] Received ${result.length} fixtures for "${selectedSeason}"`);
+      // Verify the data matches the requested season
+      if (result.length > 0 && result[0].season) {
+        const expectedShortSeason = `${selectedSeason!.split("/")[0]}/${(parseInt(selectedSeason!.split("/")[0]) + 1).toString().slice(-2)}`;
+        if (result[0].season !== expectedShortSeason) {
+          console.error(`[useCompareSeason] SEASON MISMATCH! Expected ${expectedShortSeason}, got ${result[0].season}`);
+        }
+      }
       return result;
     },
     enabled: !!selectedSeason,
     // Don't use stale data - always refetch when season changes
     staleTime: 0,
     gcTime: 0, // Don't cache at all - ensures fresh data for each season
+    refetchOnMount: "always",
+    refetchOnWindowFocus: false,
   });
 
   // Log when historicalFixtures changes

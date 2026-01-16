@@ -14,7 +14,9 @@ export async function fetchCurrentSeasonFixtures(): Promise<Fixture[]> {
 
 export async function fetchHistoricalSeason(seasonYear: string): Promise<Fixture[]> {
   const year = seasonYear.split("/")[0];
-  const url = `/api/historical-season?seasonYear=${year}`;
+  // Add timestamp to bust any caching
+  const timestamp = Date.now();
+  const url = `/api/historical-season?seasonYear=${year}&_t=${timestamp}`;
   
   console.log(`[fetchHistoricalSeason] Called with seasonYear: "${seasonYear}", extracted year: "${year}"`);
   console.log(`[fetchHistoricalSeason] Fetching URL: ${url}`);
@@ -22,6 +24,10 @@ export async function fetchHistoricalSeason(seasonYear: string): Promise<Fixture
   // Use cache: 'no-store' to ensure fresh data for each season request
   const res = await fetch(url, {
     cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+    },
   });
   
   if (!res.ok) {

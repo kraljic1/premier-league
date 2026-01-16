@@ -49,7 +49,11 @@ export async function GET(request: NextRequest) {
     const nextYear = (parseInt(seasonYear) + 1).toString().slice(-2);
     const season = `${seasonYear}/${nextYear}`;
 
-    console.log(`[Historical Season API] Fetching season: ${season} (from year param: ${seasonYear})`);
+    console.log(`[Historical Season API] Request URL: ${request.url}`);
+    console.log(`[Historical Season API] seasonYear param: "${seasonYear}" (type: ${typeof seasonYear})`);
+    console.log(`[Historical Season API] nextYear calculation: ${nextYear}`);
+    console.log(`[Historical Season API] Constructed season: "${season}"`);
+    console.log(`[Historical Season API] Fetching fixtures WHERE season = '${season}'`);
 
     // Fetch fixtures for this season from database
     const { data: fixturesData, error: fetchError } = await supabaseServer
