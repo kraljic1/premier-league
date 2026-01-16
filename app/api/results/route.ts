@@ -52,12 +52,23 @@ export async function GET(request: Request) {
     const dbError = resultsResult.error;
     const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
+    // Log Supabase configuration for debugging
+    const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const hasServiceRoleKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    console.log(`[Results API] Supabase config - URL: ${hasSupabaseUrl}, ServiceRoleKey: ${hasServiceRoleKey}, AnonKey: ${hasAnonKey}`);
+
     if (dbError) {
       console.error("[Results API] Database error:", dbError);
+      console.error("[Results API] Error details:", JSON.stringify(dbError, null, 2));
     }
 
     // Log database count for debugging
     console.log(`[Results API] Database returned ${resultsData?.length || 0} finished fixtures${matchweek ? ` for matchweek ${matchweek}` : ''}`);
+    
+    if (!resultsData || resultsData.length === 0) {
+      console.warn(`[Results API] No data in database! This will trigger scraping.`);
+    }
 
     // Check if data exists and is recent
     const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
