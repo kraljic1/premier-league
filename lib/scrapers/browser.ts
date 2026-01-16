@@ -64,12 +64,6 @@ export async function scrapePage(
   page.on('console', (msg) => {
     const text = msg.text();
     
-    // Always show our debug logs
-    if (text.includes('[SofaScore Extraction]') || text.includes('[Season Selection]')) {
-      console.log(`[Page] ${text}`);
-      return;
-    }
-    
     // Suppress expected errors (cookie dialogs, 404s, CORS, etc.)
     const isExpectedError = 
       text.includes('Failed to load resource') ||

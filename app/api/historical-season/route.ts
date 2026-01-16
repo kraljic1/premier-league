@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scrapeHistoricalSeason } from "@/lib/scrapers/sofascore-historical";
+import { scrapeHistoricalSeason } from "@/lib/api/compare-season-api";
 import { createClient } from "@supabase/supabase-js";
 import { Fixture } from "@/lib/types";
 
@@ -10,89 +10,19 @@ const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * POST /api/historical-season
- * Scrapes and stores historical season data from SofaScore
+ * Historical data is imported via CSV files using scripts/import-csv-results.ts
+ * This endpoint is kept for API compatibility but scraping is no longer supported.
  * 
  * Body: { seasonYear: number } - e.g., { seasonYear: 2024 }
  */
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { seasonYear } = body;
-
-    if (!seasonYear || typeof seasonYear !== "number") {
-      return NextResponse.json(
-        { error: "seasonYear is required and must be a number" },
-        { status: 400 }
-      );
-    }
-
-    // Validate season year (should be between 2015 and current year)
-    const currentYear = new Date().getFullYear();
-    if (seasonYear < 2015 || seasonYear > currentYear) {
-      return NextResponse.json(
-        { error: `seasonYear must be between 2015 and ${currentYear}` },
-        { status: 400 }
-      );
-    }
-
-    console.log(`[Historical Season API] Starting scrape for season ${seasonYear}/${seasonYear + 1}...`);
-
-    // Scrape historical season
-    const scrapedFixtures = await scrapeHistoricalSeason(seasonYear);
-
-    if (scrapedFixtures.length === 0) {
-      return NextResponse.json(
-        { error: "No fixtures scraped. The scraper may need updating." },
-        { status: 500 }
-      );
-    }
-
-    const season = `${seasonYear}/${seasonYear + 1}`;
-
-    // Store in database
-    console.log(`[Historical Season API] Storing ${scrapedFixtures.length} fixtures for season ${season}...`);
-
-    const dbFixtures = scrapedFixtures.map((fixture) => ({
-      id: fixture.id,
-      date: fixture.date,
-      home_team: fixture.homeTeam,
-      away_team: fixture.awayTeam,
-      home_score: fixture.homeScore,
-      away_score: fixture.awayScore,
-      matchweek: fixture.matchweek,
-      status: fixture.status,
-      is_derby: fixture.isDerby || false,
-      season: season,
-    }));
-
-    // Upsert fixtures (update if exists, insert if not)
-    const { error: insertError } = await supabaseServer
-      .from("fixtures")
-      .upsert(dbFixtures, { onConflict: "id" });
-
-    if (insertError) {
-      console.error("[Historical Season API] Error storing fixtures:", insertError);
-      return NextResponse.json(
-        { error: "Failed to store fixtures in database", details: insertError.message },
-        { status: 500 }
-      );
-    }
-
-    console.log(`[Historical Season API] Successfully stored ${scrapedFixtures.length} fixtures for season ${season}`);
-
-    return NextResponse.json({
-      success: true,
-      season: season,
-      fixturesCount: scrapedFixtures.length,
-      message: `Successfully scraped and stored ${scrapedFixtures.length} fixtures for season ${season}`,
-    });
-  } catch (error: any) {
-    console.error("[Historical Season API] Error:", error);
-    return NextResponse.json(
-      { error: "Failed to scrape historical season", details: error.message },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    { 
+      error: "Historical season scraping is no longer supported. Please use the CSV import script: scripts/import-csv-results.ts",
+      message: "Historical data should be imported using CSV files via the import script."
+    },
+    { status: 410 } // 410 Gone - indicates the resource is no longer available
+  );
 }
 
 /**

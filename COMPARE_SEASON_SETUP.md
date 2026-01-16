@@ -37,37 +37,43 @@ FROM information_schema.columns
 WHERE table_name = 'fixtures' AND column_name = 'season';
 ```
 
-## How It Works
+## Importing Historical Data
 
-### 1. Scraping Historical Data
+Historical season data is imported from CSV files located in the `results/` folder.
 
-The feature scrapes historical season data from SofaScore:
-- URL: `https://www.sofascore.com/tournament/football/england/premier-league/17`
-- Navigates through matchweeks from 38 down to 1 (backwards)
-- Stores results chronologically (matchweek 1 first, matchweek 38 last)
-- Includes delays to avoid rate limiting (2 seconds between matchweeks)
+### CSV Files Available:
+- `24:25.csv` - 2024/25 season
+- `epl-2023-GMTStandardTime.csv` - 2023/24 season
+- `epl-2022-UTC.csv` - 2022/23 season
+- `epl-2021-GMTStandardTime.csv` - 2021/22 season
+- `epl-2020-GMTStandardTime.csv` - 2020/21 season
 
-### 2. API Endpoints
+### Import Steps:
 
-#### POST `/api/historical-season`
-Scrapes and stores historical season data.
+1. Ensure your `.env.local` file has Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_key
+   ```
 
-**Request Body:**
-```json
-{
-  "seasonYear": 2024
-}
-```
+2. Run the import script:
+   ```bash
+   npx tsx scripts/import-csv-results.ts
+   ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "season": "2024/2025",
-  "fixturesCount": 380,
-  "message": "Successfully scraped and stored 380 fixtures for season 2024/2025"
-}
-```
+3. The script will:
+   - Parse all CSV files
+   - Normalize team names
+   - Assign matchweeks
+   - Save fixtures to database with correct season field
+   - Show a summary of imported fixtures
+
+### Expected Results:
+- Each season should have 380 fixtures (38 matchweeks × 10 matches)
+- Total: 1,900 fixtures across 5 seasons
+
+## API Endpoints
 
 #### GET `/api/historical-season?seasonYear=2024`
 Fetches stored historical season data from the database.
@@ -81,7 +87,10 @@ Fetches stored historical season data from the database.
 }
 ```
 
-### 3. Points Calculation
+#### POST `/api/historical-season`
+**Note:** Historical season scraping is no longer supported. Use CSV import instead via `scripts/import-csv-results.ts`.
+
+## Points Calculation
 
 Points are calculated based on Premier League rules:
 - **Win**: 3 points
@@ -97,56 +106,52 @@ The comparison compares the same number of matchweeks from both seasons.
 1. Navigate to `/compare-season`
 2. Select a club from the dropdown
 3. Select a previous season (e.g., "2024/2025")
-4. Click "Scrape [Season] Season Data" if data is not available
-5. View the comparison between current season and selected season
+4. View the comparison between current season and selected season
 
-### Via API
+### Verify Data
 
-To scrape a historical season programmatically:
+To check if historical data is imported:
 
 ```bash
-curl -X POST http://localhost:3000/api/historical-season \
-  -H "Content-Type: application/json" \
-  -d '{"seasonYear": 2024}'
+npx tsx scripts/check-historical-seasons.ts
 ```
 
 ## File Structure
 
-The scraper is split into modular files (all under 200 lines):
+Key files for the Compare Season feature:
 
-- `lib/scrapers/sofascore-historical.ts` - Main scraper orchestration
-- `lib/scrapers/sofascore-navigation.ts` - Navigation utilities
-- `lib/scrapers/sofascore-extraction.ts` - Extraction coordination
-- `lib/scrapers/sofascore-element-extraction.ts` - DOM element extraction
-- `lib/scrapers/sofascore-processor.ts` - Data processing utilities
-
-## Notes
-
-- The scraper includes delays to avoid rate limiting
-- Historical data is stored in the same `fixtures` table with a `season` field
-- The scraper may need adjustments based on SofaScore's actual page structure
-- Scraping a full season (38 matchweeks) can take several minutes due to delays
+- `scripts/import-csv-results.ts` - CSV import script
+- `scripts/check-historical-seasons.ts` - Data verification script
+- `lib/utils-comparison.ts` - Comparison utility functions
+- `lib/api/compare-season-api.ts` - API client functions
+- `lib/hooks/useCompareSeason.ts` - React hook for comparison logic
+- `app/compare-season/page.tsx` - Main comparison page
+- `components/SeasonStatsDisplay.tsx` - Season statistics component
+- `components/ComparisonSummary.tsx` - Comparison summary component
 
 ## Troubleshooting
 
-### No data scraped
-- Check if SofaScore page structure has changed
-- Verify network connectivity
-- Check browser console for errors
-- The scraper may need selector updates
+### No data found
+- Verify CSV files exist in `results/` folder
+- Check that import script ran successfully
+- Verify database connection
+- Run `scripts/check-historical-seasons.ts` to verify data
 
-### Rate limiting
-- Increase delays in `sofascore-historical.ts` if needed
-- Scrape during off-peak hours
+### Import errors
+- Ensure `.env.local` has correct Supabase credentials
+- Check that database migration has been run
+- Verify CSV file format matches expected structure
+- Check for team name mismatches (script includes normalization)
 
 ### Database errors
 - Ensure migration has been run
 - Check Supabase connection
 - Verify RLS policies allow inserts
+- Check that service role key has proper permissions
 
 ## Future Improvements
 
-- Cache scraped data to avoid re-scraping
-- Add progress indicator during scraping
-- Support for more seasons
-- Batch scraping multiple seasons
+- Support for importing additional seasons
+- Automatic CSV validation
+- Progress indicator during import
+- Support for updating existing seasons
