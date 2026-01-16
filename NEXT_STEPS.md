@@ -3,13 +3,12 @@
 ## ✅ Completed
 
 1. ✅ Database migration created (`004_add_season_to_fixtures.sql`)
-2. ✅ SofaScore scraper implemented (modular, <200 lines per file)
+2. ✅ CSV import script implemented (`scripts/import-csv-results.ts`)
 3. ✅ API endpoints created (`/api/historical-season`)
 4. ✅ UI components created (Compare Season page)
 5. ✅ Navigation updated
 6. ✅ Documentation created (`COMPARE_SEASON_SETUP.md`)
-7. ✅ Test script created (`scripts/test-sofascore-scraper.ts`)
-8. ✅ Navigation logic improved with better error handling
+7. ✅ Historical data imported (2020/21 - 2024/25 seasons)
 
 ## 🔧 Next Steps
 
@@ -26,69 +25,58 @@ FROM information_schema.columns
 WHERE table_name = 'fixtures' AND column_name = 'season';
 ```
 
-### 2. Test the Scraper
+### 2. Import Historical Data
 
-**Option A: Test via Script (Recommended)**
+**Import CSV files:**
+
 ```bash
-npx tsx scripts/test-sofascore-scraper.ts
+npx tsx scripts/import-csv-results.ts
 ```
 
 This will:
-- Test scraping a historical season (2023/2024)
-- Show you what data is extracted
-- Help identify any selector issues
+- Import all 5 seasons (2020/21 - 2024/25)
+- Parse and normalize team names
+- Assign matchweeks correctly
+- Save 1,900 fixtures to database
 
-**Option B: Test via UI**
+### 3. Verify Data Quality
+
+After importing, verify:
+- ✅ All 5 seasons are imported
+- ✅ Each season has 380 fixtures (38 matchweeks × 10 matches)
+- ✅ Team names match your club names
+- ✅ Scores are correctly imported
+- ✅ Dates are reasonable
+
+**Check script:**
+```bash
+npx tsx scripts/check-historical-seasons.ts
+```
+
+### 4. Test the Feature
+
+**Via UI:**
 1. Start your dev server: `npm run dev`
 2. Navigate to `/compare-season`
 3. Select a club and season
-4. Click "Scrape [Season] Season Data"
-5. Monitor the browser console and server logs
-
-### 3. Adjust Scraper Selectors (If Needed)
-
-**If the scraper doesn't work, you'll need to:**
-
-1. **Inspect SofaScore page structure:**
-   - Visit: https://www.sofascore.com/tournament/football/england/premier-league/17
-   - Open browser DevTools
-   - Inspect the matchweek navigation buttons
-   - Inspect match elements
-
-2. **Update selectors in:**
-   - `lib/scrapers/sofascore-navigation.ts` - For navigation buttons
-   - `lib/scrapers/sofascore-element-extraction.ts` - For match elements
-
-3. **Common selector patterns to look for:**
-   - Matchweek buttons: Check aria-labels, classes, data attributes
-   - Match cards: Look for container classes, data-testid attributes
-   - Team names: Check for specific class patterns
-   - Scores: Look for score containers
-
-### 4. Verify Data Quality
-
-After scraping, verify:
-- ✅ All 38 matchweeks are present
-- ✅ Each matchweek has ~10 matches (20 teams = 10 matches per week)
-- ✅ Team names match your club names in `lib/clubs.ts`
-- ✅ Scores are correctly extracted
-- ✅ Dates are reasonable (not all the same date)
+4. View the comparison between current season and selected season
 
 ### 5. Handle Edge Cases
 
 **Potential issues to watch for:**
 
 1. **Team name mismatches:**
-   - SofaScore might use different team names
-   - Add name mapping in `lib/scrapers/sofascore-element-extraction.ts`
+   - CSV files might use different team names
+   - Script includes normalization (e.g., "Man Utd" → "Manchester United")
+   - Check `scripts/import-csv-results.ts` for team mappings
 
 2. **Missing data:**
-   - Some matchweeks might not be accessible
-   - Handle gracefully (log warnings, continue)
+   - Verify all CSV files are present in `results/` folder
+   - Check import script logs for any skipped fixtures
 
-3. **Rate limiting:**
-   - If you get blocked, increase delays in `sofascore-historical.ts`
-   - Current delay: 2 seconds between matchweeks
+3. **Matchweek assignment:**
+   - Script calculates matchweeks from dates
+   - Verify matchweeks are 1-38 for each season
 
 ### 6. Production Considerations
 
@@ -98,36 +86,25 @@ After scraping, verify:
    - Ensure `SUPABASE_SERVICE_ROLE_KEY` is set
    - Ensure `NEXT_PUBLIC_SUPABASE_URL` is set
 
-2. **Rate limiting:**
-   - Consider adding a queue system for scraping requests
-   - Add user feedback during long scraping operations
+2. **Data import:**
+   - CSV files should be committed to repository
+   - Import script can be run on deployment if needed
 
 3. **Error handling:**
-   - Add retry logic for failed matchweeks
-   - Store partial results if scraping fails mid-way
-
-4. **Caching:**
-   - Consider caching scraped seasons
-   - Add a "last scraped" timestamp
+   - Import script includes error handling
+   - Failed seasons are logged but don't stop the process
 
 ## 🐛 Troubleshooting
 
-### Scraper returns 0 results
-- Check browser console for errors
-- Verify selectors match actual page structure
-- Try manually navigating SofaScore to see the actual structure
-- Check if SofaScore requires authentication/cookies
+### No data found
+- Verify CSV files exist in `results/` folder
+- Check that import script ran successfully
+- Run `scripts/check-historical-seasons.ts` to verify
 
-### Navigation doesn't work
-- Verify matchweek buttons exist on the page
-- Check if buttons are disabled/hidden
-- Try different selector patterns
-- Add more wait time between clicks
-
-### Team names don't match
-- Create a mapping function in `sofascore-element-extraction.ts`
-- Map SofaScore names to your club names
-- Example: "Man City" → "Manchester City"
+### Import errors
+- Ensure `.env.local` has correct Supabase credentials
+- Check that database migration has been run
+- Verify CSV file format matches expected structure
 
 ### Database errors
 - Verify migration ran successfully
@@ -136,21 +113,19 @@ After scraping, verify:
 
 ## 📝 Testing Checklist
 
-- [ ] Database migration completed
-- [ ] Test scraper script runs without errors
-- [ ] Can scrape at least one matchweek successfully
-- [ ] Team names are correctly extracted
-- [ ] Scores are correctly extracted
-- [ ] Dates are reasonable
-- [ ] UI can display scraped data
-- [ ] Comparison calculations are correct
-- [ ] Error handling works for failed scrapes
+- [x] Database migration completed
+- [x] CSV import script runs successfully
+- [x] All 5 seasons imported (1,900 fixtures)
+- [x] Team names are correctly normalized
+- [x] Matchweeks are correctly assigned (1-38)
+- [x] UI can display comparison data
+- [x] Comparison calculations are correct
 
 ## 🎯 Success Criteria
 
 The feature is complete when:
 1. ✅ Database migration is applied
-2. ✅ Scraper can extract data from SofaScore
+2. ✅ Historical data is imported from CSV files
 3. ✅ Data is stored correctly in database
 4. ✅ UI displays comparison correctly
 5. ✅ Points calculations are accurate
@@ -159,5 +134,5 @@ The feature is complete when:
 ## 📚 Additional Resources
 
 - See `COMPARE_SEASON_SETUP.md` for detailed setup instructions
-- Check `lib/scrapers/` for scraper implementation details
+- Check `scripts/import-csv-results.ts` for import implementation
 - Review `app/api/historical-season/route.ts` for API documentation
