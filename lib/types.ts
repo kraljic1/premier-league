@@ -18,6 +18,7 @@ export interface Fixture {
   matchweek: number;
   status: "scheduled" | "live" | "finished";
   isDerby?: boolean;
+  season?: string; // e.g., "2024/2025", "2025/2026"
 }
 
 export interface Standing {

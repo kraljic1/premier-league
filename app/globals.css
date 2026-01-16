@@ -151,6 +151,40 @@ body {
   }
 }
 
+/* Compare Season Page */
+.compare-season-page {
+  padding: 1.5rem 0;
+}
+
+.compare-season-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.compare-season-page__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  letter-spacing: -0.02em;
+}
+
+.compare-season-page__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.compare-season-page__comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 /* Club Fixture Card */
 .club-fixture-card {
   background-color: white;
@@ -620,5 +654,99 @@ nextjs-portal:not(:empty) {
 
 .dark .cookie-consent-reject:hover {
   background-color: rgb(71, 85, 105);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 2rem;
+}
+
+.loading-spinner--small {
+  padding: 1rem;
+}
+
+.loading-spinner--medium {
+  padding: 2rem;
+}
+
+.loading-spinner--large {
+  padding: 3rem;
+}
+
+.loading-spinner__ring {
+  display: inline-block;
+  position: relative;
+}
+
+.loading-spinner--small .loading-spinner__ring {
+  width: 32px;
+  height: 32px;
+}
+
+.loading-spinner--medium .loading-spinner__ring {
+  width: 48px;
+  height: 48px;
+}
+
+.loading-spinner--large .loading-spinner__ring {
+  width: 64px;
+  height: 64px;
+}
+
+.loading-spinner__ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  border: 3px solid #37003c;
+  border-radius: 50%;
+  animation: loading-spinner-rotate 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #37003c transparent transparent transparent;
+}
+
+.dark .loading-spinner__ring div {
+  border-color: #6b21a8 transparent transparent transparent;
+}
+
+.loading-spinner--small .loading-spinner__ring div {
+  width: 32px;
+  height: 32px;
+  border-width: 2px;
+}
+
+.loading-spinner--medium .loading-spinner__ring div {
+  width: 48px;
+  height: 48px;
+  border-width: 3px;
+}
+
+.loading-spinner--large .loading-spinner__ring div {
+  width: 64px;
+  height: 64px;
+  border-width: 4px;
+}
+
+.loading-spinner__ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.loading-spinner__ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.loading-spinner__ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+@keyframes loading-spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 

@@ -10,6 +10,7 @@ const navItems = [
   { href: "/fixtures-results", label: "Fixtures & Results" },
   { href: "/standings", label: "Standings" },
   { href: "/compare", label: "Compare" },
+  { href: "/compare-season", label: "Compare Season" },
 ];
 
 export function Navigation() {

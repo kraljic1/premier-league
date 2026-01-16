@@ -51,6 +51,7 @@ export type Database = {
           matchweek: number
           status: 'scheduled' | 'live' | 'finished'
           is_derby: boolean
+          season: string | null
           created_at: string
           updated_at: string
         }
@@ -64,6 +65,7 @@ export type Database = {
           matchweek: number
           status: 'scheduled' | 'live' | 'finished'
           is_derby?: boolean
+          season?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -77,6 +79,7 @@ export type Database = {
           matchweek?: number
           status?: 'scheduled' | 'live' | 'finished'
           is_derby?: boolean
+          season?: string | null
           created_at?: string
           updated_at?: string
         }

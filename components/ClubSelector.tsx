@@ -6,6 +6,7 @@ import { CLUBS } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { ClubLogo } from "@/components/ClubLogo";
 import { SafeImage } from "@/components/SafeImage";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export function ClubSelector() {
   const [mounted, setMounted] = useState(false);
@@ -14,7 +15,7 @@ export function ClubSelector() {
   const addClub = useAppStore((state) => state.addClub);
   const removeClub = useAppStore((state) => state.removeClub);
   const setPrimaryClub = useAppStore((state) => state.setPrimaryClub);
-  const { clubs } = useClubs();
+  const { clubs, isLoading } = useClubs();
   
   useEffect(() => {
     setMounted(true);
@@ -33,6 +34,15 @@ export function ClubSelector() {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">My Clubs (max 5)</h3>
+        <LoadingSpinner size="md" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -108,7 +118,7 @@ function PrimaryClubDropdown({
 }: PrimaryClubDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { clubs } = useClubs();
+  const { clubs, isLoading } = useClubs();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -127,6 +137,14 @@ function PrimaryClubDropdown({
   }, []);
 
   const selectedClub = primaryClub ? (clubs[primaryClub] || CLUBS[primaryClub]) : null;
+
+  if (isLoading) {
+    return (
+      <div className="mt-1">
+        <LoadingSpinner size="sm" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative mt-1" ref={dropdownRef}>

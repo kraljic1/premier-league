@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/fixtures-results',
     '/standings',
     '/compare',
+    '/compare-season',
     '/top-scorers',
   ];
 

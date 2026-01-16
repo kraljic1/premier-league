@@ -60,6 +60,30 @@ export async function scrapePage(
   // Set viewport to realistic size
   await page.setViewport({ width: 1920, height: 1080 });
 
+  // Suppress console logs from the page (cookie dialogs, etc.)
+  page.on('console', (msg) => {
+    const text = msg.text();
+    
+    // Always show our debug logs
+    if (text.includes('[SofaScore Extraction]') || text.includes('[Season Selection]')) {
+      console.log(`[Page] ${text}`);
+      return;
+    }
+    
+    // Suppress expected errors (cookie dialogs, 404s, CORS, etc.)
+    const isExpectedError = 
+      text.includes('Failed to load resource') ||
+      text.includes('404') ||
+      text.includes('403') ||
+      text.includes('CORS') ||
+      text.includes('ERR_FAILED') ||
+      text.includes('JSHandle@error');
+    
+    if (msg.type() === 'error' && !isExpectedError) {
+      console.error(`[Page Error] ${text}`);
+    }
+  });
+
   // Use 'domcontentloaded' instead of 'networkidle2' for faster loading
   // This waits for DOM to be ready, which is usually sufficient for scraping
   await page.goto(url, {
