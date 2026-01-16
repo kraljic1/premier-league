@@ -5,12 +5,12 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 declare global {
   interface Window {
-    gtag: (
+    gtag?: (
       command: string,
       targetId: string,
       config?: Record<string, any>
     ) => void;
-    dataLayer: any[];
+    dataLayer?: any[];
   }
 }
 
@@ -28,10 +28,11 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
 
     // Initialize gtag function
     window.dataLayer = window.dataLayer || [];
+    const dataLayer = window.dataLayer;
     function gtag(...args: any[]) {
-      window.dataLayer.push(args);
+      dataLayer.push(args);
     }
-    window.gtag = gtag as typeof window.gtag;
+    window.gtag = gtag;
 
     // Load Google Analytics script
     const script1 = document.createElement("script");
