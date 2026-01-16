@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
@@ -21,18 +21,29 @@ async function fetchFixtures(): Promise<Fixture[]> {
   return Array.isArray(data) ? data : [];
 }
 
-export default function FixturesContent() {
-  const [selectedMatchweek, setSelectedMatchweek] = useState<number | null>(
-    null
-  );
+async function fetchResults(): Promise<Fixture[]> {
+  const res = await fetch("/api/results", {
+    next: { revalidate: 1800 }, // Revalidate every 30 minutes
+  });
+  if (!res.ok) throw new Error("Failed to fetch results");
+  const data = await res.json();
+  console.log("Results fetched:", data.length, "items");
+  return Array.isArray(data) ? data : [];
+}
+
+type TabType = "fixtures" | "results";
+
+export default function FixturesResultsContent() {
+  const [activeTab, setActiveTab] = useState<TabType>("fixtures");
+  const [selectedMatchweek, setSelectedMatchweek] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const matchweekRefs = useRef<Record<number, HTMLDivElement | null>>({});
-  
+
   const {
     data: fixtures = [],
-    isLoading,
-    error,
-    refetch,
+    isLoading: fixturesLoading,
+    error: fixturesError,
+    refetch: refetchFixtures,
   } = useQuery({
     queryKey: ["fixtures"],
     queryFn: fetchFixtures,
@@ -42,9 +53,19 @@ export default function FixturesContent() {
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
-  const matchweeks = Array.from(
-    new Set(fixtures.map((f) => f.matchweek))
-  ).sort((a, b) => a - b);
+  const {
+    data: results = [],
+    isLoading: resultsLoading,
+    error: resultsError,
+    refetch: refetchResults,
+  } = useQuery({
+    queryKey: ["results"],
+    queryFn: fetchResults,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+  });
 
   const handleScrollToMatchweek = (matchweek: number) => {
     const element = matchweekRefs.current[matchweek];
@@ -53,9 +74,17 @@ export default function FixturesContent() {
     }
   };
 
-  const filteredFixtures = useMemo(() => {
-    // Show ALL fixtures (scheduled, live, and finished) from weeks 1-38
-    let filtered = fixtures;
+  // Get upcoming fixtures (not finished)
+  const upcomingFixtures = fixtures.filter(f => f.status !== "finished");
+
+  // Get available matchweeks based on active tab
+  const currentData = activeTab === "fixtures" ? upcomingFixtures : results;
+  const matchweeks = Array.from(
+    new Set(currentData.map((f) => f.matchweek))
+  ).sort(activeTab === "fixtures" ? (a, b) => a - b : (a, b) => b - a);
+
+  const filteredMatches = useMemo(() => {
+    let filtered = currentData;
 
     if (selectedMatchweek) {
       filtered = filtered.filter((f) => f.matchweek === selectedMatchweek);
@@ -71,24 +100,59 @@ export default function FixturesContent() {
     }
 
     return filtered;
-  }, [fixtures, selectedMatchweek, searchQuery]);
+  }, [currentData, selectedMatchweek, searchQuery]);
 
-  const groupedByMatchweek = filteredFixtures.reduce(
-    (acc, fixture) => {
-      if (!acc[fixture.matchweek]) {
-        acc[fixture.matchweek] = [];
+  const groupedByMatchweek = filteredMatches.reduce(
+    (acc, match) => {
+      if (!acc[match.matchweek]) {
+        acc[match.matchweek] = [];
       }
-      acc[fixture.matchweek].push(fixture);
+      acc[match.matchweek].push(match);
       return acc;
     },
     {} as Record<number, Fixture[]>
   );
 
+  const isLoading = activeTab === "fixtures" ? fixturesLoading : resultsLoading;
+  const error = activeTab === "fixtures" ? fixturesError : resultsError;
+  const refetch = activeTab === "fixtures" ? refetchFixtures : refetchResults;
+
+  const tabs = [
+    { id: "fixtures" as TabType, label: "Upcoming Fixtures", count: upcomingFixtures.length },
+    { id: "results" as TabType, label: "Results", count: results.length },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Fixtures</h1>
+        <h1 className="text-3xl font-bold">Fixtures & Results</h1>
         <RefreshButton />
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setSelectedMatchweek(null); // Reset matchweek selection when switching tabs
+                setSearchQuery(""); // Reset search when switching tabs
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+              }`}
+            >
+              {tab.label}
+              <span className="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </nav>
       </div>
 
       <div className="space-y-4">
@@ -109,18 +173,22 @@ export default function FixturesContent() {
         <LoadingSkeleton />
       ) : error ? (
         <ErrorDisplay
-          message="Failed to load fixtures. The scraper may need updating."
+          message={`Failed to load ${activeTab}. The scraper may need updating.`}
           onRetry={() => refetch()}
         />
-      ) : filteredFixtures.length === 0 ? (
+      ) : filteredMatches.length === 0 ? (
         <EmptyState
-          title="No Fixtures Available"
-          message="No fixtures are available. Use the refresh button to scrape data."
+          title={`No ${activeTab === "fixtures" ? "Upcoming Fixtures" : "Results"} Available`}
+          message={
+            activeTab === "fixtures"
+              ? "No upcoming fixtures are available. Use the refresh button to scrape data."
+              : "No match results are available yet. Check back after matches are played."
+          }
         />
       ) : (
         <div className="space-y-8">
           {Object.entries(groupedByMatchweek)
-            .sort(([a], [b]) => parseInt(a) - parseInt(b))
+            .sort(([a], [b]) => activeTab === "fixtures" ? parseInt(a) - parseInt(b) : parseInt(b) - parseInt(a))
             .map(([matchweek, matches]) => (
               <div
                 key={matchweek}
@@ -135,11 +203,15 @@ export default function FixturesContent() {
                 </h2>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {matches
-                    .filter((f, index, self) => 
+                    .filter((f, index, self) =>
                       index === self.findIndex((fixture) => fixture.id === f.id)
                     )
-                    .map((fixture) => (
-                      <FixtureCard key={fixture.id} fixture={fixture} />
+                    .sort(activeTab === "fixtures"
+                      ? (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                      : (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                    )
+                    .map((match) => (
+                      <MatchCard key={match.id} fixture={match} isResult={activeTab === "results"} />
                     ))}
                 </div>
               </div>
@@ -150,16 +222,16 @@ export default function FixturesContent() {
   );
 }
 
-function FixtureCard({ fixture }: { fixture: Fixture }) {
+function MatchCard({ fixture, isResult }: { fixture: Fixture; isResult: boolean }) {
   const isFinished = fixture.status === "finished";
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
-  
+
   return (
     <div
       className={`p-4 rounded-lg border ${
         fixture.isDerby
           ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-          : isFinished
+          : isResult
           ? "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50"
           : "border-gray-200 dark:border-gray-700"
       }`}
@@ -171,9 +243,9 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
         {fixture.homeTeam} vs {fixture.awayTeam}
       </div>
       {hasScore ? (
-        <div className={`text-lg font-bold mt-2 ${isFinished ? "text-gray-900 dark:text-gray-100" : ""}`}>
+        <div className={`text-lg font-bold mt-2 ${isResult ? "text-gray-900 dark:text-gray-100" : ""}`}>
           {fixture.homeScore} - {fixture.awayScore}
-          {isFinished && (
+          {isResult && (
             <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 font-normal">FT</span>
           )}
         </div>
@@ -194,4 +266,3 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
     </div>
   );
 }
-

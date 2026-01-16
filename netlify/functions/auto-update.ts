@@ -3,19 +3,25 @@ import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
 
 /**
- * Netlify Scheduled Function - Auto Update Results
+ * Netlify Scheduled Function - Smart Auto Update Results
  * 
- * Runs every 15 minutes to check for finished matches and update the database.
- * Uses fetch + cheerio instead of Puppeteer for Netlify compatibility.
+ * Runs every 30 minutes but ONLY updates when there are matches
+ * that started 90-150 minutes ago (likely just finished).
+ * 
+ * This is much more efficient than updating every 15 minutes blindly.
  */
 
-// Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const REZULTATI_URL = "https://www.rezultati.com/nogomet/engleska/premier-league/rezultati/";
+
+// Match duration: 45min + 15min halftime + 45min + ~10min added time = ~115min
+// Adding buffer for delays: check matches that started 120-180 minutes ago
+const CHECK_WINDOW_START_MS = 120 * 60 * 1000;  // 120 minutes (match likely just finished)
+const CHECK_WINDOW_END_MS = 180 * 60 * 1000;    // 180 minutes (3 hours max window)
 
 interface MatchResult {
   homeTeam: string;
@@ -24,6 +30,42 @@ interface MatchResult {
   awayScore: number;
   date: string;
   matchweek: number;
+}
+
+interface ScheduledMatch {
+  id: string;
+  date: string;
+  home_team: string;
+  away_team: string;
+  status: string;
+}
+
+/**
+ * Check if there are any matches that likely just finished
+ * (started 90-150 minutes ago and still marked as scheduled)
+ */
+async function getMatchesToUpdate(): Promise<ScheduledMatch[]> {
+  const now = new Date();
+  
+  // Matches that started 90-150 minutes ago
+  const windowStart = new Date(now.getTime() - CHECK_WINDOW_END_MS);
+  const windowEnd = new Date(now.getTime() - CHECK_WINDOW_START_MS);
+  
+  console.log(`[AutoUpdate] Checking for matches between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`);
+  
+  const { data, error } = await supabase
+    .from("fixtures")
+    .select("id, date, home_team, away_team, status")
+    .eq("status", "scheduled")
+    .gte("date", windowStart.toISOString())
+    .lte("date", windowEnd.toISOString());
+  
+  if (error) {
+    console.error("[AutoUpdate] Error fetching scheduled matches:", error);
+    return [];
+  }
+  
+  return data || [];
 }
 
 /**
@@ -90,11 +132,9 @@ async function fetchResults(): Promise<MatchResult[]> {
   const results: MatchResult[] = [];
   let currentMatchweek = 0;
   
-  // Process all elements in order
   $(".event__round, .event__match").each((_, el) => {
     const $el = $(el);
     
-    // Check if this is a round header
     if ($el.hasClass("event__round")) {
       const roundText = $el.text();
       const roundMatch = roundText.match(/(\d+)\.\s*kolo/i);
@@ -104,7 +144,6 @@ async function fetchResults(): Promise<MatchResult[]> {
       return;
     }
     
-    // This is a match element
     if (!$el.hasClass("event__match")) return;
     
     const homeTeam = $el.find(".event__participant--home").text().trim().replace(/\d+$/, "").trim();
@@ -131,7 +170,7 @@ async function fetchResults(): Promise<MatchResult[]> {
     }
   });
   
-  console.log(`[AutoUpdate] Found ${results.length} results`);
+  console.log(`[AutoUpdate] Found ${results.length} results from scraper`);
   return results;
 }
 
@@ -170,7 +209,6 @@ async function updateDatabase(results: MatchResult[]): Promise<number> {
     throw error;
   }
   
-  // Update cache metadata
   await supabase
     .from("cache_metadata")
     .upsert({
@@ -183,22 +221,43 @@ async function updateDatabase(results: MatchResult[]): Promise<number> {
 }
 
 /**
- * Main handler
+ * Main handler - Smart update logic
  */
 const handler: Handler = async (event, context) => {
-  console.log("[AutoUpdate] Starting scheduled update...");
+  console.log("[AutoUpdate] Checking if update is needed...");
   const startTime = Date.now();
   
   try {
-    // Check if Supabase is configured
     if (!supabaseUrl || !supabaseKey) {
       throw new Error("Missing Supabase configuration");
     }
     
-    // Fetch results
+    // Step 1: Check if there are matches that likely just finished
+    const matchesToUpdate = await getMatchesToUpdate();
+    
+    if (matchesToUpdate.length === 0) {
+      console.log("[AutoUpdate] No matches to update. Skipping scrape.");
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          success: true,
+          message: "No matches to update at this time",
+          matchesChecked: 0,
+          resultsUpdated: 0,
+          timestamp: new Date().toISOString(),
+        }),
+      };
+    }
+    
+    console.log(`[AutoUpdate] Found ${matchesToUpdate.length} matches that may have finished:`);
+    matchesToUpdate.forEach(m => {
+      console.log(`  - ${m.home_team} vs ${m.away_team} (${new Date(m.date).toLocaleString()})`);
+    });
+    
+    // Step 2: Fetch results from Rezultati.com
     const results = await fetchResults();
     
-    // Update database
+    // Step 3: Update database with new results
     const updatedCount = await updateDatabase(results);
     
     const duration = Math.round((Date.now() - startTime) / 1000);
@@ -210,6 +269,7 @@ const handler: Handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         message: "Auto-update completed",
+        matchesChecked: matchesToUpdate.length,
         resultsUpdated: updatedCount,
         duration: `${duration}s`,
         timestamp: new Date().toISOString(),
@@ -229,8 +289,7 @@ const handler: Handler = async (event, context) => {
   }
 };
 
-// Schedule: Run every 15 minutes
-export const autoUpdate = schedule("*/15 * * * *", handler);
+// Schedule: Check every 30 minutes, but only scrape when matches need updating
+export const autoUpdate = schedule("*/30 * * * *", handler);
 
-// Also export as default handler for manual triggering
 export { handler };

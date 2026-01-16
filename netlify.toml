@@ -16,9 +16,10 @@
   directory = "netlify/functions"
 
 # Scheduled function for auto-updating match results
-# Runs every 15 minutes to check for finished matches
+# Runs every 30 minutes but only scrapes when matches have likely finished
+# (checks for matches that started 90-150 minutes ago)
 [functions."auto-update"]
-  schedule = "*/15 * * * *"
+  schedule = "*/30 * * * *"
 
 # Headers for security and caching
 [[headers]]
