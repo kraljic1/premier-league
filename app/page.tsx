@@ -40,7 +40,7 @@ const ClubLogo = dynamic(
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
-    next: { revalidate: 1800 }, // Revalidate every 30 minutes
+    cache: "no-store", // Client-side fetch, don't cache
   });
   if (!res.ok) throw new Error("Failed to fetch fixtures");
   return res.json();
