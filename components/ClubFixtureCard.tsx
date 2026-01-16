@@ -37,6 +37,7 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
                 key={fixture.id}
                 fixture={fixture}
                 club={club}
+                clubData={clubData}
               />
             ))}
           </div>
@@ -49,18 +50,23 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
 interface MatchItemProps {
   fixture: Fixture;
   club: string;
+  clubData: Club | undefined;
 }
 
 /**
  * Individual match item within a club fixture card.
  */
-function MatchItem({ fixture, club }: MatchItemProps) {
+function MatchItem({ fixture, club, clubData }: MatchItemProps) {
   const isHome = fixture.homeTeam === club;
   const opponent = isHome ? fixture.awayTeam : fixture.homeTeam;
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
+  const primaryColor = clubData?.primaryColor || "#37003c";
 
   return (
-    <div className="match-item">
+    <div 
+      className={`match-item ${isHome ? 'match-item--home' : ''}`}
+      style={isHome ? { '--club-primary-color': primaryColor } as React.CSSProperties : undefined}
+    >
       <div className="match-item__header">
         <span className="match-item__date">{formatDate(fixture.date)}</span>
         <span className="match-item__matchweek">MW {fixture.matchweek}</span>

@@ -8,6 +8,8 @@ import { Footer } from "@/components/Footer";
 import { ServiceWorkerRegistration } from "./sw-register";
 import { ClubTheme } from "@/components/ClubTheme";
 import { PortalFix } from "@/components/PortalFix";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { CookieConsent } from "@/components/CookieConsent";
 
 // Optimize font loading with display swap for better performance
 const inter = Inter({
@@ -19,12 +21,42 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Premier League Tracker 2025/26",
-  description: "Personal Premier League tracker",
+  description: "Track Premier League fixtures, results, standings, and top scorers. Compare club schedules and stay updated with the latest match information.",
+  keywords: ["Premier League", "football", "soccer", "fixtures", "results", "standings", "top scorers", "EPL"],
+  authors: [{ name: "Premier League Tracker" }],
+  creator: "Premier League Tracker",
+  publisher: "Premier League Tracker",
   manifest: "/manifest.json",
   icons: {
     icon: "/icon-192.png",
     shortcut: "/icon-192.png",
     apple: "/icon-192.png",
+  },
+  openGraph: {
+    type: "website",
+    title: "Premier League Tracker 2025/26",
+    description: "Track Premier League fixtures, results, standings, and top scorers.",
+    siteName: "Premier League Tracker",
+    url: "https://premierleaguefixures.com",
+  },
+  alternates: {
+    canonical: "https://premierleaguefixures.com",
+  },
+  twitter: {
+    card: "summary",
+    title: "Premier League Tracker 2025/26",
+    description: "Track Premier League fixtures, results, standings, and top scorers.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -50,6 +82,10 @@ export default function RootLayout({
       <body className={`${inter.variable} ${inter.className}`} suppressHydrationWarning>
         <PortalFix />
         <ServiceWorkerRegistration />
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
+        <CookieConsent />
         <Providers>
           <ClubTheme />
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

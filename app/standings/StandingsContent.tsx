@@ -7,6 +7,7 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { ClubLogo } from "@/components/ClubLogo";
 import { Standing } from "@/lib/types";
+import { useClubs } from "@/lib/hooks/useClubs";
 
 async function fetchStandings(): Promise<Standing[]> {
   const res = await fetch("/api/standings", {
@@ -45,6 +46,9 @@ export default function StandingsContent() {
     staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
+
+  // Fetch all clubs in one API call to avoid rate limiting
+  const { clubs } = useClubs();
 
   return (
     <div className="space-y-6">
@@ -85,7 +89,7 @@ export default function StandingsContent() {
             </thead>
             <tbody>
               {standings.map((standing) => (
-                <StandingRow key={standing.club} standing={standing} />
+                <StandingRow key={standing.club} standing={standing} clubs={clubs} />
               ))}
             </tbody>
           </table>
@@ -95,7 +99,7 @@ export default function StandingsContent() {
   );
 }
 
-function StandingRow({ standing }: { standing: Standing }) {
+function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<string, any> }) {
   const positionColors: Record<number, string> = {
     1: "bg-yellow-100 dark:bg-yellow-900/20",
     2: "bg-gray-100 dark:bg-gray-800",
@@ -105,6 +109,10 @@ function StandingRow({ standing }: { standing: Standing }) {
     20: "bg-red-100 dark:bg-red-900/20",
   };
 
+  // Find club data and get logo URL from database if available
+  const clubEntry = Object.values(clubs).find((c: any) => c.name === standing.club);
+  const logoUrl = clubEntry?.logoUrlFromDb || null;
+
   return (
     <tr
       className={`border-b border-gray-200 dark:border-gray-700 ${
@@ -113,7 +121,7 @@ function StandingRow({ standing }: { standing: Standing }) {
     >
       <td className="p-2 font-semibold">{standing.position}</td>
       <td className="p-2 font-medium">
-        <ClubLogo clubName={standing.club} size={20} />
+        <ClubLogo clubName={standing.club} size={20} logoUrl={logoUrl} />
       </td>
       <td className="p-2 text-center">{standing.played}</td>
       <td className="p-2 text-center">{standing.won}</td>

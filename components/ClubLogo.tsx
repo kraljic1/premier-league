@@ -9,21 +9,29 @@ interface ClubLogoProps {
   clubName: string;
   size?: number;
   className?: string;
+  logoUrl?: string | null; // Optional: if provided, skip API call
 }
 
 /**
  * Component that displays a club logo next to the club name.
- * First tries to get logo URL from database, then falls back to hardcoded URL.
+ * If logoUrl prop is provided, uses it directly (no API call).
+ * Otherwise, fetches logo URL from database, then falls back to hardcoded URL.
  * Falls back to club name only if logo is not available.
  */
-export function ClubLogo({ clubName, size = 24, className = "" }: ClubLogoProps) {
+export function ClubLogo({ clubName, size = 24, className = "", logoUrl: providedLogoUrl }: ClubLogoProps) {
   const [imageError, setImageError] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState<string | null>(providedLogoUrl || null);
+  const [isLoading, setIsLoading] = useState(!providedLogoUrl);
   const club: Club | undefined = getClubByName(clubName);
 
-  // Fetch logo URL from database
+  // Fetch logo URL from database only if not provided via prop
   useEffect(() => {
+    // Skip API call if logoUrl was provided via prop
+    if (providedLogoUrl !== undefined) {
+      setIsLoading(false);
+      return;
+    }
+
     async function fetchLogoUrl() {
       if (!club) {
         setIsLoading(false);
@@ -55,10 +63,10 @@ export function ClubLogo({ clubName, size = 24, className = "" }: ClubLogoProps)
     }
 
     fetchLogoUrl();
-  }, [club]);
+  }, [club, providedLogoUrl]);
 
-  // Use hardcoded URL as immediate fallback while loading
-  const displayLogoUrl = logoUrl || club?.logoUrl;
+  // Use provided logoUrl, fetched logoUrl, or hardcoded URL as fallback
+  const displayLogoUrl = providedLogoUrl || logoUrl || club?.logoUrl;
 
   if (isLoading && !club?.logoUrl) {
     return <span className={className}>{clubName}</span>;

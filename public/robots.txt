@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Disallow API routes from being indexed
+Disallow: /api/
+
+# Disallow admin/internal routes
+Disallow: /_next/
+Disallow: /sw.js
+
+# Sitemap location
+Sitemap: https://premierleaguefixures.com/sitemap.xml
