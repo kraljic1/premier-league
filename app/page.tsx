@@ -12,17 +12,30 @@ import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
 // Dynamically import heavy components for better code splitting
-const MatchCountdown = dynamic(() => import("@/components/MatchCountdown").then(mod => ({ default: mod.MatchCountdown })), {
-  loading: () => <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-});
+// Using ssr: false to prevent hydration mismatches with browser-only code
+const MatchCountdown = dynamic(
+  () => import("@/components/MatchCountdown").then(mod => ({ default: mod.MatchCountdown })),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+  }
+);
 
-const ClubSelector = dynamic(() => import("@/components/ClubSelector").then(mod => ({ default: mod.ClubSelector })), {
-  loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-});
+const ClubSelector = dynamic(
+  () => import("@/components/ClubSelector").then(mod => ({ default: mod.ClubSelector })),
+  {
+    ssr: false,
+    loading: () => <div className="animate-pulse h-48 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+  }
+);
 
-const ClubLogo = dynamic(() => import("@/components/ClubLogo").then(mod => ({ default: mod.ClubLogo })), {
-  loading: () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>
-});
+const ClubLogo = dynamic(
+  () => import("@/components/ClubLogo").then(mod => ({ default: mod.ClubLogo })),
+  {
+    ssr: false,
+    loading: () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>
+  }
+);
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
@@ -78,7 +91,8 @@ function getWeekendFixtures(fixtures: Fixture[]): Fixture[] {
 }
 
 export default function HomePage() {
-  const { myClubs } = useAppStore();
+  const myClubs = useAppStore((state) => state.myClubs);
+  const hasHydrated = useAppStore((state) => state._hasHydrated);
   const {
     data: fixtures = [],
     isLoading,
@@ -89,7 +103,9 @@ export default function HomePage() {
     queryFn: fetchFixtures,
   });
 
-  const nextMatch = getNextMatch(fixtures, myClubs);
+  // Use empty array during SSR/before hydration to prevent mismatch
+  const safeMyClubs = hasHydrated ? myClubs : [];
+  const nextMatch = getNextMatch(fixtures, safeMyClubs);
   const todayFixtures = getTodayFixtures(fixtures);
   const weekendFixtures = getWeekendFixtures(fixtures);
 

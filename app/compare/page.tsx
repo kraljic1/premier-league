@@ -53,8 +53,12 @@ function getFutureFixtures(fixtures: Fixture[], limit: number | null): Fixture[]
 }
 
 export default function ComparePage() {
-  const { myClubs } = useAppStore();
+  const myClubs = useAppStore((state) => state.myClubs);
+  const hasHydrated = useAppStore((state) => state._hasHydrated);
   const [futureMatchesCount, setFutureMatchesCount] = useState<number | null>(5);
+  
+  // Use empty array during SSR/before hydration to prevent mismatch
+  const safeMyClubs = useMemo(() => hasHydrated ? myClubs : [], [hasHydrated, myClubs]);
   
   const handleFutureMatchesCountChange = (count: number | null) => {
     console.log("[ComparePage] Updating futureMatchesCount to:", count);
@@ -72,10 +76,10 @@ export default function ComparePage() {
   });
 
   const clubNames = useMemo(() => {
-    return myClubs
+    return safeMyClubs
       .map((id: string) => CLUBS[id]?.name)
       .filter((name): name is string => Boolean(name));
-  }, [myClubs]);
+  }, [safeMyClubs]);
 
   // Determine current matchweek from finished matches
   const currentMatchweek = useMemo(() => getCurrentMatchweek(fixtures), [fixtures]);

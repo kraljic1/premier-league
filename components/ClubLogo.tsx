@@ -77,9 +77,14 @@ export function ClubLogo({ clubName, size = 24, className = "" }: ClubLogoProps)
         width={size}
         height={size}
         loading="lazy"
-        placeholder="blur"
-        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2Y5ZmFmYiIvPgo8L3N2Zz4K"
-        onError={() => setImageError(true)}
+        {...(size >= 40 ? {
+          placeholder: "blur" as const,
+          blurDataURL: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2Y5ZmFmYiIvPgo8L3N2Zz4K"
+        } : {})}
+        onError={() => {
+          // Use setTimeout to defer state update and avoid render-time warnings
+          setTimeout(() => setImageError(true), 0);
+        }}
       />
       <span className="club-logo__name">{clubName}</span>
     </div>

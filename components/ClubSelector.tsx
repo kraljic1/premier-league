@@ -8,15 +8,23 @@ import { useClubs } from "@/lib/hooks/useClubs";
 import { ClubLogo } from "@/components/ClubLogo";
 
 export function ClubSelector() {
-  const { myClubs, primaryClub, addClub, removeClub, setPrimaryClub } =
-    useAppStore();
+  const myClubs = useAppStore((state) => state.myClubs);
+  const primaryClub = useAppStore((state) => state.primaryClub);
+  const addClub = useAppStore((state) => state.addClub);
+  const removeClub = useAppStore((state) => state.removeClub);
+  const setPrimaryClub = useAppStore((state) => state.setPrimaryClub);
+  const hasHydrated = useAppStore((state) => state._hasHydrated);
   const { clubs } = useClubs();
+  
+  // Use empty array during SSR/before hydration to prevent mismatch
+  const safeMyClubs = hasHydrated ? myClubs : [];
+  const safePrimaryClub = hasHydrated ? primaryClub : null;
 
   const handleToggleClub = (clubId: string) => {
-    if (myClubs.includes(clubId)) {
+    if (safeMyClubs.includes(clubId)) {
       removeClub(clubId);
     } else {
-      if (myClubs.length < 5) {
+      if (safeMyClubs.length < 5) {
         addClub(clubId);
       }
     }
@@ -27,9 +35,9 @@ export function ClubSelector() {
       <h3 className="text-lg font-semibold">My Clubs (max 5)</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {Object.values(clubs).map((club) => {
-          const isSelected = myClubs.includes(club.id);
-          const isPrimary = primaryClub === club.id;
-          const isDisabled = !isSelected && myClubs.length >= 5;
+          const isSelected = safeMyClubs.includes(club.id);
+          const isPrimary = safePrimaryClub === club.id;
+          const isDisabled = !isSelected && safeMyClubs.length >= 5;
 
           return (
             <div
@@ -71,12 +79,12 @@ export function ClubSelector() {
           );
         })}
       </div>
-      {myClubs.length > 0 && (
+      {safeMyClubs.length > 0 && (
         <div className="mt-4">
           <label className="text-sm font-medium">Set Primary Club:</label>
           <PrimaryClubDropdown
-            myClubs={myClubs}
-            primaryClub={primaryClub}
+            myClubs={safeMyClubs}
+            primaryClub={safePrimaryClub}
             setPrimaryClub={setPrimaryClub}
           />
         </div>

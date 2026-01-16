@@ -4,9 +4,11 @@ import { persist } from "zustand/middleware";
 interface AppState {
   myClubs: string[];
   primaryClub: string | null;
+  _hasHydrated: boolean;
   addClub: (clubId: string) => void;
   removeClub: (clubId: string) => void;
   setPrimaryClub: (clubId: string | null) => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -14,6 +16,7 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       myClubs: [],
       primaryClub: null,
+      _hasHydrated: false,
       addClub: (clubId: string) =>
         set((state) => {
           if (state.myClubs.includes(clubId)) return state;
@@ -28,9 +31,16 @@ export const useAppStore = create<AppState>()(
         })),
       setPrimaryClub: (clubId: string | null) =>
         set({ primaryClub: clubId }),
+      setHasHydrated: (state: boolean) => {
+        set({ _hasHydrated: state });
+      },
     }),
     {
       name: "premier-league-storage",
+      skipHydration: true,
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

@@ -37,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         {/* Resource hints for better performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -45,13 +45,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://upload.wikimedia.org" />
         <link rel="preconnect" href="https://resources.premierleague.com" />
         <link rel="dns-prefetch" href="https://supabase.co" />
-
-        {/* Preload critical resources */}
-        <link rel="preload" href="/icon-192.png" as="image" />
-        <link rel="preload" href="/manifest.json" as="fetch" />
-
-        {/* Optimize font display */}
-        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
       </head>
       <body className={`${inter.variable} ${inter.className}`}>
         <ServiceWorkerRegistration />

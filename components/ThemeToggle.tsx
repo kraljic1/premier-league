@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const stored = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const shouldBeDark = stored === "dark" || (!stored && prefersDark);
@@ -28,6 +30,18 @@ export function ThemeToggle() {
       localStorage.setItem("theme", "light");
     }
   };
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <button
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        aria-label="Toggle theme"
+      >
+        🌙
+      </button>
+    );
+  }
 
   return (
     <button
