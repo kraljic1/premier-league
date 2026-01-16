@@ -111,10 +111,20 @@ export async function GET(request: NextRequest) {
       // Check database and cache metadata in parallel
       console.log("[Fixtures API] Checking database for fixtures...");
 
+      // Filter for current season fixtures only (both season formats and date range fallback)
+      // Current season identifiers (both formats for compatibility)
+      const CURRENT_SEASON_SHORT = "2025/26";
+      const CURRENT_SEASON_FULL = "2025/2026";
+      // Season 2025/26 runs from approximately August 2025 to May 2026
+      const CURRENT_SEASON_START = new Date("2025-08-01");
+      const CURRENT_SEASON_END = new Date("2026-06-30");
+
       const [fixturesResult, cacheMetaResult] = await Promise.all([
         supabaseServer
           .from('fixtures')
           .select('*')
+          .or(`season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL}`)
+          .or(`season.is.null,date.gte.${CURRENT_SEASON_START.toISOString()},date.lte.${CURRENT_SEASON_END.toISOString()}`)
           .order('date', { ascending: true }),
         supabaseServer
           .from('cache_metadata')
@@ -242,11 +252,13 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // After upserting, fetch ALL fixtures from database (including previously stored ones)
-      // This ensures we return all fixtures, not just the ones we just scraped
+      // After upserting, fetch ALL current season fixtures from database (including previously stored ones)
+      // This ensures we return all current season fixtures, not just the ones we just scraped
       const { data: allFixturesData, error: fetchError } = await supabaseServer
         .from('fixtures')
         .select('*')
+        .or(`season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL}`)
+        .or(`season.is.null,date.gte.${CURRENT_SEASON_START.toISOString()},date.lte.${CURRENT_SEASON_END.toISOString()}`)
         .order('date', { ascending: true });
 
       if (fetchError) {
