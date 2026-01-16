@@ -8,17 +8,21 @@ import { useClubs } from "@/lib/hooks/useClubs";
 import { ClubLogo } from "@/components/ClubLogo";
 
 export function ClubSelector() {
+  const [mounted, setMounted] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
   const primaryClub = useAppStore((state) => state.primaryClub);
   const addClub = useAppStore((state) => state.addClub);
   const removeClub = useAppStore((state) => state.removeClub);
   const setPrimaryClub = useAppStore((state) => state.setPrimaryClub);
-  const hasHydrated = useAppStore((state) => state._hasHydrated);
   const { clubs } = useClubs();
   
-  // Use empty array during SSR/before hydration to prevent mismatch
-  const safeMyClubs = hasHydrated ? myClubs : [];
-  const safePrimaryClub = hasHydrated ? primaryClub : null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use empty array during SSR/before mount to prevent mismatch
+  const safeMyClubs = mounted ? myClubs : [];
+  const safePrimaryClub = mounted ? primaryClub : null;
 
   const handleToggleClub = (clubId: string) => {
     if (safeMyClubs.includes(clubId)) {

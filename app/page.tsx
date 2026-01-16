@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -91,8 +92,8 @@ function getWeekendFixtures(fixtures: Fixture[]): Fixture[] {
 }
 
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
-  const hasHydrated = useAppStore((state) => state._hasHydrated);
   const {
     data: fixtures = [],
     isLoading,
@@ -103,8 +104,12 @@ export default function HomePage() {
     queryFn: fetchFixtures,
   });
 
-  // Use empty array during SSR/before hydration to prevent mismatch
-  const safeMyClubs = hasHydrated ? myClubs : [];
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use empty array during SSR/before mount to prevent mismatch
+  const safeMyClubs = mounted ? myClubs : [];
   const nextMatch = getNextMatch(fixtures, safeMyClubs);
   const todayFixtures = getTodayFixtures(fixtures);
   const weekendFixtures = getWeekendFixtures(fixtures);

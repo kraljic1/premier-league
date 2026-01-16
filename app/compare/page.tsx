@@ -53,12 +53,16 @@ function getFutureFixtures(fixtures: Fixture[], limit: number | null): Fixture[]
 }
 
 export default function ComparePage() {
+  const [mounted, setMounted] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
-  const hasHydrated = useAppStore((state) => state._hasHydrated);
   const [futureMatchesCount, setFutureMatchesCount] = useState<number | null>(5);
   
-  // Use empty array during SSR/before hydration to prevent mismatch
-  const safeMyClubs = useMemo(() => hasHydrated ? myClubs : [], [hasHydrated, myClubs]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use empty array during SSR/before mount to prevent mismatch
+  const safeMyClubs = useMemo(() => mounted ? myClubs : [], [mounted, myClubs]);
   
   const handleFutureMatchesCountChange = (count: number | null) => {
     console.log("[ComparePage] Updating futureMatchesCount to:", count);
