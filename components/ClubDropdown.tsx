@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { CLUBS } from "@/lib/clubs";
+import { useState } from "react";
+import { CLUBS, getClubByName } from "@/lib/clubs";
+import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "./SafeImage";
+import { ClubSelectionModal } from "./ClubSelectionModal";
 
 interface ClubDropdownProps {
   selectedClub: string | null;
@@ -15,52 +17,48 @@ export function ClubDropdown({
   onSelect,
   label = "Select Club",
 }: ClubDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { clubs } = useClubs();
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const clubs = Object.values(CLUBS);
   const selectedClubData = selectedClub
-    ? clubs.find((c) => c.name === selectedClub)
+    ? getClubByName(selectedClub)
     : null;
+  
+  const selectedClubWithLogo = selectedClub
+    ? Object.values(clubs).find((c) => c.name === selectedClub)
+    : null;
+  
+  const logoUrl = selectedClubWithLogo?.logoUrlFromDb || 
+                  selectedClubWithLogo?.logoUrl || 
+                  selectedClubData?.logoUrl;
+
+  const handleClubSelect = (clubId: string) => {
+    const club = clubs[clubId] || CLUBS[clubId];
+    if (club) {
+      onSelect(club.name);
+    }
+  };
 
   return (
-    <div className="relative club-dropdown-container" ref={dropdownRef}>
+    <div className="club-dropdown-container">
       <label className="block text-sm font-medium mb-1">{label}</label>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-left border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        onClick={() => setIsModalOpen(true)}
+        className="club-dropdown__button"
       >
         <div className="flex items-center gap-2">
-          {selectedClubData ? (
+          {selectedClubData && logoUrl ? (
             <>
-              {selectedClubData.logoUrl && (
-                <SafeImage
-                  src={selectedClubData.logoUrl}
-                  alt={`${selectedClubData.name} logo`}
-                  width={20}
-                  height={20}
-                  className="club-dropdown-logo"
-                  loading="lazy"
-                  unoptimized={selectedClubData.logoUrl.endsWith(".svg")}
-                />
-              )}
+              <SafeImage
+                src={logoUrl}
+                alt={`${selectedClubData.name} logo`}
+                width={24}
+                height={24}
+                className="club-dropdown-logo"
+                loading="lazy"
+                unoptimized={logoUrl.endsWith(".svg")}
+              />
               <span>{selectedClubData.name}</span>
             </>
           ) : (
@@ -70,7 +68,7 @@ export function ClubDropdown({
           )}
         </div>
         <svg
-          className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className="w-5 h-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -83,38 +81,17 @@ export function ClubDropdown({
           />
         </svg>
       </button>
-      {isOpen && (
-        <div className="club-dropdown-menu absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
-          {clubs.map((club) => (
-            <button
-              key={club.id}
-              type="button"
-              onClick={() => {
-                onSelect(club.name);
-                setIsOpen(false);
-              }}
-              className={`w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
-                selectedClub === club.name
-                  ? "bg-blue-50 dark:bg-blue-900/20"
-                  : ""
-              }`}
-            >
-              {club.logoUrl && (
-                <SafeImage
-                  src={club.logoUrl}
-                  alt={`${club.name} logo`}
-                  width={20}
-                  height={20}
-                  className="club-dropdown-logo"
-                  loading="lazy"
-                  unoptimized={club.logoUrl.endsWith(".svg")}
-                />
-              )}
-              <span>{club.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
+
+      <ClubSelectionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedClubs={[]}
+        onToggleClub={handleClubSelect}
+        maxClubs={1}
+        singleSelect={true}
+        title="Select Club"
+        subtitle="Choose a club to compare"
+      />
     </div>
   );
 }

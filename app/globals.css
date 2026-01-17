@@ -1347,6 +1347,31 @@ nextjs-portal:not(:empty) {
   z-index: 50;
 }
 
+.club-dropdown__button {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  text-align: left;
+  border: 2px solid var(--pl-border-light);
+  border-radius: 0.5rem;
+  background-color: var(--pl-bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.club-dropdown__button:hover {
+  border-color: var(--pl-primary);
+  background-color: var(--pl-bg-accent);
+}
+
+.club-dropdown__button:focus {
+  outline: none;
+  border-color: var(--pl-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
 .club-dropdown-menu {
   z-index: 200 !important;
 }
@@ -2712,10 +2737,10 @@ nextjs-portal:not(:empty) {
 
 /* Club Dropdown - Consistent Logo Sizing */
 .club-dropdown-logo {
-  width: 20px;
-  height: 20px;
-  max-width: 20px;
-  max-height: 20px;
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
   object-fit: contain;
   object-position: center;
   flex-shrink: 0;

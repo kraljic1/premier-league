@@ -12,6 +12,9 @@ interface ClubSelectionModalProps {
   selectedClubs: string[];
   onToggleClub: (clubId: string) => void;
   maxClubs: number;
+  singleSelect?: boolean;
+  title?: string;
+  subtitle?: string;
 }
 
 export function ClubSelectionModal({
@@ -20,6 +23,9 @@ export function ClubSelectionModal({
   selectedClubs,
   onToggleClub,
   maxClubs,
+  singleSelect = false,
+  title = "Select Your Clubs",
+  subtitle,
 }: ClubSelectionModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
@@ -91,11 +97,16 @@ export function ClubSelectionModal({
   );
 
   const handleClubClick = (clubId: string) => {
-    if (selectedClubs.includes(clubId)) {
+    if (singleSelect) {
       onToggleClub(clubId);
+      onClose();
     } else {
-      if (selectedClubs.length < maxClubs) {
+      if (selectedClubs.includes(clubId)) {
         onToggleClub(clubId);
+      } else {
+        if (selectedClubs.length < maxClubs) {
+          onToggleClub(clubId);
+        }
       }
     }
   };
@@ -109,10 +120,10 @@ export function ClubSelectionModal({
         <div className="club-selection-modal__header">
           <div>
             <h3 className="club-selection-modal__title">
-              Select Your Clubs
+              {title}
             </h3>
             <p className="club-selection-modal__subtitle">
-              {selectedClubs.length} of {maxClubs} selected
+              {subtitle || (singleSelect ? "Choose a club" : `${selectedClubs.length} of ${maxClubs} selected`)}
             </p>
           </div>
           <button
@@ -173,7 +184,7 @@ export function ClubSelectionModal({
           <div className="club-selection-modal__grid">
             {filteredClubs.map((club) => {
               const isSelected = selectedClubs.includes(club.id);
-              const isDisabled = !isSelected && selectedClubs.length >= maxClubs;
+              const isDisabled = !singleSelect && !isSelected && selectedClubs.length >= maxClubs;
 
               return (
                 <button
@@ -181,12 +192,12 @@ export function ClubSelectionModal({
                   type="button"
                   onClick={() => !isDisabled && handleClubClick(club.id)}
                   className={`club-selection-modal__card ${
-                    isSelected ? "club-selection-modal__card--selected" : ""
+                    isSelected && !singleSelect ? "club-selection-modal__card--selected" : ""
                   } ${isDisabled ? "club-selection-modal__card--disabled" : ""}`}
                   disabled={isDisabled}
-                  aria-label={`${isSelected ? "Remove" : "Add"} ${club.name}`}
+                  aria-label={`Select ${club.name}`}
                 >
-                  {isSelected && (
+                  {isSelected && !singleSelect && (
                     <div className="club-selection-modal__card-check">
                       <svg
                         className="w-4 h-4"
@@ -229,7 +240,7 @@ export function ClubSelectionModal({
           </div>
         )}
 
-        {selectedClubs.length >= maxClubs && (
+        {!singleSelect && selectedClubs.length >= maxClubs && (
           <div className="club-selection-modal__limit-message">
             <svg
               className="w-5 h-5"
