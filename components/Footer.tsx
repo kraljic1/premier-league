@@ -1,8 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export function Footer() {
+  const [mounted, setMounted] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>("");
+
+  useEffect(() => {
+    setMounted(true);
+    // Only set date on client-side to prevent hydration mismatch
+    const now = new Date();
+    setLastUpdated(now.toLocaleDateString());
+  }, []);
+
   return (
     <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-16" itemScope itemType="https://schema.org/Organization">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -96,7 +107,11 @@ export function Footer() {
               .
             </p>
             <p className="text-gray-400 dark:text-gray-600 text-xs px-4">
-              Data last updated: <time dateTime={new Date().toISOString()}>{new Date().toLocaleDateString()}</time>
+              {mounted ? (
+                <time dateTime={new Date().toISOString()}>{lastUpdated}</time>
+              ) : (
+                <span>Data last updated: Loading...</span>
+              )}
             </p>
           </div>
         </div>

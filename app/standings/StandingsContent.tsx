@@ -86,20 +86,20 @@ export default function StandingsContent() {
       ) : (
         <PageSectionReveal delay={200}>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="standings-table w-full border-collapse">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left p-2">Pos</th>
-                  <th className="text-left p-2">Club</th>
-                  <th className="text-center p-2">P</th>
-                  <th className="text-center p-2">W</th>
-                  <th className="text-center p-2">D</th>
-                  <th className="text-center p-2">L</th>
-                  <th className="text-center p-2">GF</th>
-                  <th className="text-center p-2">GA</th>
-                  <th className="text-center p-2">GD</th>
-                  <th className="text-center p-2">Pts</th>
-                  <th className="text-center p-2">Form</th>
+                  <th className="standings-table__col-pos text-left p-2">Pos</th>
+                  <th className="standings-table__col-club text-left p-2">Club</th>
+                  <th className="standings-table__col-stat text-center p-2">P</th>
+                  <th className="standings-table__col-stat text-center p-2">W</th>
+                  <th className="standings-table__col-stat text-center p-2">D</th>
+                  <th className="standings-table__col-stat text-center p-2">L</th>
+                  <th className="standings-table__col-stat text-center p-2">GF</th>
+                  <th className="standings-table__col-stat text-center p-2">GA</th>
+                  <th className="standings-table__col-stat text-center p-2">GD</th>
+                  <th className="standings-table__col-stat text-center p-2">Pts</th>
+                  <th className="standings-table__col-form text-center p-2">Form</th>
                 </tr>
               </thead>
               <tbody>
@@ -147,8 +147,8 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
         positionColors[standing.position] || ""
       }`}
     >
-      <td className="p-2 font-semibold">{standing.position}</td>
-      <td className="p-2 font-medium">
+      <td className="standings-table__col-pos p-2 font-semibold">{standing.position}</td>
+      <td className="standings-table__col-club p-2 font-medium">
         <div className="standings-row__club">
           {shouldShowPlaceholder ? (
             <div className="standings-row__logo-placeholder">
@@ -168,18 +168,18 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
           <span className="standings-row__club-name">{standing.club}</span>
         </div>
       </td>
-      <td className="p-2 text-center">{standing.played}</td>
-      <td className="p-2 text-center">{standing.won}</td>
-      <td className="p-2 text-center">{standing.drawn}</td>
-      <td className="p-2 text-center">{standing.lost}</td>
-      <td className="p-2 text-center">{standing.goalsFor}</td>
-      <td className="p-2 text-center">{standing.goalsAgainst}</td>
-      <td className="p-2 text-center">
+      <td className="standings-table__col-stat p-2 text-center">{standing.played}</td>
+      <td className="standings-table__col-stat p-2 text-center">{standing.won}</td>
+      <td className="standings-table__col-stat p-2 text-center">{standing.drawn}</td>
+      <td className="standings-table__col-stat p-2 text-center">{standing.lost}</td>
+      <td className="standings-table__col-stat p-2 text-center">{standing.goalsFor}</td>
+      <td className="standings-table__col-stat p-2 text-center">{standing.goalsAgainst}</td>
+      <td className="standings-table__col-stat p-2 text-center">
         {standing.goalDifference > 0 ? "+" : ""}
         {standing.goalDifference}
       </td>
-      <td className="p-2 text-center font-bold">{standing.points}</td>
-      <td className="p-2">
+      <td className="standings-table__col-stat p-2 text-center font-bold">{standing.points}</td>
+      <td className="standings-table__col-form p-2">
         <div className="flex gap-1 justify-center">
           {standing.form?.split("").map((result, idx) => (
             <div

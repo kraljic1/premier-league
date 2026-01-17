@@ -373,6 +373,8 @@ body {
   gap: 1rem;
   margin-bottom: 2rem;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .compare-season-page__comparison {
@@ -381,6 +383,8 @@ body {
   gap: 2rem;
   width: 100%;
   max-width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 /* Enhanced Match Cards */
@@ -1337,6 +1341,9 @@ nextjs-portal:not(:empty) {
 
 .compare-season-page__season-dropdown {
   max-width: 300px;
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
 }
 
 @media (min-width: 768px) {
@@ -2298,11 +2305,42 @@ nextjs-portal:not(:empty) {
   flex-shrink: 0;
 }
 
+/* Standings Table - Column Widths and Alignment */
+.standings-table {
+  table-layout: fixed;
+  min-width: 100%;
+}
+
+.standings-table__col-pos {
+  width: 3rem;
+  min-width: 3rem;
+  max-width: 3rem;
+}
+
+.standings-table__col-club {
+  width: auto;
+  min-width: 12rem;
+  max-width: 20rem;
+}
+
+.standings-table__col-stat {
+  width: 3rem;
+  min-width: 3rem;
+  max-width: 3rem;
+}
+
+.standings-table__col-form {
+  width: 7rem;
+  min-width: 7rem;
+  max-width: 7rem;
+}
+
 /* Standings Row - Consistent Logo and Name Positioning */
 .standings-row__club {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .standings-row__logo {
@@ -2334,10 +2372,43 @@ nextjs-portal:not(:empty) {
 .standings-row__club-name {
   font-weight: 500;
   color: var(--pl-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 10rem;
 }
 
 .dark .standings-row__club-name {
   color: var(--pl-text-inverse);
+}
+
+@media (max-width: 640px) {
+  .standings-table__col-pos {
+    width: 2.5rem;
+    min-width: 2.5rem;
+    max-width: 2.5rem;
+  }
+
+  .standings-table__col-club {
+    min-width: 10rem;
+    max-width: 15rem;
+  }
+
+  .standings-table__col-stat {
+    width: 2.5rem;
+    min-width: 2.5rem;
+    max-width: 2.5rem;
+  }
+
+  .standings-table__col-form {
+    width: 6rem;
+    min-width: 6rem;
+    max-width: 6rem;
+  }
+
+  .standings-row__club-name {
+    max-width: 8rem;
+  }
 }
 
 /* Club Match Results - Team Logo */
