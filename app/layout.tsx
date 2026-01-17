@@ -91,22 +91,22 @@ export default function RootLayout({
         <CookieConsent />
         <Providers>
           <ClubTheme />
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
             <header className="header-bar">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-                <div className="flex items-center">
+                <div className="flex items-center min-w-0">
                   <img
                     src="/premier-league-trophy.png"
                     alt="Premier League Trophy"
-                    className="h-10 w-10 mr-3 object-contain"
+                    className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3 object-contain flex-shrink-0"
                   />
-                  <h1 className="text-xl font-bold">Premier League Tracker</h1>
+                  <h1 className="text-base sm:text-xl font-bold truncate">Premier League Tracker</h1>
                 </div>
                 <ThemeToggle />
               </div>
             </header>
             <Navigation />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
               {children}
             </main>
             <Footer />

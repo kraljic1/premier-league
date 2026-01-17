@@ -12,9 +12,16 @@
   --foreground: 210 40% 98%;
 }
 
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 @layer utilities {
@@ -154,6 +161,9 @@ body {
 /* Compare Season Page */
 .compare-season-page {
   padding: 1.5rem 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .compare-season-page__header {
@@ -166,10 +176,16 @@ body {
 }
 
 .compare-season-page__title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: hsl(var(--foreground));
   letter-spacing: -0.02em;
+}
+
+@media (min-width: 640px) {
+  .compare-season-page__title {
+    font-size: 2rem;
+  }
 }
 
 .compare-season-page__controls {
@@ -177,12 +193,15 @@ body {
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .compare-season-page__comparison {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Club Fixture Card */
@@ -755,6 +774,9 @@ nextjs-portal:not(:empty) {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (min-width: 1024px) {
@@ -765,10 +787,16 @@ nextjs-portal:not(:empty) {
 
 .season-stats-layout__stats {
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .season-stats-layout__results {
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Club Match Results Table */
@@ -778,6 +806,8 @@ nextjs-portal:not(:empty) {
   overflow: hidden;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
 }
 
 .dark .club-match-results {
@@ -811,12 +841,15 @@ nextjs-portal:not(:empty) {
 .club-match-results__table-container {
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: auto;
+  width: 100%;
 }
 
 .club-match-results__table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8125rem;
+  min-width: 100%;
 }
 
 .club-match-results__table thead {
@@ -882,6 +915,21 @@ nextjs-portal:not(:empty) {
   max-width: 120px;
 }
 
+@media (max-width: 640px) {
+  .club-match-results__team {
+    max-width: 80px;
+  }
+  
+  .club-match-results__table {
+    font-size: 0.75rem;
+  }
+  
+  .club-match-results__table th,
+  .club-match-results__table td {
+    padding: 0.375rem 0.25rem;
+  }
+}
+
 .club-match-results__team--highlight {
   font-weight: 600;
   color: #37003c;
@@ -926,6 +974,8 @@ nextjs-portal:not(:empty) {
   overflow: hidden;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
 }
 
 .dark .season-stats-compact {

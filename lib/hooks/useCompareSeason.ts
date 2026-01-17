@@ -97,17 +97,19 @@ export function useCompareSeason() {
   }, [historicalFixtures, dataUpdatedAt]);
 
   const availableSeasons = useMemo(() => {
-    const seasons = getAvailableSeasons(currentFixtures);
+    // Only show previous seasons, not the current one
     const currentYear = new Date().getFullYear();
     const previousSeasons: string[] = [];
+    
+    // Generate last 5 seasons before current
+    // Current season is 2025/2026, so we start from 2024/2025
     for (let i = 1; i <= 5; i++) {
       const year = currentYear - i;
       previousSeasons.push(`${year}/${year + 1}`);
     }
-    return [...seasons, ...previousSeasons].filter(
-      (v, i, a) => a.indexOf(v) === i
-    );
-  }, [currentFixtures]);
+    
+    return previousSeasons;
+  }, []);
 
   const currentMatchweek = useMemo(
     () => getCurrentMatchweekFromFixtures(currentFixtures),
