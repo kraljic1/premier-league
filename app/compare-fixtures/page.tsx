@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
+
+// Note: Client components can't export metadata directly in Next.js
+// Metadata is handled at the layout level
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";

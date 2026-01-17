@@ -32,7 +32,7 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
         }}
       >
         <h3 className="club-fixture-card__club-name">
-          <ClubLogo clubName={club} size={28} logoUrl={logoUrl} />
+          <ClubLogo clubName={club} size={28} logoUrl={logoUrl} context="fixture" />
         </h3>
       </div>
       <div className="club-fixture-card__content">
@@ -91,7 +91,7 @@ function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
             <>
               <span className="match-item__vs">vs</span>
               <span className="match-item__opponent">
-                <ClubLogo clubName={opponent} size={16} logoUrl={opponentLogoUrl} />
+                <ClubLogo clubName={opponent} size={16} logoUrl={opponentLogoUrl} context="fixture" position={isHome ? "away" : "home"} />
               </span>
               <span className="match-item__venue">(H)</span>
             </>
@@ -99,7 +99,7 @@ function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
             <>
               <span className="match-item__vs">@</span>
               <span className="match-item__opponent">
-                <ClubLogo clubName={opponent} size={16} logoUrl={opponentLogoUrl} />
+                <ClubLogo clubName={opponent} size={16} logoUrl={opponentLogoUrl} context="fixture" position={isHome ? "away" : "home"} />
               </span>
               <span className="match-item__venue">(A)</span>
             </>

@@ -11,13 +11,17 @@ import { ClubTheme } from "@/components/ClubTheme";
 import { PortalFix } from "@/components/PortalFix";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { CookieConsent } from "@/components/CookieConsent";
+import { StructuredData } from "@/components/StructuredData";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { RelatedContent } from "@/components/RelatedContent";
 import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
-// Optimize font loading with display swap for better performance
+// Optimize font loading with display swap for better performance and CLS prevention
 const inter = Inter({
   subsets: ["latin"],
   display: 'swap',
   preload: true,
+  fallback: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
   variable: '--font-inter'
 });
 
@@ -67,7 +71,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
   themeColor: "#000000",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -84,6 +93,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://upload.wikimedia.org" />
         <link rel="preconnect" href="https://resources.premierleague.com" />
         <link rel="dns-prefetch" href="https://supabase.co" />
+
+        {/* Structured Data for SEO */}
+        <StructuredData />
       </head>
       <body className={`${inter.variable} ${inter.className}`} suppressHydrationWarning>
         <PortalFix />
@@ -96,13 +108,13 @@ export default function RootLayout({
         <CookieConsent />
         <Providers>
           <ClubTheme />
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
+          <div className="min-h-screen" style={{ backgroundColor: 'var(--pl-bg-primary)' }}>
             <header className="header-bar">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
                 <div className="flex items-center min-w-0">
                   <img
                     src="/premier-league-trophy.png"
-                    alt="Premier League Trophy"
+                    alt="Premier League Trophy - Official championship trophy awarded to the winners of England's top football league"
                     className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3 object-contain flex-shrink-0"
                   />
                   <h1 className="text-base sm:text-xl font-bold truncate">Premier League Tracker</h1>
@@ -111,9 +123,11 @@ export default function RootLayout({
               </div>
             </header>
             <Navigation />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
+            <Breadcrumbs />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden stadium-pattern">
               {children}
             </main>
+            <RelatedContent />
             <Footer />
           </div>
         </Providers>

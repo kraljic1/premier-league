@@ -10,6 +10,8 @@ interface ClubLogoProps {
   size?: number;
   className?: string;
   logoUrl?: string | null; // Optional: if provided, skip API call
+  context?: 'fixture' | 'standings' | 'selector' | 'countdown' | 'default'; // Context for better alt text
+  position?: 'home' | 'away' | 'neutral'; // For fixtures
 }
 
 /**
@@ -18,7 +20,14 @@ interface ClubLogoProps {
  * Otherwise, fetches logo URL from database, then falls back to hardcoded URL.
  * Falls back to club name only if logo is not available.
  */
-export const ClubLogo = memo(function ClubLogo({ clubName, size = 24, className = "", logoUrl: providedLogoUrl }: ClubLogoProps) {
+export const ClubLogo = memo(function ClubLogo({
+  clubName,
+  size = 24,
+  className = "",
+  logoUrl: providedLogoUrl,
+  context = 'default',
+  position
+}: ClubLogoProps) {
   const [imageError, setImageError] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(providedLogoUrl || null);
   const [isLoading, setIsLoading] = useState(!providedLogoUrl);
@@ -87,11 +96,30 @@ export const ClubLogo = memo(function ClubLogo({ clubName, size = 24, className 
 
   const isSvg = normalizedUrl.endsWith('.svg') || normalizedUrl.includes('.svg');
 
+  // Generate descriptive alt text based on context
+  const getAltText = () => {
+    const baseName = `${clubName} football club`;
+
+    switch (context) {
+      case 'fixture':
+        const positionText = position === 'home' ? 'home team' : position === 'away' ? 'away team' : 'team';
+        return `${clubName} ${positionText} logo - Premier League football club`;
+      case 'standings':
+        return `${clubName} logo - Premier League standings position`;
+      case 'selector':
+        return `Select ${clubName} - Premier League football club logo`;
+      case 'countdown':
+        return `${clubName} logo - upcoming Premier League match`;
+      default:
+        return `${clubName} official club logo - Premier League football team`;
+    }
+  };
+
   return (
     <div className={`club-logo ${className}`}>
       <SafeImage
         src={normalizedUrl}
-        alt={`${clubName} logo`}
+        alt={getAltText()}
         className="club-logo__image"
         width={size}
         height={size}

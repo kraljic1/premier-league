@@ -4,14 +4,18 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-16">
+    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-16" itemScope itemType="https://schema.org/Organization">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center space-y-6">
-          {/* Description */}
-          <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm max-w-3xl mx-auto leading-relaxed px-4">
-            This site is made for fun and for crazy Premier League fans who follow their club daily
-            and the events around it, and they need some tool to make it easier to compare matches with other clubs.
-          </p>
+          {/* About Section */}
+          <section aria-labelledby="about-heading">
+            <h2 id="about-heading" className="sr-only">About Premier League Tracker</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm max-w-3xl mx-auto leading-relaxed px-4" itemProp="description">
+              This site is made for fun and for crazy Premier League fans who follow their club daily
+              and the events around it, and they need some tool to make it easier to compare matches with other clubs.
+              All data is sourced from official Premier League channels and updated regularly.
+            </p>
+          </section>
 
           {/* Social Links */}
           <div className="flex justify-center space-x-6">
@@ -40,19 +44,61 @@ export function Footer() {
             </Link>
           </div>
 
-          {/* Copyright */}
-          <p className="text-gray-500 dark:text-gray-500 text-xs px-4">
-            © 2026 Premier League Tracker. Made with ❤️ for football fans by{" "}
-            <Link
-              href="https://codeandsail.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors font-medium"
-            >
-              Code&Sail
-            </Link>
-            .
-          </p>
+          {/* Footer Navigation */}
+          <nav aria-label="Footer navigation" className="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
+              <Link
+                href="/"
+                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Home
+              </Link>
+              <Link
+                href="/fixtures-results"
+                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Fixtures & Results
+              </Link>
+              <Link
+                href="/standings"
+                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Standings
+              </Link>
+              <Link
+                href="/compare-fixtures"
+                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Compare Fixtures
+              </Link>
+              <Link
+                href="/compare-season"
+                className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Compare Season
+              </Link>
+            </div>
+          </nav>
+
+          {/* Copyright and Attribution */}
+          <div className="space-y-2">
+            <p className="text-gray-500 dark:text-gray-500 text-xs px-4">
+              © 2026 Premier League Tracker. Made with ❤️ for football fans by{" "}
+              <Link
+                href="https://codeandsail.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors font-medium"
+                itemProp="founder"
+              >
+                Code&Sail
+              </Link>
+              .
+            </p>
+            <p className="text-gray-400 dark:text-gray-600 text-xs px-4">
+              Data last updated: <time dateTime={new Date().toISOString()}>{new Date().toLocaleDateString()}</time>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

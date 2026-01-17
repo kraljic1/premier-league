@@ -4,7 +4,7 @@ const API_CACHE = "pl-api-v3";
 
 const urlsToCache = [
   "/",
-  "/fixtures",
+  "/fixtures-results",
   "/standings",
   "/compare-fixtures",
   "/manifest.json",

@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
+
+// Note: Client components can't export metadata directly in Next.js
+// Metadata is handled at the layout level
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
@@ -53,7 +57,7 @@ export default function CompareSeasonPage() {
     return (
       <div className="compare-season-page">
         <div className="compare-season-page__header">
-          <h1 className="compare-season-page__title">
+          <h1 className="pl-heading-lg goal-underline">
             Compare Season Performance
           </h1>
           <RefreshButton />
@@ -66,7 +70,7 @@ export default function CompareSeasonPage() {
   return (
     <div className="compare-season-page">
       <div className="compare-season-page__header">
-        <h1 className="compare-season-page__title">
+        <h1 className="pl-heading-lg goal-underline">
           Compare Season Performance
         </h1>
         <RefreshButton />

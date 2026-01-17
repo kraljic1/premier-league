@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
@@ -145,7 +146,16 @@ export default function FixturesResultsContent() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl sm:text-3xl font-bold">Fixtures & Results</h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Fixtures & Results</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Wondering how teams are performing? Check the{" "}
+            <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline">
+              current league standings
+            </Link>
+            .
+          </p>
+        </div>
         <RefreshButton />
       </div>
 
@@ -267,9 +277,9 @@ function MatchCard({ fixture, isResult, clubs }: { fixture: Fixture; isResult: b
         {formatDate(fixture.date)}
       </div>
       <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
-        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} />
+        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} context="fixture" position="home" />
         <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} />
+        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} context="fixture" position="away" />
       </div>
       {hasScore ? (
         <div className={`text-lg font-bold mt-2 ${isResult ? "text-gray-900 dark:text-gray-100" : ""}`}>

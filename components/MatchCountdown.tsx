@@ -42,9 +42,9 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
     <div className="match-countdown text-center p-6 rounded-lg">
       <h3 className="text-sm font-medium mb-4 opacity-90 flex items-center justify-center gap-2 flex-wrap">
         <span>Next Match:</span>
-        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} />
+        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} context="countdown" position="home" />
         <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} />
+        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} context="countdown" position="away" />
       </h3>
       <div className="flex justify-center gap-4">
         <TimeUnit value={timeLeft.days} label="Days" />

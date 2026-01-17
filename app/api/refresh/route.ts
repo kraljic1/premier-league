@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
     revalidatePath("/api/results");
     revalidatePath("/api/standings");
     revalidatePath("/");
-    revalidatePath("/fixtures");
+    revalidatePath("/fixtures-results");
     revalidatePath("/results");
     revalidatePath("/standings");
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { RefreshButton } from "@/components/RefreshButton";
 import { TableSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
@@ -53,7 +54,16 @@ export default function StandingsContent() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl sm:text-3xl font-bold">Standings</h1>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Standings</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            Want to see how these positions change? Check out the{" "}
+            <Link href="/fixtures-results" className="text-blue-600 dark:text-blue-400 hover:underline">
+              upcoming fixtures and results
+            </Link>
+            .
+          </p>
+        </div>
         <RefreshButton />
       </div>
 
@@ -121,7 +131,7 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
     >
       <td className="p-2 font-semibold">{standing.position}</td>
       <td className="p-2 font-medium">
-        <ClubLogo clubName={standing.club} size={20} logoUrl={logoUrl} />
+        <ClubLogo clubName={standing.club} size={20} logoUrl={logoUrl} context="standings" />
       </td>
       <td className="p-2 text-center">{standing.played}</td>
       <td className="p-2 text-center">{standing.won}</td>

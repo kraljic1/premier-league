@@ -121,14 +121,14 @@ export default function HomePage() {
 
   return (
     <ErrorBoundary>
-      <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl sm:text-3xl font-bold">Home</h1>
+      <main className="space-y-8">
+      <header className="flex justify-between items-center pl-space-md">
+        <h1 className="pl-heading-lg goal-underline">Home</h1>
         <RefreshButton />
-      </div>
+      </header>
 
-      <div>
-        <h2 className="text-xl sm:text-2xl font-semibold mb-4">My Clubs</h2>
+      <div className="pl-space-lg">
+        <h2 className="pl-heading-md mb-4">My Clubs</h2>
         <ClubSelector />
       </div>
 
@@ -147,16 +147,16 @@ export default function HomePage() {
       ) : (
         <>
           {nextMatch && (
-            <div>
-              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Next Match</h2>
+            <div className="pl-space-lg">
+              <h2 className="pl-heading-md mb-4 goal-underline">Next Match</h2>
               <MatchCountdown fixture={nextMatch} />
             </div>
           )}
 
           {todayFixtures.length > 0 && (
-            <div>
-              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Today&apos;s Fixtures</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="pl-space-lg">
+              <h2 className="pl-heading-md mb-4 goal-underline">Today&apos;s Fixtures</h2>
+              <div className="formation-4-3-3">
                 {todayFixtures.map((fixture) => (
                   <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
                 ))}
@@ -165,9 +165,9 @@ export default function HomePage() {
           )}
 
           {weekendFixtures.length > 0 && (
-            <div>
-              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Weekend Fixtures</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="pl-space-lg">
+              <h2 className="pl-heading-md mb-4 goal-underline">Weekend Fixtures</h2>
+              <div className="formation-4-3-3">
                 {weekendFixtures.map((fixture) => (
                   <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
                 ))}
@@ -176,49 +176,83 @@ export default function HomePage() {
           )}
         </>
       )}
-      </div>
+      </main>
     </ErrorBoundary>
   );
 }
 
 function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<string, any> }) {
   const club = getClubByName(fixture.homeTeam);
-  
+
   // Get logo URLs from clubs object
   const homeClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
   const awayClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
   const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
   const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
-  
+
+  // Determine match status
+  const now = new Date();
+  const matchDate = new Date(fixture.date);
+  const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
+
+  let statusClass = 'status-scheduled';
+  if (hasScore) {
+    statusClass = 'status-finished';
+  } else if (matchDate <= now) {
+    statusClass = 'status-live';
+  }
+
   return (
-    <div
-      className={`p-4 rounded-lg border ${
+    <article
+      className={`match-card p-4 ${
         fixture.isDerby
           ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-          : "border-gray-200 dark:border-gray-700"
+          : ""
       }`}
+      itemScope
+      itemType="https://schema.org/SportsEvent"
     >
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        {formatDate(fixture.date)}
+      <div className="flex justify-between items-start mb-2">
+        <time
+          className="pl-caption"
+          dateTime={fixture.date}
+          itemProp="startDate"
+        >
+          {formatDate(fixture.date)}
+        </time>
+        <span className={`status-badge ${statusClass}`}>
+          {hasScore ? 'FT' : matchDate <= now ? 'LIVE' : 'SCHEDULED'}
+        </span>
       </div>
-      <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
-        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} />
-        <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} />
+
+      <div className="mt-3 font-semibold flex items-center gap-3 flex-wrap">
+        <div itemProp="homeTeam" itemScope itemType="https://schema.org/SportsTeam">
+          <meta itemProp="name" content={fixture.homeTeam} />
+          <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} context="fixture" position="home" />
+        </div>
+        <span className="pl-body-sm text-gray-500">vs</span>
+        <div itemProp="awayTeam" itemScope itemType="https://schema.org/SportsTeam">
+          <meta itemProp="name" content={fixture.awayTeam} />
+          <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} context="fixture" position="away" />
+        </div>
       </div>
+
       {fixture.homeScore !== null && fixture.awayScore !== null ? (
-        <div className="text-lg font-bold mt-2">
-          {fixture.homeScore} - {fixture.awayScore}
+        <div className="match-score text-xl font-bold mt-3 text-center" itemProp="result">
+          <span itemProp="homeTeamScore" className="mr-2">{fixture.homeScore}</span>
+          <span className="text-gray-400">-</span>
+          <span itemProp="awayTeamScore" className="ml-2">{fixture.awayScore}</span>
         </div>
       ) : (
-        <div className="text-sm text-gray-500 mt-2">Scheduled</div>
+        <div className="pl-body-sm text-gray-500 mt-3 text-center">Scheduled</div>
       )}
+
       {fixture.isDerby && (
-        <div className="text-xs text-red-600 dark:text-red-400 mt-1">
-          🏆 Derby Match
+        <div className="text-xs text-red-600 dark:text-red-400 mt-2 text-center font-semibold">
+          🏆 DERBY MATCH
         </div>
       )}
-    </div>
+    </article>
   );
 }
 

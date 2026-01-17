@@ -67,11 +67,9 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     // Check initial consent status
     const consent = localStorage.getItem("cookie-consent");
     console.log("[GA4] Cookie consent status:", consent);
-    
-    if (consent === "accepted") {
+
+    if (consent !== "rejected") {
       initializeGA4();
-    } else if (!consent) {
-      console.log("[GA4] No consent decision yet - waiting for user to accept cookies");
     } else {
       console.log("[GA4] Cookies rejected - GA4 will not load");
     }
@@ -102,7 +100,7 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
   // Track page views on route change
   useEffect(() => {
     const consent = localStorage.getItem("cookie-consent");
-    if (consent !== "accepted" || !window.gtag) {
+    if (consent === "rejected" || !window.gtag) {
       return;
     }
 
