@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
@@ -9,13 +10,18 @@ import { SeasonDropdown } from "@/components/SeasonDropdown";
 import { SeasonStatsCompact } from "@/components/SeasonStatsCompact";
 import { ClubMatchResults } from "@/components/ClubMatchResults";
 import { ComparisonSummary } from "@/components/ComparisonSummary";
+import { TwoClubsComparison } from "@/components/TwoClubsComparison";
 import { useCompareSeason } from "@/lib/hooks/useCompareSeason";
 import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
 
 // Get current season dynamically (auto-updates each year)
 const currentSeasonLabel = getCurrentSeasonFull();
 
+type CompareMode = "single-club" | "two-clubs";
+
 export default function CompareSeasonPage() {
+  const [compareMode, setCompareMode] = useState<CompareMode>("single-club");
+
   const {
     selectedClub,
     setSelectedClub,
@@ -34,6 +40,21 @@ export default function CompareSeasonPage() {
     refetchHistorical,
   } = useCompareSeason();
 
+  // If two-clubs mode is active, show that component
+  if (compareMode === "two-clubs") {
+    return (
+      <div className="compare-season-page">
+        <div className="compare-season-page__header">
+          <h1 className="compare-season-page__title">
+            Compare Season Performance
+          </h1>
+          <RefreshButton />
+        </div>
+        <TwoClubsComparison onClose={() => setCompareMode("single-club")} />
+      </div>
+    );
+  }
+
   return (
     <div className="compare-season-page">
       <div className="compare-season-page__header">
@@ -44,12 +65,33 @@ export default function CompareSeasonPage() {
       </div>
 
       <div className="compare-season-page__controls">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <ClubDropdown
-            selectedClub={selectedClub}
-            onSelect={setSelectedClub}
-            label="Select Club"
-          />
+        <div className="compare-season-page__club-row">
+          <div className="compare-season-page__club-dropdown">
+            <ClubDropdown
+              selectedClub={selectedClub}
+              onSelect={setSelectedClub}
+              label="Select Club"
+            />
+          </div>
+          <button
+            onClick={() => setCompareMode("two-clubs")}
+            className="compare-season-page__add-club-btn"
+            title="Compare two clubs"
+            aria-label="Compare two clubs"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
+        <div className="compare-season-page__season-dropdown">
           <SeasonDropdown
             seasons={availableSeasons}
             selectedSeason={selectedSeason}

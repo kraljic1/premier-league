@@ -1036,3 +1036,431 @@ nextjs-portal:not(:empty) {
   color: hsl(var(--foreground));
 }
 
+/* Compare Season Page - Controls Layout */
+.compare-season-page__club-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.compare-season-page__club-dropdown {
+  flex: 1;
+}
+
+.compare-season-page__add-club-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 0.5rem;
+  background-color: #37003c;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.compare-season-page__add-club-btn:hover {
+  background-color: #4c1d95;
+  transform: translateY(-1px);
+}
+
+.dark .compare-season-page__add-club-btn {
+  background-color: #6b21a8;
+}
+
+.dark .compare-season-page__add-club-btn:hover {
+  background-color: #7c3aed;
+}
+
+.compare-season-page__season-dropdown {
+  max-width: 300px;
+}
+
+@media (min-width: 768px) {
+  .compare-season-page__club-row {
+    max-width: 400px;
+  }
+}
+
+/* Two Clubs Comparison */
+.two-clubs-comparison {
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .two-clubs-comparison {
+  background-color: rgb(30, 41, 59);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.two-clubs-comparison__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #37003c;
+  color: white;
+}
+
+.dark .two-clubs-comparison__header {
+  background-color: rgb(51, 65, 85);
+}
+
+.two-clubs-comparison__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.two-clubs-comparison__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.two-clubs-comparison__close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.two-clubs-comparison__controls {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .two-clubs-comparison__controls {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.two-clubs-comparison__clubs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .two-clubs-comparison__clubs {
+    flex-direction: row;
+  }
+  
+  .two-clubs-comparison__clubs > div:first-child,
+  .two-clubs-comparison__clubs > div:last-child {
+    flex: 1;
+  }
+}
+
+.two-clubs-comparison__vs {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: rgb(107, 114, 128);
+  padding: 0 0.5rem;
+}
+
+.dark .two-clubs-comparison__vs {
+  color: rgb(156, 163, 175);
+}
+
+.two-clubs-comparison__season {
+  max-width: 300px;
+}
+
+.two-clubs-comparison__content {
+  padding: 1.5rem;
+}
+
+.two-clubs-comparison__stats {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .two-clubs-comparison__stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.two-clubs-comparison__club-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.two-clubs-comparison__club-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #37003c;
+}
+
+.dark .two-clubs-comparison__club-name {
+  color: #a855f7;
+}
+
+.two-clubs-comparison__no-stats {
+  padding: 1rem;
+  text-align: center;
+  color: rgb(107, 114, 128);
+  font-size: 0.875rem;
+  background-color: rgb(243, 244, 246);
+  border-radius: 0.5rem;
+}
+
+.dark .two-clubs-comparison__no-stats {
+  color: rgb(156, 163, 175);
+  background-color: rgb(51, 65, 85);
+}
+
+/* Comparison Bar */
+.two-clubs-comparison__bar-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: rgb(243, 244, 246);
+  border-radius: 0.75rem;
+}
+
+.dark .two-clubs-comparison__bar-comparison {
+  background-color: rgb(51, 65, 85);
+}
+
+.comparison-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.comparison-bar__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(107, 114, 128);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.dark .comparison-bar__label {
+  color: rgb(156, 163, 175);
+}
+
+.comparison-bar__content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comparison-bar__value {
+  width: 3rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.comparison-bar__value--left {
+  text-align: right;
+}
+
+.comparison-bar__value--right {
+  text-align: left;
+}
+
+.comparison-bar__value--winner {
+  color: #16a34a;
+}
+
+.comparison-bar__bar {
+  flex: 1;
+  display: flex;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dark .comparison-bar__bar {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.comparison-bar__fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.comparison-bar__fill--left {
+  background-color: #37003c;
+}
+
+.comparison-bar__fill--right {
+  background-color: #6b21a8;
+}
+
+.comparison-bar__fill--winner {
+  background-color: #16a34a;
+}
+
+.dark .comparison-bar__fill--left {
+  background-color: #a855f7;
+}
+
+.dark .comparison-bar__fill--right {
+  background-color: #7c3aed;
+}
+
+/* Head-to-Head */
+.head-to-head {
+  background-color: rgb(243, 244, 246);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.dark .head-to-head {
+  background-color: rgb(51, 65, 85);
+}
+
+.head-to-head__title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.head-to-head__no-matches {
+  color: rgb(107, 114, 128);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.dark .head-to-head__no-matches {
+  color: rgb(156, 163, 175);
+}
+
+.head-to-head__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dark .head-to-head__summary {
+  background-color: rgb(30, 41, 59);
+}
+
+.head-to-head__summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.head-to-head__summary-item--draws {
+  opacity: 0.7;
+}
+
+.head-to-head__summary-club {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(107, 114, 128);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  max-width: 100px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark .head-to-head__summary-club {
+  color: rgb(156, 163, 175);
+}
+
+.head-to-head__summary-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+.head-to-head__matches {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.head-to-head__match {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.dark .head-to-head__match {
+  background-color: rgb(30, 41, 59);
+}
+
+.head-to-head__matchweek {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #37003c;
+  background-color: rgba(55, 0, 60, 0.1);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.dark .head-to-head__matchweek {
+  color: #a855f7;
+  background-color: rgba(168, 85, 247, 0.2);
+}
+
+.head-to-head__team {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .head-to-head__team {
+    max-width: 80px;
+    font-size: 0.75rem;
+  }
+}
+
+.head-to-head__score {
+  font-weight: 700;
+  color: #37003c;
+  padding: 0 0.5rem;
+}
+
+.dark .head-to-head__score {
+  color: #a855f7;
+}
+
