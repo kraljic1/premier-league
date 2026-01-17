@@ -67,7 +67,7 @@ export function ClubSelector() {
           return (
             <div
               key={club.id}
-              className={`club-selector-card relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+              className={`club-selector-card relative p-2 rounded-lg border-2 cursor-pointer transition-all ${
                 isSelected
                   ? isPrimary
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
@@ -77,18 +77,18 @@ export function ClubSelector() {
               onClick={() => !isDisabled && handleToggleClub(club.id)}
             >
               {/* Initials badge - top right corner */}
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-1 right-1">
                 <span className="club-selector-card__initials">{club.shortName}</span>
               </div>
 
               {/* Logo - centered, fixed size */}
-              <div className="flex justify-center items-center mb-2 mt-1">
+              <div className="flex justify-center items-center mb-1 mt-1">
                 {(club.logoUrlFromDb || club.logoUrl) && (
                   <SafeImage
                     src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
-                    width={96}
-                    height={96}
+                    width={64}
+                    height={64}
                     className="club-selector-card__logo"
                     loading="lazy"
                     unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}

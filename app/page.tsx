@@ -271,21 +271,23 @@ function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<strin
         </div>
       </div>
 
-      {fixture.homeScore !== null && fixture.awayScore !== null ? (
-        <div className="match-score text-xl font-bold mt-3 text-center" itemProp="result">
-          <span itemProp="homeTeamScore" className="mr-2">{fixture.homeScore}</span>
-          <span className="text-gray-400">-</span>
-          <span itemProp="awayTeamScore" className="ml-2">{fixture.awayScore}</span>
-        </div>
-      ) : (
-        <div className="pl-body-sm text-gray-500 mt-3 text-center">Scheduled</div>
-      )}
+      <div className="fixture-card__footer">
+        {fixture.homeScore !== null && fixture.awayScore !== null ? (
+          <div className="match-score text-xl font-bold text-center" itemProp="result">
+            <span itemProp="homeTeamScore" className="mr-2">{fixture.homeScore}</span>
+            <span className="text-gray-400">-</span>
+            <span itemProp="awayTeamScore" className="ml-2">{fixture.awayScore}</span>
+          </div>
+        ) : (
+          <div className="pl-body-sm text-gray-500 text-center">Scheduled</div>
+        )}
 
-      {fixture.isDerby && (
-        <div className="text-xs text-red-600 dark:text-red-400 mt-2 text-center font-semibold">
-          🏆 DERBY MATCH
-        </div>
-      )}
+        {fixture.isDerby && (
+          <div className="text-xs text-red-600 dark:text-red-400 mt-2 text-center font-semibold">
+            🏆 DERBY MATCH
+          </div>
+        )}
+      </div>
     </article>
   );
 }
