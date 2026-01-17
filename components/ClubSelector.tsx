@@ -67,7 +67,7 @@ export function ClubSelector() {
           return (
             <div
               key={club.id}
-              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+              className={`club-selector-card relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 isSelected
                   ? isPrimary
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
@@ -76,28 +76,37 @@ export function ClubSelector() {
               } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={() => !isDisabled && handleToggleClub(club.id)}
             >
-              <div className="flex items-center gap-2 mb-1">
+              {/* Initials badge - top right corner */}
+              <div className="absolute top-2 right-2">
+                <span className="club-selector-card__initials">{club.shortName}</span>
+              </div>
+
+              {/* Logo - centered, fixed size */}
+              <div className="flex justify-center items-center mb-2 mt-1">
                 {(club.logoUrlFromDb || club.logoUrl) && (
                   <SafeImage
                     src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 object-contain"
+                    width={48}
+                    height={48}
+                    className="club-selector-card__logo"
                     loading="lazy"
                     unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}
                   />
                 )}
-                <div className="text-sm font-medium">{club.shortName}</div>
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                {club.name}
-              </div>
-              {isPrimary && (
-                <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  Primary
+
+              {/* Club name - centered below logo */}
+              <div className="text-center">
+                <div className="club-selector-card__name">
+                  {club.name}
                 </div>
-              )}
+                {isPrimary && (
+                  <div className="club-selector-card__primary-badge">
+                    Primary
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
@@ -173,7 +182,7 @@ function PrimaryClubDropdown({
                   alt={`${selectedClub.name} logo`}
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="club-dropdown-logo"
                   loading="lazy"
                   unoptimized={Boolean((selectedClub.logoUrlFromDb || selectedClub.logoUrl)?.endsWith('.svg'))}
                 />
@@ -235,7 +244,7 @@ function PrimaryClubDropdown({
                     alt={`${club.name} logo`}
                     width={20}
                     height={20}
-                    className="w-5 h-5 object-contain"
+                    className="club-dropdown-logo"
                     loading="lazy"
                     unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}
                   />

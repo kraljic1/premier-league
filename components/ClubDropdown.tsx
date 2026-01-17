@@ -56,7 +56,7 @@ export function ClubDropdown({
                   alt={`${selectedClubData.name} logo`}
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="club-dropdown-logo"
                   loading="lazy"
                   unoptimized={selectedClubData.logoUrl.endsWith(".svg")}
                 />
@@ -105,7 +105,7 @@ export function ClubDropdown({
                   alt={`${club.name} logo`}
                   width={20}
                   height={20}
-                  className="w-5 h-5 object-contain"
+                  className="club-dropdown-logo"
                   loading="lazy"
                   unoptimized={club.logoUrl.endsWith(".svg")}
                 />
