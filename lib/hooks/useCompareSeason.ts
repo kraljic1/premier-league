@@ -98,13 +98,21 @@ export function useCompareSeason() {
 
   const availableSeasons = useMemo(() => {
     // Only show previous seasons, not the current one
-    const currentYear = new Date().getFullYear();
+    // Current season is 2025/2026 (starts Aug 2025, ends May 2026)
+    // We need to determine the current season's start year based on current date
+    const now = new Date();
+    const currentMonth = now.getMonth(); // 0-11
+    const currentYear = now.getFullYear();
+    
+    // If we're in Jan-July, the current season started last year
+    // If we're in Aug-Dec, the current season started this year
+    const currentSeasonStartYear = currentMonth < 7 ? currentYear - 1 : currentYear;
+    
     const previousSeasons: string[] = [];
     
-    // Generate last 5 seasons before current
-    // Current season is 2025/2026, so we start from 2024/2025
+    // Generate last 5 seasons before current (exclude current season)
     for (let i = 1; i <= 5; i++) {
-      const year = currentYear - i;
+      const year = currentSeasonStartYear - i;
       previousSeasons.push(`${year}/${year + 1}`);
     }
     
