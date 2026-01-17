@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { CLUBS } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { SafeImage } from "@/components/SafeImage";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ClubSelectionModal } from "@/components/ClubSelectionModal";
 
 interface ClubWithLogo {
   id: string;
@@ -15,12 +18,10 @@ interface ClubWithLogo {
   logoUrl?: string;
   logoUrlFromDb?: string | null;
 }
-import { ClubLogo } from "@/components/ClubLogo";
-import { SafeImage } from "@/components/SafeImage";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export function ClubSelector() {
   const [mounted, setMounted] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
   const primaryClub = useAppStore((state) => state.primaryClub);
   const addClub = useAppStore((state) => state.addClub);
@@ -46,6 +47,10 @@ export function ClubSelector() {
     }
   };
 
+  const handleRemoveClub = (clubId: string) => {
+    removeClub(clubId);
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -55,62 +60,101 @@ export function ClubSelector() {
     );
   }
 
+  const selectedClubsData = safeMyClubs
+    .map((clubId) => clubs[clubId] || CLUBS[clubId])
+    .filter((club): club is NonNullable<typeof club> => !!club);
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">My Clubs (max 5)</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {Object.values(clubs).map((club) => {
-          const isSelected = safeMyClubs.includes(club.id);
-          const isPrimary = safePrimaryClub === club.id;
-          const isDisabled = !isSelected && safeMyClubs.length >= 5;
-
-          return (
-            <div
-              key={club.id}
-              className={`club-selector-card relative p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                isSelected
-                  ? isPrimary
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-green-500 bg-green-50 dark:bg-green-900/20"
-                  : "border-gray-200 dark:border-gray-700"
-              } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-              onClick={() => !isDisabled && handleToggleClub(club.id)}
-            >
-              {/* Initials badge - top right corner */}
-              <div className="absolute top-1 right-1">
-                <span className="club-selector-card__initials">{club.shortName}</span>
-              </div>
-
-              {/* Logo - centered, fixed size */}
-              <div className="flex justify-center items-center mb-1 mt-1">
-                {(club.logoUrlFromDb || club.logoUrl) && (
-                  <SafeImage
-                    src={club.logoUrlFromDb || club.logoUrl!}
-                    alt={`${club.name} logo`}
-                    width={64}
-                    height={64}
-                    className="club-selector-card__logo"
-                    loading="lazy"
-                    unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}
-                  />
-                )}
-              </div>
-
-              {/* Club name - centered below logo */}
-              <div className="text-center">
-                <div className="club-selector-card__name">
-                  {club.name}
-                </div>
-                {isPrimary && (
-                  <div className="club-selector-card__primary-badge">
-                    Primary
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">My Clubs (max 5)</h3>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="club-selector__add-button"
+          disabled={safeMyClubs.length >= 5}
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Add Club
+        </button>
       </div>
+
+      {selectedClubsData.length === 0 ? (
+        <div className="club-selector__empty">
+          <p className="text-gray-500 dark:text-gray-400">
+            No clubs selected. Click "Add Club" to get started.
+          </p>
+        </div>
+      ) : (
+        <div className="club-selector__chips">
+          {selectedClubsData.map((club) => {
+            const isPrimary = safePrimaryClub === club.id;
+            return (
+              <div
+                key={club.id}
+                className={`club-selector__chip ${
+                  isPrimary ? "club-selector__chip--primary" : ""
+                }`}
+              >
+                <div className="club-selector__chip-content">
+                  {(club.logoUrlFromDb || club.logoUrl) && (
+                    <SafeImage
+                      src={club.logoUrlFromDb || club.logoUrl!}
+                      alt={`${club.name} logo`}
+                      width={32}
+                      height={32}
+                      className="club-selector__chip-logo"
+                      loading="lazy"
+                      unoptimized={Boolean(
+                        (club.logoUrlFromDb || club.logoUrl)?.endsWith(".svg")
+                      )}
+                    />
+                  )}
+                  <span className="club-selector__chip-name">{club.name}</span>
+                  {isPrimary && (
+                    <span className="club-selector__chip-primary-badge">
+                      Primary
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveClub(club.id)}
+                  className="club-selector__chip-remove"
+                  aria-label={`Remove ${club.name}`}
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {safeMyClubs.length > 0 && (
         <div className="mt-4">
           <label className="text-sm font-medium">Set Primary Club:</label>
@@ -121,6 +165,14 @@ export function ClubSelector() {
           />
         </div>
       )}
+
+      <ClubSelectionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedClubs={safeMyClubs}
+        onToggleClub={handleToggleClub}
+        maxClubs={5}
+      />
     </div>
   );
 }
