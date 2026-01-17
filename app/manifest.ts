@@ -1,8 +1,12 @@
 import { MetadataRoute } from "next";
+import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
+
+// Get current season dynamically (auto-updates each year)
+const currentSeason = getCurrentSeasonShort();
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Premier League Tracker 2025/26",
+    name: `Premier League Tracker ${currentSeason}`,
     short_name: "PL Tracker",
     description: "Personal Premier League tracker",
     start_url: "/",

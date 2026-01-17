@@ -50,10 +50,10 @@ export function MatchweekSelector({
   };
 
   return (
-    <div className="flex gap-2 flex-wrap items-center">
+    <div className="flex gap-1 sm:gap-2 flex-wrap items-center">
       <button
         onClick={() => handleMatchweekSelect(null)}
-        className={`px-4 py-2 rounded-lg transition-colors ${
+        className={`px-2 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base ${
           selectedMatchweek === null
             ? "bg-blue-600 text-white"
             : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -67,7 +67,7 @@ export function MatchweekSelector({
         <button
           key={mw}
           onClick={() => handleMatchweekSelect(mw)}
-          className={`px-4 py-2 rounded-lg transition-colors ${
+          className={`px-2 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base ${
             selectedMatchweek === mw
               ? "bg-blue-600 text-white"
               : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -84,7 +84,7 @@ export function MatchweekSelector({
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-1"
+          className="px-2 sm:px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors flex items-center gap-1 text-sm sm:text-base"
         >
           <span>Jump to Matchweek</span>
           <svg

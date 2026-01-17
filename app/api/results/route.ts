@@ -3,6 +3,11 @@ import { scrapeResults } from "@/lib/scrapers/results";
 import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
+import {
+  getCurrentSeasonFilter,
+  getCurrentSeasonStartDate,
+  getCurrentSeasonEndDate,
+} from "@/lib/utils/season-utils";
 
 // Force dynamic rendering since we use request.url
 export const dynamic = 'force-dynamic';
@@ -12,6 +17,11 @@ const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
 
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
+
+// Get current season values dynamically (auto-updates each year)
+const CURRENT_SEASON_START = getCurrentSeasonStartDate();
+const CURRENT_SEASON_END = getCurrentSeasonEndDate();
+const SEASON_FILTER = getCurrentSeasonFilter();
 
 export async function GET(request: Request) {
   try {
@@ -30,16 +40,6 @@ export async function GET(request: Request) {
     
     // Check database for finished fixtures and cache metadata in parallel
     console.log(`[Results API] Checking database for finished matches${matchweek ? ` (matchweek ${matchweek})` : ''}...`);
-
-    // Build query - use supabaseServer to bypass RLS and get all data
-    // Current season identifiers (both formats for compatibility)
-    const CURRENT_SEASON_SHORT = "2025/26";
-    const CURRENT_SEASON_FULL = "2025/2026";
-    // Season 2025/26 runs from approximately August 2025 to May 2026
-    const CURRENT_SEASON_START = new Date("2025-08-01");
-    const CURRENT_SEASON_END = new Date("2026-06-30");
-    // Supabase filter for current season (matches any season format or null)
-    const SEASON_FILTER = `season.eq.${CURRENT_SEASON_SHORT},season.eq.${CURRENT_SEASON_FULL},season.is.null`;
 
     let query = supabaseServer
       .from('fixtures')

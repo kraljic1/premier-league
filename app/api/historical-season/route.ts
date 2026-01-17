@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Fixture } from "@/lib/types";
+import { seasonYearToShortFormat } from "@/lib/utils/season-utils";
 
 // Force dynamic rendering since we use request.url
 export const dynamic = 'force-dynamic';
@@ -46,12 +47,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Use short season format to match import script (e.g., "2024/25" not "2024/2025")
-    const nextYear = (parseInt(seasonYear) + 1).toString().slice(-2);
-    const season = `${seasonYear}/${nextYear}`;
+    const season = seasonYearToShortFormat(seasonYear);
 
     console.log(`[Historical Season API] Request URL: ${request.url}`);
     console.log(`[Historical Season API] seasonYear param: "${seasonYear}" (type: ${typeof seasonYear})`);
-    console.log(`[Historical Season API] nextYear calculation: ${nextYear}`);
     console.log(`[Historical Season API] Constructed season: "${season}"`);
     console.log(`[Historical Season API] Fetching fixtures WHERE season = '${season}'`);
 

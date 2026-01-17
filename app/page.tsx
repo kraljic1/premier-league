@@ -121,12 +121,12 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Home</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Home</h1>
         <RefreshButton />
       </div>
 
       <div>
-        <h2 className="text-2xl font-semibold mb-4">My Clubs</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4">My Clubs</h2>
         <ClubSelector />
       </div>
 
@@ -140,20 +140,20 @@ export default function HomePage() {
       ) : fixtures.length === 0 ? (
         <EmptyState
           title="No Fixtures Available"
-          message="Fixtures data is not available. This may be because the 2025/26 season hasn't started yet, or the scraper needs to be updated with the correct CSS selectors."
+          message="Fixtures data is not available. This may be because the current season hasn't started yet, or the scraper needs to be updated with the correct CSS selectors."
         />
       ) : (
         <>
           {nextMatch && (
             <div>
-              <h2 className="text-2xl font-semibold mb-4">Next Match</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Next Match</h2>
               <MatchCountdown fixture={nextMatch} />
             </div>
           )}
 
           {todayFixtures.length > 0 && (
             <div>
-              <h2 className="text-2xl font-semibold mb-4">Today&apos;s Fixtures</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Today&apos;s Fixtures</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {todayFixtures.map((fixture) => (
                   <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
@@ -164,7 +164,7 @@ export default function HomePage() {
 
           {weekendFixtures.length > 0 && (
             <div>
-              <h2 className="text-2xl font-semibold mb-4">Weekend Fixtures</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4">Weekend Fixtures</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {weekendFixtures.map((fixture) => (
                   <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />

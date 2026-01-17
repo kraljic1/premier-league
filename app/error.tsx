@@ -29,7 +29,7 @@ export default function Error({ error, reset }: ErrorProps) {
           />
         </svg>
       </div>
-      <h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-4">Something went wrong!</h2>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
         {error.message || "An unexpected error occurred"}
       </p>

@@ -11,6 +11,7 @@ import { ClubTheme } from "@/components/ClubTheme";
 import { PortalFix } from "@/components/PortalFix";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { CookieConsent } from "@/components/CookieConsent";
+import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
 // Optimize font loading with display swap for better performance
 const inter = Inter({
@@ -20,8 +21,12 @@ const inter = Inter({
   variable: '--font-inter'
 });
 
+// Get current season dynamically (auto-updates each year)
+const currentSeason = getCurrentSeasonShort();
+const pageTitle = `Premier League Tracker ${currentSeason}`;
+
 export const metadata: Metadata = {
-  title: "Premier League Tracker 2025/26",
+  title: pageTitle,
   description: "Track Premier League fixtures, results, standings, and top scorers. Compare club schedules and stay updated with the latest match information.",
   keywords: ["Premier League", "football", "soccer", "fixtures", "results", "standings", "top scorers", "EPL"],
   authors: [{ name: "Premier League Tracker" }],
@@ -35,7 +40,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Premier League Tracker 2025/26",
+    title: pageTitle,
     description: "Track Premier League fixtures, results, standings, and top scorers.",
     siteName: "Premier League Tracker",
     url: "https://premierleaguefixures.com",
@@ -45,7 +50,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Premier League Tracker 2025/26",
+    title: pageTitle,
     description: "Track Premier League fixtures, results, standings, and top scorers.",
   },
   robots: {

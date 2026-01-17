@@ -10,6 +10,10 @@ import { SeasonStatsCompact } from "@/components/SeasonStatsCompact";
 import { ClubMatchResults } from "@/components/ClubMatchResults";
 import { ComparisonSummary } from "@/components/ComparisonSummary";
 import { useCompareSeason } from "@/lib/hooks/useCompareSeason";
+import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
+
+// Get current season dynamically (auto-updates each year)
+const currentSeasonLabel = getCurrentSeasonFull();
 
 export default function CompareSeasonPage() {
   const {
@@ -81,8 +85,8 @@ export default function CompareSeasonPage() {
             <>
               {/* Current Season Section */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">
-                  Current Season (2025/2026) - {currentMatchweek} matchweeks
+                <h2 className="text-lg sm:text-xl font-semibold mb-4">
+                  Current Season ({currentSeasonLabel}) - {currentMatchweek} matchweeks
                 </h2>
                 <div className="season-stats-layout">
                   <div className="season-stats-layout__stats">
@@ -107,7 +111,7 @@ export default function CompareSeasonPage() {
               {/* Historical Season Section */}
               {selectedSeason ? (
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4">
                     {selectedSeason} Season (first {currentMatchweek} matchweeks)
                   </h2>
                   {isLoadingHistorical ? (

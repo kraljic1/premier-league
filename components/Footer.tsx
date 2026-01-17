@@ -8,25 +8,13 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center space-y-6">
           {/* Description */}
-          <p className="text-gray-600 dark:text-gray-400 text-sm max-w-3xl mx-auto leading-relaxed">
+          <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm max-w-3xl mx-auto leading-relaxed px-4">
             This site is made for fun and for crazy Premier League fans who follow their club daily
             and the events around it, and they need some tool to make it easier to compare matches with other clubs.
           </p>
 
           {/* Social Links */}
           <div className="flex justify-center space-x-6">
-            <Link
-              href="https://codeandsail.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
-              aria-label="Code&Sail Website"
-            >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-            </Link>
-
             <Link
               href="https://www.facebook.com/profile.php?id=61568479925178"
               target="_blank"
@@ -53,8 +41,17 @@ export function Footer() {
           </div>
 
           {/* Copyright */}
-          <p className="text-gray-500 dark:text-gray-500 text-xs">
-            © 2026 Premier League Tracker. Made with ❤️ for football fans.
+          <p className="text-gray-500 dark:text-gray-500 text-xs px-4">
+            © 2026 Premier League Tracker. Made with ❤️ for football fans by{" "}
+            <Link
+              href="https://codeandsail.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors font-medium"
+            >
+              Code&Sail
+            </Link>
+            .
           </p>
         </div>
       </div>

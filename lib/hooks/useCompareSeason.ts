@@ -11,15 +11,19 @@ import {
   scrapeHistoricalSeason,
 } from "../api/compare-season-api";
 import { Fixture } from "../types";
+import {
+  getCurrentSeasonShort,
+  getCurrentSeasonFull,
+  getCurrentSeasonStartDate,
+  getCurrentSeasonEndDate,
+  getPreviousSeasons,
+} from "../utils/season-utils";
 
-// Current season identifiers (both formats for compatibility)
-// Short format used by import script: "2025/26"
-// Full format used by database default: "2025/2026"
-const CURRENT_SEASON_SHORT = "2025/26";
-const CURRENT_SEASON_FULL = "2025/2026";
-// Season 2025/26 runs from approximately August 2025 to May 2026
-const CURRENT_SEASON_START = new Date("2025-08-01");
-const CURRENT_SEASON_END = new Date("2026-06-30");
+// Get current season values dynamically (auto-updates each year)
+const CURRENT_SEASON_SHORT = getCurrentSeasonShort();
+const CURRENT_SEASON_FULL = getCurrentSeasonFull();
+const CURRENT_SEASON_START = getCurrentSeasonStartDate();
+const CURRENT_SEASON_END = getCurrentSeasonEndDate();
 
 /**
  * Filters fixtures to only include those from the current season.
@@ -96,28 +100,9 @@ export function useCompareSeason() {
     }
   }, [historicalFixtures, dataUpdatedAt]);
 
-  const availableSeasons = useMemo(() => {
-    // Only show previous seasons, not the current one
-    // Current season is 2025/2026 (starts Aug 2025, ends May 2026)
-    // We need to determine the current season's start year based on current date
-    const now = new Date();
-    const currentMonth = now.getMonth(); // 0-11
-    const currentYear = now.getFullYear();
-    
-    // If we're in Jan-July, the current season started last year
-    // If we're in Aug-Dec, the current season started this year
-    const currentSeasonStartYear = currentMonth < 7 ? currentYear - 1 : currentYear;
-    
-    const previousSeasons: string[] = [];
-    
-    // Generate last 5 seasons before current (exclude current season)
-    for (let i = 1; i <= 5; i++) {
-      const year = currentSeasonStartYear - i;
-      previousSeasons.push(`${year}/${year + 1}`);
-    }
-    
-    return previousSeasons;
-  }, []);
+  // Use centralized season utility for previous seasons
+  // Auto-updates when new season starts
+  const availableSeasons = useMemo(() => getPreviousSeasons(5), []);
 
   const currentMatchweek = useMemo(
     () => getCurrentMatchweekFromFixtures(currentFixtures),

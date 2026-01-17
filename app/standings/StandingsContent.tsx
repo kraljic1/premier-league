@@ -53,7 +53,7 @@ export default function StandingsContent() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Standings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Standings</h1>
         <RefreshButton />
       </div>
 
@@ -67,7 +67,7 @@ export default function StandingsContent() {
       ) : standings.length === 0 ? (
         <EmptyState
           title="No Standings Available"
-          message="Standings data is not available. This may be because the 2025/26 season hasn't started yet, or the scraper needs to be updated."
+          message="Standings data is not available. This may be because the current season hasn't started yet, or the scraper needs to be updated."
         />
       ) : (
         <div className="overflow-x-auto">
