@@ -1,6 +1,6 @@
-const CACHE_NAME = "pl-tracker-v3";
-const STATIC_CACHE = "pl-static-v3";
-const API_CACHE = "pl-api-v3";
+const CACHE_NAME = "pl-tracker-v4";
+const STATIC_CACHE = "pl-static-v4";
+const API_CACHE = "pl-api-v4";
 
 const urlsToCache = [
   "/",
