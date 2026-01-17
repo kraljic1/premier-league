@@ -86,20 +86,20 @@ export default function StandingsContent() {
       ) : (
         <PageSectionReveal delay={200}>
           <div className="overflow-x-auto">
-            <table className="standings-table w-full border-collapse">
+            <table className="standings-table w-full">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="standings-table__col-pos text-left p-2">Pos</th>
-                  <th className="standings-table__col-club text-left p-2">Club</th>
-                  <th className="standings-table__col-stat text-center p-2">P</th>
-                  <th className="standings-table__col-stat text-center p-2">W</th>
-                  <th className="standings-table__col-stat text-center p-2">D</th>
-                  <th className="standings-table__col-stat text-center p-2">L</th>
-                  <th className="standings-table__col-stat text-center p-2">GF</th>
-                  <th className="standings-table__col-stat text-center p-2">GA</th>
-                  <th className="standings-table__col-stat text-center p-2">GD</th>
-                  <th className="standings-table__col-stat text-center p-2">Pts</th>
-                  <th className="standings-table__col-form text-center p-2">Form</th>
+                  <th className="standings-table__col-pos">Pos</th>
+                  <th className="standings-table__col-club">Club</th>
+                  <th className="standings-table__col-stat">P</th>
+                  <th className="standings-table__col-stat">W</th>
+                  <th className="standings-table__col-stat">D</th>
+                  <th className="standings-table__col-stat">L</th>
+                  <th className="standings-table__col-stat">GF</th>
+                  <th className="standings-table__col-stat">GA</th>
+                  <th className="standings-table__col-stat">GD</th>
+                  <th className="standings-table__col-stat">Pts</th>
+                  <th className="standings-table__col-form">Form</th>
                 </tr>
               </thead>
               <tbody>
@@ -147,8 +147,8 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
         positionColors[standing.position] || ""
       }`}
     >
-      <td className="standings-table__col-pos p-2 font-semibold">{standing.position}</td>
-      <td className="standings-table__col-club p-2 font-medium">
+      <td className="standings-table__col-pos font-semibold">{standing.position}</td>
+      <td className="standings-table__col-club font-medium">
         <div className="standings-row__club">
           {shouldShowPlaceholder ? (
             <div className="standings-row__logo-placeholder">
@@ -168,23 +168,23 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
           <span className="standings-row__club-name">{standing.club}</span>
         </div>
       </td>
-      <td className="standings-table__col-stat p-2 text-center">{standing.played}</td>
-      <td className="standings-table__col-stat p-2 text-center">{standing.won}</td>
-      <td className="standings-table__col-stat p-2 text-center">{standing.drawn}</td>
-      <td className="standings-table__col-stat p-2 text-center">{standing.lost}</td>
-      <td className="standings-table__col-stat p-2 text-center">{standing.goalsFor}</td>
-      <td className="standings-table__col-stat p-2 text-center">{standing.goalsAgainst}</td>
-      <td className="standings-table__col-stat p-2 text-center">
+      <td className="standings-table__col-stat">{standing.played}</td>
+      <td className="standings-table__col-stat">{standing.won}</td>
+      <td className="standings-table__col-stat">{standing.drawn}</td>
+      <td className="standings-table__col-stat">{standing.lost}</td>
+      <td className="standings-table__col-stat">{standing.goalsFor}</td>
+      <td className="standings-table__col-stat">{standing.goalsAgainst}</td>
+      <td className="standings-table__col-stat">
         {standing.goalDifference > 0 ? "+" : ""}
         {standing.goalDifference}
       </td>
-      <td className="standings-table__col-stat p-2 text-center font-bold">{standing.points}</td>
-      <td className="standings-table__col-form p-2">
-        <div className="flex gap-1 justify-center">
+      <td className="standings-table__col-stat font-bold">{standing.points}</td>
+      <td className="standings-table__col-form">
+        <div className="standings-row__form">
           {standing.form?.split("").map((result, idx) => (
             <div
               key={idx}
-              className={`w-5 h-5 rounded ${getFormColor(result)}`}
+              className={`standings-row__form-item ${getFormColor(result)}`}
               title={result}
             />
           ))}

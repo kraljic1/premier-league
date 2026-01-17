@@ -1313,17 +1313,16 @@ nextjs-portal:not(:empty) {
 .compare-season-page__club-dropdown {
   flex: 1;
   position: relative;
-  z-index: 20;
-  isolation: isolate;
+  z-index: 50;
 }
 
 .club-dropdown-container {
   position: relative;
-  z-index: 20;
+  z-index: 50;
 }
 
 .club-dropdown-menu {
-  z-index: 50 !important;
+  z-index: 200 !important;
 }
 
 .compare-season-page__add-club-btn {
@@ -1357,29 +1356,18 @@ nextjs-portal:not(:empty) {
 .compare-season-page__season-dropdown {
   max-width: 300px;
   position: relative;
-  z-index: 100;
-  isolation: isolate;
+  z-index: 1;
 }
 
 /* SeasonDropdown z-index when open */
 .season-dropdown-container {
   position: relative;
-  z-index: 100;
+  z-index: 1;
 }
 
 .season-dropdown-menu {
-  z-index: 9999 !important;
+  z-index: 100 !important;
   position: absolute !important;
-}
-
-/* Ensure ClubDropdown appears above SeasonDropdown when open */
-.club-dropdown-container {
-  position: relative;
-  z-index: 20;
-}
-
-.club-dropdown-menu {
-  z-index: 50 !important;
 }
 
 @media (min-width: 768px) {
@@ -2344,8 +2332,8 @@ nextjs-portal:not(:empty) {
 /* Standings Table - Column Widths and Alignment */
 .standings-table {
   table-layout: fixed;
-  min-width: 100%;
-  border-collapse: separate;
+  width: 100%;
+  border-collapse: collapse;
   border-spacing: 0;
 }
 
@@ -2367,6 +2355,8 @@ nextjs-portal:not(:empty) {
   width: 3rem;
   min-width: 3rem;
   max-width: 3rem;
+  text-align: left;
+  padding-left: 0.75rem;
 }
 
 /* Club column */
@@ -2375,38 +2365,31 @@ nextjs-portal:not(:empty) {
   width: auto;
   min-width: 12rem;
   max-width: 20rem;
+  text-align: left;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 /* Statistics columns (P, W, D, L, GF, GA, GD, Pts) */
 .standings-table th.standings-table__col-stat,
 .standings-table td.standings-table__col-stat {
-  width: 3rem;
-  min-width: 3rem;
-  max-width: 3rem;
-}
-
-.standings-table th.standings-table__col-stat {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  max-width: 3.5rem;
   text-align: center;
-}
-
-.standings-table td.standings-table__col-stat {
-  text-align: center;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 /* Form column */
 .standings-table th.standings-table__col-form,
 .standings-table td.standings-table__col-form {
-  width: 7rem;
-  min-width: 7rem;
-  max-width: 7rem;
-}
-
-.standings-table th.standings-table__col-form {
+  width: 8rem;
+  min-width: 8rem;
+  max-width: 8rem;
   text-align: center;
-}
-
-.standings-table td.standings-table__col-form {
-  text-align: center;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 /* Standings Row - Consistent Logo and Name Positioning */
@@ -2456,6 +2439,28 @@ nextjs-portal:not(:empty) {
   color: var(--pl-text-inverse);
 }
 
+/* Standings Row - Form Column */
+.standings-row__form {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.standings-row__form-item {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  max-width: 1.25rem;
+  min-height: 1.25rem;
+  max-height: 1.25rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+}
+
 @media (max-width: 640px) {
   .standings-table__col-pos {
     width: 2.5rem;
@@ -2475,13 +2480,22 @@ nextjs-portal:not(:empty) {
   }
 
   .standings-table__col-form {
-    width: 6rem;
-    min-width: 6rem;
-    max-width: 6rem;
+    width: 7rem;
+    min-width: 7rem;
+    max-width: 7rem;
   }
 
   .standings-row__club-name {
     max-width: 8rem;
+  }
+
+  .standings-row__form-item {
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    max-width: 1rem;
+    min-height: 1rem;
+    max-height: 1rem;
   }
 }
 
