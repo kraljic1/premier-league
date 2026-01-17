@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "dev:open": "next dev & sleep 3 && open http://localhost:3000",
-    "build": "next build",
+    "build": "NODE_ENV=production next build",
+    "build:obfuscated": "NODE_ENV=production OBFUSCATE=true next build",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
@@ -45,6 +46,8 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.33",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "terser-webpack-plugin": "^5.3.16",
+    "webpack-obfuscator": "^3.6.0"
   }
 }

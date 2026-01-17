@@ -56,12 +56,6 @@ export function RelatedContent() {
             description: "Plan your match viewing by comparing fixtures",
             href: "/compare-fixtures",
             icon: "⚖️"
-          },
-          {
-            title: "Season Statistics",
-            description: "View detailed performance metrics",
-            href: "/compare-season",
-            icon: "📊"
           }
         ];
 

@@ -14,6 +14,7 @@ import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "@/components/SafeImage";
+import { PageHeaderReveal, PageSectionReveal, CardGridReveal } from "@/components/ContentReveal";
 
 // Dynamically import heavy components for better code splitting
 // Using ssr: false to prevent hydration mismatches with browser-only code
@@ -123,60 +124,70 @@ export default function HomePage() {
   return (
     <ErrorBoundary>
       <main className="space-y-8">
-      <header className="flex justify-between items-center pl-space-md">
-        <h1 className="pl-heading-lg goal-underline">Home</h1>
-        <RefreshButton />
-      </header>
+        <PageHeaderReveal>
+          <header className="flex justify-between items-center pl-space-md">
+            <h1 className="pl-heading-lg goal-underline">Home</h1>
+            <RefreshButton />
+          </header>
+        </PageHeaderReveal>
 
-      <div className="pl-space-lg">
-        <h2 className="pl-heading-md mb-4">My Clubs</h2>
-        <ClubSelector />
-      </div>
+        <PageSectionReveal>
+          <div className="pl-space-lg">
+            <h2 className="pl-heading-md mb-4">My Clubs</h2>
+            <ClubSelector />
+          </div>
+        </PageSectionReveal>
 
-      {isLoading ? (
-        <LoadingSkeleton />
-      ) : error ? (
-        <ErrorDisplay
-          message="Failed to load fixtures. The scraper may need updating."
-          onRetry={() => refetch()}
-        />
-      ) : fixtures.length === 0 ? (
-        <EmptyState
-          title="No Fixtures Available"
-          message="Fixtures data is not available. This may be because the current season hasn't started yet, or the scraper needs to be updated with the correct CSS selectors."
-        />
-      ) : (
-        <>
-          {nextMatch && (
-            <div className="pl-space-lg">
-              <h2 className="pl-heading-md mb-4 goal-underline">Next Match</h2>
-              <MatchCountdown fixture={nextMatch} />
-            </div>
-          )}
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : error ? (
+          <ErrorDisplay
+            message="Failed to load fixtures. The scraper may need updating."
+            onRetry={() => refetch()}
+          />
+        ) : fixtures.length === 0 ? (
+          <EmptyState
+            title="No Fixtures Available"
+            message="Fixtures data is not available. This may be because the current season hasn't started yet, or the scraper needs to be updated with the correct CSS selectors."
+          />
+        ) : (
+          <>
+            {nextMatch && (
+              <PageSectionReveal delay={200}>
+                <div className="pl-space-lg">
+                  <h2 className="pl-heading-md mb-4 goal-underline">Next Match</h2>
+                  <MatchCountdown fixture={nextMatch} />
+                </div>
+              </PageSectionReveal>
+            )}
 
-          {todayFixtures.length > 0 && (
-            <div className="pl-space-lg">
-              <h2 className="pl-heading-md mb-4 goal-underline">Today&apos;s Fixtures</h2>
-              <div className="formation-4-3-3">
-                {todayFixtures.map((fixture) => (
-                  <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
-                ))}
-              </div>
-            </div>
-          )}
+            {todayFixtures.length > 0 && (
+              <PageSectionReveal delay={400}>
+                <div className="pl-space-lg">
+                  <h2 className="pl-heading-md mb-4 goal-underline">Today&apos;s Fixtures</h2>
+                  <CardGridReveal className="formation-4-3-3">
+                    {todayFixtures.map((fixture) => (
+                      <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
+                    ))}
+                  </CardGridReveal>
+                </div>
+              </PageSectionReveal>
+            )}
 
-          {weekendFixtures.length > 0 && (
-            <div className="pl-space-lg">
-              <h2 className="pl-heading-md mb-4 goal-underline">Weekend Fixtures</h2>
-              <div className="formation-4-3-3">
-                {weekendFixtures.map((fixture) => (
-                  <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+            {weekendFixtures.length > 0 && (
+              <PageSectionReveal delay={600}>
+                <div className="pl-space-lg">
+                  <h2 className="pl-heading-md mb-4 goal-underline">Weekend Fixtures</h2>
+                  <CardGridReveal className="formation-4-3-3">
+                    {weekendFixtures.map((fixture) => (
+                      <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
+                    ))}
+                  </CardGridReveal>
+                </div>
+              </PageSectionReveal>
+            )}
+          </>
+        )}
       </main>
     </ErrorBoundary>
   );

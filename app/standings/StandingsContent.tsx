@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Standing } from "@/lib/types";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { getClubByName } from "@/lib/clubs";
+import { PageHeaderReveal, PageSectionReveal, StaggeredReveal } from "@/components/ContentReveal";
 
 async function fetchStandings(): Promise<Standing[]> {
   const res = await fetch("/api/standings", {
@@ -54,19 +55,21 @@ export default function StandingsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Standings</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Want to see how these positions change? Check out the{" "}
-            <Link href="/fixtures-results" className="text-blue-600 dark:text-blue-400 hover:underline">
-              upcoming fixtures and results
-            </Link>
-            .
-          </p>
+      <PageHeaderReveal>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Standings</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Want to see how these positions change? Check out the{" "}
+              <Link href="/fixtures-results" className="text-blue-600 dark:text-blue-400 hover:underline">
+                upcoming fixtures and results
+              </Link>
+              .
+            </p>
+          </div>
+          <RefreshButton />
         </div>
-        <RefreshButton />
-      </div>
+      </PageHeaderReveal>
 
       {isLoading ? (
         <TableSkeleton />
@@ -81,30 +84,38 @@ export default function StandingsContent() {
           message="Standings data is not available. This may be because the current season hasn't started yet, or the scraper needs to be updated."
         />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left p-2">Pos</th>
-                <th className="text-left p-2">Club</th>
-                <th className="text-center p-2">P</th>
-                <th className="text-center p-2">W</th>
-                <th className="text-center p-2">D</th>
-                <th className="text-center p-2">L</th>
-                <th className="text-center p-2">GF</th>
-                <th className="text-center p-2">GA</th>
-                <th className="text-center p-2">GD</th>
-                <th className="text-center p-2">Pts</th>
-                <th className="text-center p-2">Form</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((standing) => (
-                <StandingRow key={standing.club} standing={standing} clubs={clubs} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <PageSectionReveal delay={200}>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left p-2">Pos</th>
+                  <th className="text-left p-2">Club</th>
+                  <th className="text-center p-2">P</th>
+                  <th className="text-center p-2">W</th>
+                  <th className="text-center p-2">D</th>
+                  <th className="text-center p-2">L</th>
+                  <th className="text-center p-2">GF</th>
+                  <th className="text-center p-2">GA</th>
+                  <th className="text-center p-2">GD</th>
+                  <th className="text-center p-2">Pts</th>
+                  <th className="text-center p-2">Form</th>
+                </tr>
+              </thead>
+              <tbody>
+                <StaggeredReveal
+                  animation="slide-in-left"
+                  staggerDelay={50}
+                  delay={300}
+                >
+                  {standings.map((standing) => (
+                    <StandingRow key={standing.club} standing={standing} clubs={clubs} />
+                  ))}
+                </StaggeredReveal>
+              </tbody>
+            </table>
+          </div>
+        </PageSectionReveal>
       )}
     </div>
   );

@@ -473,6 +473,23 @@ body {
   font-size: 1.125rem;
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.club-fixture-card__club-name .club-logo {
+  flex-shrink: 0;
+}
+
+.club-fixture-card__club-name .club-logo__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .club-fixture-card__content {
@@ -727,6 +744,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .club-logo__image {
@@ -734,6 +753,24 @@ body {
   object-position: center;
   flex-shrink: 0;
   display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Specific constraints for club fixture card header logos */
+.club-fixture-card__club-name .club-logo__image {
+  max-width: 28px;
+  max-height: 28px;
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* Constraints for match item logos */
+.match-item__opponent .club-logo__image {
+  max-width: 16px;
+  max-height: 16px;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .club-logo__name {
@@ -1851,6 +1888,165 @@ nextjs-portal:not(:empty) {
 .trophy-icon:hover {
   animation: trophy-shine 0.8s ease;
 }
+
+/* Content Reveal Animations */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-bottom {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Content Reveal Classes */
+.content-reveal {
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-reveal--fade-in {
+  animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.content-reveal--slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.content-reveal--slide-in-left {
+  animation: slide-in-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.content-reveal--slide-in-right {
+  animation: slide-in-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.content-reveal--scale-in {
+  animation: scale-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.content-reveal--slide-in-bottom {
+  animation: slide-in-bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Staggered animations with delays */
+.content-reveal--stagger-1 { animation-delay: 0.1s; }
+.content-reveal--stagger-2 { animation-delay: 0.2s; }
+.content-reveal--stagger-3 { animation-delay: 0.3s; }
+.content-reveal--stagger-4 { animation-delay: 0.4s; }
+.content-reveal--stagger-5 { animation-delay: 0.5s; }
+.content-reveal--stagger-6 { animation-delay: 0.6s; }
+.content-reveal--stagger-7 { animation-delay: 0.7s; }
+.content-reveal--stagger-8 { animation-delay: 0.8s; }
+
+/* Page section animations */
+.page-section-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-section-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-header-reveal {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-header-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-grid-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-grid-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Individual card animations */
+.card-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered card animations */
+.card-reveal--delay-1 { transition-delay: 0.1s; }
+.card-reveal--delay-2 { transition-delay: 0.2s; }
+.card-reveal--delay-3 { transition-delay: 0.3s; }
+.card-reveal--delay-4 { transition-delay: 0.4s; }
+.card-reveal--delay-5 { transition-delay: 0.5s; }
+.card-reveal--delay-6 { transition-delay: 0.6s; }
 
 /* Enhanced Navigation */
 .nav-trophy {

@@ -13,6 +13,7 @@ import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { getClubByName } from "@/lib/clubs";
+import { PageHeaderReveal, PageSectionReveal, CardGridReveal } from "@/components/ContentReveal";
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
@@ -145,60 +146,66 @@ export default function FixturesResultsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Fixtures & Results</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Wondering how teams are performing? Check the{" "}
-            <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline">
-              current league standings
-            </Link>
-            .
-          </p>
+      <PageHeaderReveal>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Fixtures & Results</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Wondering how teams are performing? Check the{" "}
+              <Link href="/standings" className="text-blue-600 dark:text-blue-400 hover:underline">
+                current league standings
+              </Link>
+              .
+            </p>
+          </div>
+          <RefreshButton />
         </div>
-        <RefreshButton />
-      </div>
+      </PageHeaderReveal>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <nav className="-mb-px flex space-x-4 sm:space-x-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setSelectedMatchweek(null); // Reset matchweek selection when switching tabs
-                setSearchQuery(""); // Reset search when switching tabs
-              }}
-              className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-              }`}
-            >
-              {tab.label}
-              <span className="ml-1 sm:ml-2 py-0.5 px-1 sm:px-2 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                {tab.count}
-              </span>
-            </button>
-          ))}
-        </nav>
-      </div>
+      <PageSectionReveal delay={200}>
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="-mb-px flex space-x-4 sm:space-x-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSelectedMatchweek(null); // Reset matchweek selection when switching tabs
+                  setSearchQuery(""); // Reset search when switching tabs
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                {tab.label}
+                <span className="ml-1 sm:ml-2 py-0.5 px-1 sm:px-2 rounded-full text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </PageSectionReveal>
 
-      <div className="space-y-4">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search by team name..."
-        />
-        <MatchweekSelector
-          availableMatchweeks={matchweeks}
-          selectedMatchweek={selectedMatchweek}
-          onSelect={setSelectedMatchweek}
-          onScrollTo={handleScrollToMatchweek}
-          currentMatchweek={activeTab === "fixtures" ? currentMatchweek : null}
-        />
-      </div>
+      <PageSectionReveal delay={400}>
+        <div className="space-y-4">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search by team name..."
+          />
+          <MatchweekSelector
+            availableMatchweeks={matchweeks}
+            selectedMatchweek={selectedMatchweek}
+            onSelect={setSelectedMatchweek}
+            onScrollTo={handleScrollToMatchweek}
+            currentMatchweek={activeTab === "fixtures" ? currentMatchweek : null}
+          />
+        </div>
+      </PageSectionReveal>
 
       {isLoading ? (
         <LoadingSkeleton />
@@ -220,32 +227,36 @@ export default function FixturesResultsContent() {
         <div className="space-y-8">
           {Object.entries(groupedByMatchweek)
             .sort(([a], [b]) => activeTab === "fixtures" ? parseInt(a) - parseInt(b) : parseInt(b) - parseInt(a))
-            .map(([matchweek, matches]) => (
-              <div
+            .map(([matchweek, matches], index) => (
+              <PageSectionReveal
                 key={matchweek}
-                ref={(el) => {
-                  matchweekRefs.current[parseInt(matchweek)] = el;
-                }}
-                id={`matchweek-${matchweek}`}
+                delay={600 + (index * 100)}
                 className="scroll-mt-20"
+                id={`matchweek-${matchweek}`}
               >
-                <h2 className="text-xl sm:text-2xl font-semibold mb-4">
-                  Matchweek {matchweek}
-                </h2>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {matches
-                    .filter((f, index, self) =>
-                      index === self.findIndex((fixture) => fixture.id === f.id)
-                    )
-                    .sort(activeTab === "fixtures"
-                      ? (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-                      : (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-                    )
-                    .map((match) => (
-                      <MatchCard key={match.id} fixture={match} isResult={activeTab === "results"} clubs={clubs} />
-                    ))}
+                <div
+                  ref={(el) => {
+                    matchweekRefs.current[parseInt(matchweek)] = el;
+                  }}
+                >
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-4">
+                    Matchweek {matchweek}
+                  </h2>
+                  <CardGridReveal className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {matches
+                      .filter((f, index, self) =>
+                        index === self.findIndex((fixture) => fixture.id === f.id)
+                      )
+                      .sort(activeTab === "fixtures"
+                        ? (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                        : (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+                      )
+                      .map((match) => (
+                        <MatchCard key={match.id} fixture={match} isResult={activeTab === "results"} clubs={clubs} />
+                      ))}
+                  </CardGridReveal>
                 </div>
-              </div>
+              </PageSectionReveal>
             ))}
         </div>
       )}

@@ -16,6 +16,7 @@ import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture, Club } from "@/lib/types";
 import { getCurrentMatchweek } from "@/lib/utils";
+import { PageHeaderReveal, PageSectionReveal, CardGridReveal } from "@/components/ContentReveal";
 
 type ClubFixtureData = {
   club: string;
@@ -132,16 +133,20 @@ export default function ComparePage() {
 
   return (
     <div className="compare-page">
-      <div className="compare-page__header">
-        <h1 className="compare-page__title text-2xl sm:text-3xl">Compare Fixtures</h1>
-        <RefreshButton />
-      </div>
-      
+      <PageHeaderReveal>
+        <div className="compare-page__header">
+          <h1 className="compare-page__title text-2xl sm:text-3xl">Compare Fixtures</h1>
+          <RefreshButton />
+        </div>
+      </PageHeaderReveal>
+
       {clubNames.length > 0 && !isLoading && !error && (
-        <FutureMatchesFilter
-          selectedCount={futureMatchesCount}
-          onSelect={handleFutureMatchesCountChange}
-        />
+        <PageSectionReveal delay={200}>
+          <FutureMatchesFilter
+            selectedCount={futureMatchesCount}
+            onSelect={handleFutureMatchesCountChange}
+          />
+        </PageSectionReveal>
       )}
 
       {clubNames.length === 0 ? (
@@ -157,16 +162,18 @@ export default function ComparePage() {
           onRetry={() => refetch()}
         />
       ) : (
-        <div className="compare-page__grid">
-          {clubFixtures.map(({ club, clubData, fixtures }: ClubFixtureData) => (
-            <ClubFixtureCard
-              key={club}
-              club={club}
-              clubData={clubData}
-              fixtures={fixtures}
-            />
-          ))}
-        </div>
+        <PageSectionReveal delay={400}>
+          <CardGridReveal className="compare-page__grid">
+            {clubFixtures.map(({ club, clubData, fixtures }: ClubFixtureData) => (
+              <ClubFixtureCard
+                key={club}
+                club={club}
+                clubData={clubData}
+                fixtures={fixtures}
+              />
+            ))}
+          </CardGridReveal>
+        </PageSectionReveal>
       )}
     </div>
   );
