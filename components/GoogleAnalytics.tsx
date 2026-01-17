@@ -39,27 +39,28 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     }
     window.gtag = gtag;
 
-    // Load Google Analytics script
+    // Initialize GA4 immediately (queues commands)
+    gtag("js", new Date());
+    gtag("config", measurementId, {
+      page_path: window.location.pathname,
+      send_page_view: true,
+    });
+
+    console.log("[GA4] Configuration queued");
+
+    // Load Google Analytics script - it will process the queued commands
     const script1 = document.createElement("script");
     script1.async = true;
     script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
     document.head.appendChild(script1);
 
     script1.onload = () => {
-      console.log("[GA4] Script loaded successfully");
+      console.log("[GA4] Script loaded successfully - events will now be sent");
     };
 
     script1.onerror = () => {
       console.error("[GA4] Failed to load script");
     };
-
-    // Initialize GA4
-    gtag("js", new Date());
-    gtag("config", measurementId, {
-      page_path: window.location.pathname,
-    });
-
-    console.log("[GA4] Configuration sent");
   };
 
   useEffect(() => {
