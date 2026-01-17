@@ -6,7 +6,8 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { ClubDropdown } from "@/components/ClubDropdown";
 import { SeasonDropdown } from "@/components/SeasonDropdown";
-import { SeasonStatsDisplay } from "@/components/SeasonStatsDisplay";
+import { SeasonStatsCompact } from "@/components/SeasonStatsCompact";
+import { ClubMatchResults } from "@/components/ClubMatchResults";
 import { ComparisonSummary } from "@/components/ComparisonSummary";
 import { useCompareSeason } from "@/lib/hooks/useCompareSeason";
 
@@ -16,8 +17,7 @@ export default function CompareSeasonPage() {
     setSelectedClub,
     selectedSeason,
     setSelectedSeason,
-    isScraping,
-    scrapingError,
+    currentFixtures,
     historicalFixtures,
     isLoadingHistorical,
     isLoading,
@@ -26,7 +26,6 @@ export default function CompareSeasonPage() {
     currentMatchweek,
     currentSeasonStats,
     historicalSeasonStats,
-    handleScrapeSeason,
     refetchCurrent,
     refetchHistorical,
   } = useCompareSeason();
@@ -54,25 +53,6 @@ export default function CompareSeasonPage() {
             label="Select Previous Season"
           />
         </div>
-
-        {selectedSeason && (
-          <div className="mb-4">
-            <button
-              onClick={handleScrapeSeason}
-              disabled={isScraping}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isScraping
-                ? "Scraping..."
-                : `Scrape ${selectedSeason} Season Data`}
-            </button>
-            {scrapingError && (
-              <div className="mt-2 text-red-600 dark:text-red-400 text-sm">
-                {scrapingError}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {!selectedClub ? (
@@ -99,52 +79,64 @@ export default function CompareSeasonPage() {
             />
           ) : (
             <>
-              <div className="mb-6">
+              {/* Current Season Section */}
+              <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">
-                  Current Season ({currentMatchweek} matchweeks played)
+                  Current Season (2025/2026) - {currentMatchweek} matchweeks
                 </h2>
-                {currentSeasonStats && (
-                  <SeasonStatsDisplay
-                    stats={currentSeasonStats}
-                    clubName={selectedClub}
-                    matchweek={currentMatchweek}
-                  />
-                )}
+                <div className="season-stats-layout">
+                  <div className="season-stats-layout__stats">
+                    {currentSeasonStats && (
+                      <SeasonStatsCompact
+                        stats={currentSeasonStats}
+                        title="Statistics"
+                      />
+                    )}
+                  </div>
+                  <div className="season-stats-layout__results">
+                    <ClubMatchResults
+                      fixtures={currentFixtures}
+                      clubName={selectedClub}
+                      maxMatchweek={currentMatchweek}
+                      seasonLabel="Current Season"
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* Historical Season Section */}
               {selectedSeason ? (
-                <div>
+                <div className="mb-8">
                   <h2 className="text-xl font-semibold mb-4">
-                    {selectedSeason} Season (first {currentMatchweek}{" "}
-                    matchweeks)
+                    {selectedSeason} Season (first {currentMatchweek} matchweeks)
                   </h2>
-                  {/* Debug info - remove after fixing */}
-                  <div className="mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                    <p>Debug: selectedSeason = "{selectedSeason}"</p>
-                    <p>Debug: historicalFixtures.length = {historicalFixtures.length}</p>
-                    <p>Debug: First fixture season = {historicalFixtures[0]?.season || "N/A"}</p>
-                    <p>Debug: isLoadingHistorical = {isLoadingHistorical ? "true" : "false"}</p>
-                  </div>
                   {isLoadingHistorical ? (
                     <LoadingSkeleton />
                   ) : historicalFixtures.length === 0 ? (
                     <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                       <p className="text-yellow-800 dark:text-yellow-200">
-                        No data available for {selectedSeason}. Click the button
-                        above to scrape the season data.
+                        No data available for {selectedSeason}.
                       </p>
                     </div>
-                  ) : historicalSeasonStats ? (
-                    <SeasonStatsDisplay
-                      stats={historicalSeasonStats}
-                      clubName={selectedClub}
-                      matchweek={currentMatchweek}
-                    />
                   ) : (
-                    <EmptyState
-                      title="No Data"
-                      message={`No matches found for ${selectedClub} in ${selectedSeason}`}
-                    />
+                    <div className="season-stats-layout">
+                      <div className="season-stats-layout__stats">
+                        {historicalSeasonStats && (
+                          <SeasonStatsCompact
+                            stats={historicalSeasonStats}
+                            title="Statistics"
+                          />
+                        )}
+                      </div>
+                      <div className="season-stats-layout__results">
+                        <ClubMatchResults
+                          fixtures={historicalFixtures}
+                          clubName={selectedClub}
+                          maxMatchweek={currentMatchweek}
+                          seasonLabel={selectedSeason}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -154,6 +146,7 @@ export default function CompareSeasonPage() {
                 />
               )}
 
+              {/* Comparison Summary */}
               {currentSeasonStats && historicalSeasonStats && (
                 <ComparisonSummary
                   current={currentSeasonStats}

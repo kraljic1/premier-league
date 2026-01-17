@@ -750,3 +750,239 @@ nextjs-portal:not(:empty) {
   }
 }
 
+/* Season Stats Layout - Side by Side */
+.season-stats-layout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .season-stats-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.season-stats-layout__stats {
+  min-width: 0;
+}
+
+.season-stats-layout__results {
+  min-width: 0;
+}
+
+/* Club Match Results Table */
+.club-match-results {
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .club-match-results {
+  background-color: rgb(30, 41, 59);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.club-match-results--empty {
+  padding: 2rem;
+  text-align: center;
+  color: rgb(107, 114, 128);
+}
+
+.dark .club-match-results--empty {
+  color: rgb(156, 163, 175);
+}
+
+.club-match-results__title {
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background-color: #37003c;
+}
+
+.dark .club-match-results__title {
+  background-color: rgb(51, 65, 85);
+}
+
+.club-match-results__table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.club-match-results__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.club-match-results__table thead {
+  position: sticky;
+  top: 0;
+  background-color: rgb(243, 244, 246);
+  z-index: 1;
+}
+
+.dark .club-match-results__table thead {
+  background-color: rgb(51, 65, 85);
+}
+
+.club-match-results__table th {
+  padding: 0.5rem 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: rgb(107, 114, 128);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .club-match-results__table th {
+  color: rgb(156, 163, 175);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.club-match-results__table td {
+  padding: 0.5rem 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  color: hsl(var(--foreground));
+}
+
+.dark .club-match-results__table td {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.club-match-results__table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark .club-match-results__table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.club-match-results__matchweek {
+  font-weight: 600;
+  color: rgb(107, 114, 128);
+  text-align: center;
+  width: 2rem;
+}
+
+.dark .club-match-results__matchweek {
+  color: rgb(156, 163, 175);
+}
+
+.club-match-results__team {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.club-match-results__team--highlight {
+  font-weight: 600;
+  color: #37003c;
+}
+
+.dark .club-match-results__team--highlight {
+  color: #a855f7;
+}
+
+.club-match-results__score {
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.club-match-results__result {
+  font-weight: 700;
+  text-align: center;
+  width: 2rem;
+}
+
+.club-match-results__result--win {
+  color: rgb(22, 163, 74);
+}
+
+.club-match-results__result--draw {
+  color: rgb(107, 114, 128);
+}
+
+.dark .club-match-results__result--draw {
+  color: rgb(156, 163, 175);
+}
+
+.club-match-results__result--loss {
+  color: rgb(220, 38, 38);
+}
+
+/* Compact Season Stats Display */
+.season-stats-compact {
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .season-stats-compact {
+  background-color: rgb(30, 41, 59);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.season-stats-compact__title {
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background-color: #37003c;
+}
+
+.dark .season-stats-compact__title {
+  background-color: rgb(51, 65, 85);
+}
+
+.season-stats-compact__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .season-stats-compact__grid {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.season-stats-compact__item {
+  padding: 0.75rem;
+  background-color: white;
+  text-align: center;
+}
+
+.dark .season-stats-compact__item {
+  background-color: rgb(30, 41, 59);
+}
+
+.season-stats-compact__label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgb(107, 114, 128);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.dark .season-stats-compact__label {
+  color: rgb(156, 163, 175);
+}
+
+.season-stats-compact__value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
