@@ -3,12 +3,15 @@
 import { ClubDropdown } from "./ClubDropdown";
 import { SeasonDropdown } from "./SeasonDropdown";
 import { SeasonStatsCompact } from "./SeasonStatsCompact";
+import { ClubMatchResults } from "./ClubMatchResults";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { EmptyState } from "./EmptyState";
 import { ErrorDisplay } from "./ErrorDisplay";
 import { ComparisonBar } from "./ComparisonBar";
 import { HeadToHeadSection } from "./HeadToHeadSection";
 import { useCompareTwoClubs } from "@/lib/hooks/useCompareTwoClubs";
+import { getClubByName } from "@/lib/clubs";
+import { Fixture } from "@/lib/types";
 
 interface TwoClubsComparisonProps {
   onClose: () => void;
@@ -23,6 +26,7 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
     selectedSeason,
     handleSeasonChange,
     isCurrentSeason,
+    fixtures,
     clubAStats,
     clubBStats,
     headToHeadMatches,
@@ -94,6 +98,8 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
           clubAStats={clubAStats}
           clubBStats={clubBStats}
           selectedSeason={selectedSeason}
+          fixtures={fixtures}
+          effectiveMatchweek={effectiveMatchweek}
           headToHeadMatches={headToHeadMatches}
           headToHeadSummary={headToHeadSummary}
         />
@@ -152,6 +158,8 @@ interface TwoClubsContentProps {
   clubAStats: any;
   clubBStats: any;
   selectedSeason: string | null;
+  fixtures: Fixture[];
+  effectiveMatchweek: number;
   headToHeadMatches: any[];
   headToHeadSummary: any;
 }
@@ -162,9 +170,14 @@ function TwoClubsContent({
   clubAStats,
   clubBStats,
   selectedSeason,
+  fixtures,
+  effectiveMatchweek,
   headToHeadMatches,
   headToHeadSummary,
 }: TwoClubsContentProps) {
+  const clubAColor = getClubByName(clubA)?.primaryColor || "#37003c";
+  const clubBColor = getClubByName(clubB)?.primaryColor || "#37003c";
+
   return (
     <div className="two-clubs-comparison__content">
       <div className="two-clubs-comparison__stats">
@@ -172,6 +185,22 @@ function TwoClubsContent({
         <ClubStatsCard clubName={clubB} stats={clubBStats} season={selectedSeason} />
       </div>
 
+      <div className="two-clubs-comparison__results">
+        <ClubMatchResults
+          fixtures={fixtures}
+          clubName={clubA}
+          maxMatchweek={effectiveMatchweek}
+          seasonLabel={`${clubA} Results`}
+          clubColor={clubAColor}
+        />
+        <ClubMatchResults
+          fixtures={fixtures}
+          clubName={clubB}
+          maxMatchweek={effectiveMatchweek}
+          seasonLabel={`${clubB} Results`}
+          clubColor={clubBColor}
+        />
+      </div>
 
       <HeadToHeadSection
         clubA={clubA}

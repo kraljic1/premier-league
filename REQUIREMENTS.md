@@ -19,7 +19,7 @@ A complete Next.js 14+ (App Router) project in TypeScript for a private Premier 
 ### /standings
 - Current league table with form (last 6)
 
-### /compare
+### /compare-fixtures
 - Compare schedule of 1–5 selected clubs side-by-side
 - Use club colors for visual distinction
 

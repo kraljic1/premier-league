@@ -9,7 +9,7 @@ const navItems = [
   { href: "/", label: "Home" },
   { href: "/fixtures-results", label: "Fixtures & Results" },
   { href: "/standings", label: "Standings" },
-  { href: "/compare", label: "Compare" },
+  { href: "/compare-fixtures", label: "Compare Fixtures" },
   { href: "/compare-season", label: "Compare Season" },
 ];
 

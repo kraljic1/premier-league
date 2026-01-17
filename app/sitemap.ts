@@ -8,9 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '',
     '/fixtures-results',
     '/standings',
-    '/compare',
+    '/compare-fixtures',
     '/compare-season',
-    '/top-scorers',
   ];
 
   // Generate sitemap entries

@@ -129,7 +129,7 @@ export default function ComparePage() {
   return (
     <div className="compare-page">
       <div className="compare-page__header">
-        <h1 className="compare-page__title text-2xl sm:text-3xl">Compare Clubs</h1>
+        <h1 className="compare-page__title text-2xl sm:text-3xl">Compare Fixtures</h1>
         <RefreshButton />
       </div>
       
