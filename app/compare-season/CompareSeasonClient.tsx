@@ -50,7 +50,7 @@ export function CompareSeasonClient() {
   const selectedClubColor = useMemo(() => {
     if (!selectedClub) return "#666";
     const club = getClubByName(selectedClub);
-    return club?.color || "#666";
+    return club?.primaryColor || "#666";
   }, [selectedClub]);
 
   return (
