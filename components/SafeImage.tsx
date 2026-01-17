@@ -7,7 +7,7 @@ interface SafeImageProps {
   height: number;
   className?: string;
   loading?: "lazy" | "eager";
-  unoptimized?: boolean;
+  unoptimized: boolean;
 }
 
 /**

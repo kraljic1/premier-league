@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Club } from "@/lib/types";
 import { getClubByName } from "@/lib/clubs";
 import { SafeImage } from "@/components/SafeImage";
@@ -18,7 +18,7 @@ interface ClubLogoProps {
  * Otherwise, fetches logo URL from database, then falls back to hardcoded URL.
  * Falls back to club name only if logo is not available.
  */
-export function ClubLogo({ clubName, size = 24, className = "", logoUrl: providedLogoUrl }: ClubLogoProps) {
+export const ClubLogo = memo(function ClubLogo({ clubName, size = 24, className = "", logoUrl: providedLogoUrl }: ClubLogoProps) {
   const [imageError, setImageError] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(providedLogoUrl || null);
   const [isLoading, setIsLoading] = useState(!providedLogoUrl);
@@ -101,4 +101,4 @@ export function ClubLogo({ clubName, size = 24, className = "", logoUrl: provide
       <span className="club-logo__name">{clubName}</span>
     </div>
   );
-}
+});

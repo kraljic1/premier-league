@@ -1464,3 +1464,13 @@ nextjs-portal:not(:empty) {
   color: #a855f7;
 }
 
+/* Club-themed components */
+.club-stats-display {
+  border-color: var(--club-color, #6b7280);
+  background-color: var(--club-bg, #f9fafb);
+}
+
+.dark .club-stats-display {
+  background-color: var(--club-bg-dark, #1f2937);
+}
+

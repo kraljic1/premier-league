@@ -4,6 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { CLUBS } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
+
+interface ClubWithLogo {
+  id: string;
+  name: string;
+  shortName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  textColor: string;
+  logoUrl?: string;
+  logoUrlFromDb?: string | null;
+}
 import { ClubLogo } from "@/components/ClubLogo";
 import { SafeImage } from "@/components/SafeImage";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -74,7 +85,7 @@ export function ClubSelector() {
                     height={24}
                     className="w-6 h-6 object-contain"
                     loading="lazy"
-                    unoptimized={(club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg')}
+                    unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}
                   />
                 )}
                 <div className="text-sm font-medium">{club.shortName}</div>
@@ -136,7 +147,7 @@ function PrimaryClubDropdown({
     };
   }, []);
 
-  const selectedClub = primaryClub ? (clubs[primaryClub] || CLUBS[primaryClub]) : null;
+  const selectedClub = primaryClub ? (clubs[primaryClub] || CLUBS[primaryClub]) : null as ClubWithLogo | null;
 
   if (isLoading) {
     return (
@@ -164,7 +175,7 @@ function PrimaryClubDropdown({
                   height={20}
                   className="w-5 h-5 object-contain"
                   loading="lazy"
-                  unoptimized={(selectedClub.logoUrlFromDb || selectedClub.logoUrl)?.endsWith('.svg')}
+                  unoptimized={Boolean((selectedClub.logoUrlFromDb || selectedClub.logoUrl)?.endsWith('.svg'))}
                 />
               )}
               <span>{selectedClub.name}</span>
@@ -203,18 +214,19 @@ function PrimaryClubDropdown({
           >
             <span className="text-gray-500 dark:text-gray-400">None</span>
           </button>
-          {myClubs.map((clubId) => {
-            const club = clubs[clubId] || CLUBS[clubId];
-            return (
+          {myClubs
+            .map((clubId) => clubs[clubId] || CLUBS[clubId])
+            .filter((club): club is NonNullable<typeof club> => !!club)
+            .map((club) => (
               <button
-                key={clubId}
+                key={club.id}
                 type="button"
                 onClick={() => {
-                  setPrimaryClub(clubId);
+                  setPrimaryClub(club.id);
                   setIsOpen(false);
                 }}
                 className={`w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
-                  primaryClub === clubId ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                  primaryClub === club.id ? "bg-blue-50 dark:bg-blue-900/20" : ""
                 }`}
               >
                 {(club.logoUrlFromDb || club.logoUrl) && (
@@ -225,13 +237,12 @@ function PrimaryClubDropdown({
                     height={20}
                     className="w-5 h-5 object-contain"
                     loading="lazy"
-                    unoptimized={(club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg')}
+                    unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}
                   />
                 )}
                 <span>{club.name}</span>
               </button>
-            );
-          })}
+            ))}
         </div>
       )}
     </div>

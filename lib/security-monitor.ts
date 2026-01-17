@@ -3,13 +3,13 @@
  * Monitors API usage patterns and alerts on suspicious activity
  */
 
-interface SecurityEvent {
+export interface SecurityEvent {
   timestamp: string;
   type: 'auth_failure' | 'rate_limit' | 'suspicious_request' | 'unusual_pattern';
   severity: 'low' | 'medium' | 'high' | 'critical';
   clientId: string;
   endpoint: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   ip?: string;
   userAgent?: string;
 }

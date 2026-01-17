@@ -10,7 +10,7 @@ export function CookieConsent() {
     setMounted(true);
     
     // Wait for client-side to check localStorage
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") return undefined;
     
     // Check if user has already made a choice
     const consent = localStorage.getItem("cookie-consent");
@@ -22,6 +22,7 @@ export function CookieConsent() {
       }, 500);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, []);
 
   const handleAccept = () => {

@@ -179,12 +179,12 @@ export type Database = {
   }
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'] || ''
+const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || ''
+const supabaseServiceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || ''
 
 // Only throw during runtime, not during build
-const isBuildTime = process.env.NODE_ENV === 'production' && !supabaseUrl
+const isBuildTime = process.env['NODE_ENV'] === 'production' && !supabaseUrl
 
 if (!isBuildTime && (!supabaseUrl || !supabaseAnonKey)) {
   console.warn('Missing Supabase environment variables - database features will be unavailable')

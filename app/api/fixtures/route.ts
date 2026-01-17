@@ -33,8 +33,8 @@ type CacheMetaResult = { last_updated: string } | null;
 async function refreshFixturesInBackground() {
   try {
     // Check if Supabase is configured before trying to store data
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
     if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://placeholder.supabase.co') {
       console.log("[Fixtures API] Background refresh: Supabase not configured, skipping database storage");
@@ -108,8 +108,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if Supabase is configured
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
     // Declare fixturesData outside the if-else block so it's accessible throughout the function
     let fixturesData: FixtureRow[] | null = null;

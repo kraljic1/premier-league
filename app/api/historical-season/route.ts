@@ -6,8 +6,8 @@ import { seasonYearToShortFormat } from "@/lib/utils/season-utils";
 // Force dynamic rendering since we use request.url
 export const dynamic = 'force-dynamic';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']!;
+const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
 
 const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
 

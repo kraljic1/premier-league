@@ -25,11 +25,11 @@ export function SeasonStatsDisplay({
 
   return (
     <div
-      className="p-6 rounded-lg border-2"
+      className="p-6 rounded-lg border-2 club-stats-display"
       style={{
-        borderColor: clubData?.primaryColor || "#gray",
-        backgroundColor: `${clubData?.primaryColor}10` || "#f9fafb",
-      }}
+        "--club-color": clubData?.primaryColor || "#6b7280",
+        "--club-bg": `${clubData?.primaryColor || "#6b7280"}10`,
+      } as React.CSSProperties}
     >
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Points" value={stats.points} />

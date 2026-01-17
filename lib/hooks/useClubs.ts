@@ -4,16 +4,16 @@ import { useState, useEffect } from 'react';
 import { CLUBS } from '@/lib/clubs';
 import { Club } from '@/lib/types';
 
-interface ClubWithLogo extends Club {
-  logoUrlFromDb?: string | null;
-}
-
 /**
  * Hook to fetch clubs with logo URLs from database
  * Falls back to hardcoded CLUBS if database is unavailable
  */
+interface ClubWithLogo extends Club {
+  logoUrlFromDb?: string | null;
+}
+
 export function useClubs() {
-  const [clubs, setClubs] = useState<Record<string, ClubWithLogo>>(CLUBS);
+  const [clubs, setClubs] = useState<Record<string, ClubWithLogo>>(CLUBS as Record<string, ClubWithLogo>);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -24,14 +24,20 @@ export function useClubs() {
           const clubsFromDb = await response.json();
           
           // Merge database clubs with hardcoded CLUBS
-          const mergedClubs: Record<string, ClubWithLogo> = { ...CLUBS };
+          const mergedClubs: Record<string, ClubWithLogo> = {};
           
-          clubsFromDb.forEach((dbClub: any) => {
+          // Copy all hardcoded clubs first
+          Object.entries(CLUBS).forEach(([key, club]) => {
+            mergedClubs[key] = { ...club };
+          });
+          
+          // Update with database logo URLs
+          clubsFromDb.forEach((dbClub: { name: string; logo_url: string | null }) => {
             const clubKey = Object.keys(CLUBS).find(
-              key => CLUBS[key].name === dbClub.name
+              key => CLUBS[key]?.name === dbClub.name
             );
             
-            if (clubKey) {
+            if (clubKey && mergedClubs[clubKey]) {
               mergedClubs[clubKey] = {
                 ...mergedClubs[clubKey],
                 logoUrlFromDb: dbClub.logo_url,
@@ -50,6 +56,7 @@ export function useClubs() {
     }
 
     fetchClubs();
+    return undefined;
   }, []);
 
   return { clubs, isLoading };

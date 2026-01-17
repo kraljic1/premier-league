@@ -6,6 +6,7 @@ export interface Club {
   secondaryColor: string;
   textColor: string;
   logoUrl?: string;
+  logoUrlFromDb?: string | null;
 }
 
 export interface Fixture {

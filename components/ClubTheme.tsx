@@ -25,7 +25,7 @@ export function ClubTheme() {
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     const checkDarkMode = () => {
       if (typeof document !== "undefined") {
         setIsDark(document.documentElement.classList.contains("dark"));
@@ -40,6 +40,7 @@ export function ClubTheme() {
       });
       return () => observer.disconnect();
     }
+    return undefined;
   }, [mounted]);
 
   useEffect(() => {

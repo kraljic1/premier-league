@@ -67,9 +67,9 @@ export async function GET(request: Request) {
     const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
     // Log Supabase configuration for debugging
-    const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const hasServiceRoleKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const hasAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const hasSupabaseUrl = !!process.env['NEXT_PUBLIC_SUPABASE_URL'];
+    const hasServiceRoleKey = !!process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    const hasAnonKey = !!process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
     console.log(`[Results API] Supabase config - URL: ${hasSupabaseUrl}, ServiceRoleKey: ${hasServiceRoleKey}, AnonKey: ${hasAnonKey}`);
 
     if (dbError) {

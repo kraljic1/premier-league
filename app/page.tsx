@@ -7,6 +7,7 @@ import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
@@ -119,7 +120,8 @@ export default function HomePage() {
   const weekendFixtures = getWeekendFixtures(fixtures);
 
   return (
-    <div className="space-y-8">
+    <ErrorBoundary>
+      <div className="space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl sm:text-3xl font-bold">Home</h1>
         <RefreshButton />
@@ -174,7 +176,8 @@ export default function HomePage() {
           )}
         </>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
 

@@ -88,9 +88,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${inter.className}`} suppressHydrationWarning>
         <PortalFix />
         <ServiceWorkerRegistration />
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+        {process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID'] && (
           <Suspense fallback={null}>
-            <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+            <GoogleAnalytics measurementId={process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID']} />
           </Suspense>
         )}
         <CookieConsent />

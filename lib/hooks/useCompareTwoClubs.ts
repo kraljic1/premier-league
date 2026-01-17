@@ -13,6 +13,10 @@ import {
   getCurrentSeasonEndDate,
   getPreviousSeasons,
 } from "../utils/season-utils";
+import {
+  getFinishedHeadToHeadMatches,
+  calculateHeadToHead,
+} from "../utils/head-to-head-utils";
 
 // Get current season values dynamically
 const CURRENT_SEASON_SHORT = getCurrentSeasonShort();
@@ -31,64 +35,6 @@ function filterCurrentSeasonFixtures(fixtures: Fixture[]): Fixture[] {
     const fixtureDate = new Date(f.date);
     return fixtureDate >= CURRENT_SEASON_START && fixtureDate <= CURRENT_SEASON_END;
   });
-}
-
-/**
- * Get head-to-head matches between two clubs
- */
-function getHeadToHeadMatches(
-  fixtures: Fixture[],
-  clubA: string,
-  clubB: string
-): Fixture[] {
-  return fixtures.filter(
-    (f) =>
-      (f.homeTeam === clubA && f.awayTeam === clubB) ||
-      (f.homeTeam === clubB && f.awayTeam === clubA)
-  );
-}
-
-/**
- * Calculate head-to-head summary for two clubs
- */
-function calculateHeadToHead(
-  fixtures: Fixture[],
-  clubA: string,
-  clubB: string
-): {
-  clubAWins: number;
-  clubBWins: number;
-  draws: number;
-  clubAGoals: number;
-  clubBGoals: number;
-} {
-  const h2hMatches = getHeadToHeadMatches(fixtures, clubA, clubB);
-  let clubAWins = 0;
-  let clubBWins = 0;
-  let draws = 0;
-  let clubAGoals = 0;
-  let clubBGoals = 0;
-
-  h2hMatches.forEach((match) => {
-    if (match.homeScore === null || match.awayScore === null) return;
-
-    const isClubAHome = match.homeTeam === clubA;
-    const clubAMatchGoals = isClubAHome ? match.homeScore : match.awayScore;
-    const clubBMatchGoals = isClubAHome ? match.awayScore : match.homeScore;
-
-    clubAGoals += clubAMatchGoals;
-    clubBGoals += clubBMatchGoals;
-
-    if (clubAMatchGoals > clubBMatchGoals) {
-      clubAWins++;
-    } else if (clubBMatchGoals > clubAMatchGoals) {
-      clubBWins++;
-    } else {
-      draws++;
-    }
-  });
-
-  return { clubAWins, clubBWins, draws, clubAGoals, clubBGoals };
 }
 
 export function useCompareTwoClubs() {
@@ -143,53 +89,27 @@ export function useCompareTwoClubs() {
     return [getCurrentSeasonFull(), ...previousSeasons];
   }, []);
 
-  // Calculate stats for Club A
+  // Calculate stats for both clubs
   const clubAStats = useMemo(() => {
     if (!clubA || fixtures.length === 0) return null;
-    return calculatePointsForClub(fixtures, clubA, 38); // Full season (38 matches)
+    return calculatePointsForClub(fixtures, clubA, 38);
   }, [clubA, fixtures]);
 
-  // Calculate stats for Club B
   const clubBStats = useMemo(() => {
     if (!clubB || fixtures.length === 0) return null;
-    return calculatePointsForClub(fixtures, clubB, 38); // Full season (38 matches)
+    return calculatePointsForClub(fixtures, clubB, 38);
   }, [clubB, fixtures]);
 
-  // Get head-to-head matches
+  // Get head-to-head data
   const headToHeadMatches = useMemo(() => {
     if (!clubA || !clubB || fixtures.length === 0) return [];
-    return getHeadToHeadMatches(fixtures, clubA, clubB).filter(
-      (f) => f.homeScore !== null && f.awayScore !== null
-    );
+    return getFinishedHeadToHeadMatches(fixtures, clubA, clubB);
   }, [clubA, clubB, fixtures]);
 
-  // Calculate head-to-head summary
   const headToHeadSummary = useMemo(() => {
     if (!clubA || !clubB || fixtures.length === 0) return null;
     return calculateHeadToHead(fixtures, clubA, clubB);
   }, [clubA, clubB, fixtures]);
-
-  // Get fixtures for Club A
-  const clubAFixtures = useMemo(() => {
-    if (!clubA || fixtures.length === 0) return [];
-    return fixtures.filter(
-      (f) =>
-        (f.homeTeam === clubA || f.awayTeam === clubA) &&
-        f.homeScore !== null &&
-        f.awayScore !== null
-    );
-  }, [clubA, fixtures]);
-
-  // Get fixtures for Club B
-  const clubBFixtures = useMemo(() => {
-    if (!clubB || fixtures.length === 0) return [];
-    return fixtures.filter(
-      (f) =>
-        (f.homeTeam === clubB || f.awayTeam === clubB) &&
-        f.homeScore !== null &&
-        f.awayScore !== null
-    );
-  }, [clubB, fixtures]);
 
   const handleSeasonChange = (season: string | null) => {
     if (season === getCurrentSeasonFull()) {
@@ -214,8 +134,6 @@ export function useCompareTwoClubs() {
     fixtures,
     clubAStats,
     clubBStats,
-    clubAFixtures,
-    clubBFixtures,
     headToHeadMatches,
     headToHeadSummary,
     availableSeasons,

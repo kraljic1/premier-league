@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { securityMonitor } from './security-monitor';
+import type { SecurityEvent } from './security-monitor';
 
 // Rate limiting store (in production, use Redis)
 interface RateLimitEntry {
@@ -13,11 +14,11 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 // API Keys for different access levels
 const API_KEYS = {
   // Read-only access for public APIs
-  read: process.env.API_KEY_READ || '',
+  read: process.env['API_KEY_READ'] || '',
   // Write access for refresh operations
-  write: process.env.API_KEY_WRITE || '',
+  write: process.env['API_KEY_WRITE'] || '',
   // Admin access for system operations
-  admin: process.env.API_KEY_ADMIN || '',
+  admin: process.env['API_KEY_ADMIN'] || '',
 } as const;
 
 type AccessLevel = keyof typeof API_KEYS;
@@ -34,15 +35,21 @@ export function authenticateRequest(
 
   if (!apiKey) {
     // Log authentication failure
-    securityMonitor.logEvent({
+    const eventData: Omit<SecurityEvent, 'timestamp'> = {
       type: 'auth_failure',
       severity: 'low',
       clientId,
       endpoint: request.nextUrl.pathname,
       details: { reason: 'missing_api_key' },
-      ip: request.headers.get('x-forwarded-for') || request.ip || undefined,
-      userAgent: request.headers.get('user-agent') || undefined
-    });
+    };
+
+    const ip = request.headers.get('x-forwarded-for') || request.ip;
+    const userAgent = request.headers.get('user-agent');
+
+    if (ip) eventData.ip = ip;
+    if (userAgent) eventData.userAgent = userAgent;
+
+    securityMonitor.logEvent(eventData);
 
     return { success: false, error: 'Missing API key' };
   }

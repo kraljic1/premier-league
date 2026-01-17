@@ -25,6 +25,7 @@ export function Navigation() {
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    return undefined;
   }, [pathname]);
 
   // Close mobile menu when clicking outside
@@ -40,6 +41,7 @@ export function Navigation() {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
+    return undefined;
   }, [isMobileMenuOpen]);
 
   const toggleMobileMenu = () => {

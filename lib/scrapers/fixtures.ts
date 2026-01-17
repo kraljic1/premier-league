@@ -145,7 +145,7 @@ export async function scrapeFixtures(): Promise<Fixture[]> {
         // Verify we're on the correct matchweek by checking URL
         const actualUrl = page.url();
         const urlMatch = actualUrl.match(/matchweek=(\d+)/);
-        const urlMatchweek = urlMatch ? parseInt(urlMatch[1]) : null;
+        const urlMatchweek = urlMatch && urlMatch[1] ? parseInt(urlMatch[1]) : null;
         
         console.log(`Target: ${targetMatchweek}, URL shows: ${urlMatchweek}, Full URL: ${actualUrl}`);
         
@@ -251,7 +251,7 @@ async function getCurrentMatchweek(page: any): Promise<number> {
     const matchweek = await page.evaluate(() => {
       // Method 1: Try to find in URL (most reliable)
       const urlMatch = window.location.href.match(/matchweek=(\d+)/);
-      if (urlMatch) {
+      if (urlMatch && urlMatch[1]) {
         const mw = parseInt(urlMatch[1]);
         if (!isNaN(mw) && mw >= 1 && mw <= 38) {
           return mw;
@@ -273,9 +273,12 @@ async function getCurrentMatchweek(page: any): Promise<number> {
           const text = el.textContent || '';
           const mwMatch = text.match(/matchweek\s*(\d+)|mw\s*(\d+)/i);
           if (mwMatch) {
-            const mw = parseInt(mwMatch[1] || mwMatch[2]);
-            if (!isNaN(mw) && mw >= 1 && mw <= 38) {
-              return mw;
+            const mwValue = mwMatch[1] || mwMatch[2];
+            if (mwValue) {
+              const mw = parseInt(mwValue);
+              if (!isNaN(mw) && mw >= 1 && mw <= 38) {
+                return mw;
+              }
             }
           }
         }

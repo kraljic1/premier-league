@@ -8,7 +8,7 @@
  * 3. Run: python main.py
  */
 
-const PREMIER_LEAGUE_API_URL = process.env.PREMIER_LEAGUE_API_URL || 'http://localhost:5000';
+const PREMIER_LEAGUE_API_URL = process.env['PREMIER_LEAGUE_API_URL'] || 'http://localhost:5000';
 
 export interface PremierLeagueTableRow {
   Position: string;

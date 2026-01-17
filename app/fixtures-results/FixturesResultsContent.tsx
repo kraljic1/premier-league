@@ -119,15 +119,18 @@ export default function FixturesResultsContent() {
     return filtered;
   }, [currentData, selectedMatchweek, searchQuery]);
 
-  const groupedByMatchweek = filteredMatches.reduce(
+  const groupedByMatchweek = filteredMatches.reduce<Record<number, Fixture[]>>(
     (acc, match) => {
-      if (!acc[match.matchweek]) {
-        acc[match.matchweek] = [];
+      if (match.matchweek !== undefined && match.matchweek !== null) {
+        const matchweek = match.matchweek;
+        if (!acc[matchweek]) {
+          acc[matchweek] = [];
+        }
+        acc[matchweek]!.push(match);
       }
-      acc[match.matchweek].push(match);
       return acc;
     },
-    {} as Record<number, Fixture[]>
+    {}
   );
 
   const isLoading = activeTab === "fixtures" ? fixturesLoading : resultsLoading;
