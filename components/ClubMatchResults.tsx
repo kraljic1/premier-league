@@ -7,6 +7,7 @@ interface ClubMatchResultsProps {
   clubName: string;
   maxMatchweek: number;
   seasonLabel: string;
+  clubColor?: string;
 }
 
 export function ClubMatchResults({
@@ -14,6 +15,7 @@ export function ClubMatchResults({
   clubName,
   maxMatchweek,
   seasonLabel,
+  clubColor = "#37003c",
 }: ClubMatchResultsProps) {
   // Filter fixtures for this club up to maxMatchweek
   const clubFixtures = fixtures
@@ -36,7 +38,10 @@ export function ClubMatchResults({
   }
 
   return (
-    <div className="club-match-results">
+    <div 
+      className="club-match-results"
+      style={{ "--club-highlight-color": clubColor } as React.CSSProperties}
+    >
       <h4 className="club-match-results__title">{seasonLabel} Results</h4>
       <div className="club-match-results__table-container">
         <table className="club-match-results__table">

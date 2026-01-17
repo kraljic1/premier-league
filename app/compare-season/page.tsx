@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { RefreshButton } from "@/components/RefreshButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
@@ -13,6 +13,7 @@ import { ComparisonSummary } from "@/components/ComparisonSummary";
 import { TwoClubsComparison } from "@/components/TwoClubsComparison";
 import { useCompareSeason } from "@/lib/hooks/useCompareSeason";
 import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
+import { getClubByName } from "@/lib/clubs";
 
 // Get current season dynamically (auto-updates each year)
 const currentSeasonLabel = getCurrentSeasonFull();
@@ -39,6 +40,13 @@ export default function CompareSeasonPage() {
     refetchCurrent,
     refetchHistorical,
   } = useCompareSeason();
+
+  // Get selected club's color
+  const selectedClubColor = useMemo(() => {
+    if (!selectedClub) return "#37003c";
+    const club = getClubByName(selectedClub);
+    return club?.primaryColor || "#37003c";
+  }, [selectedClub]);
 
   // If two-clubs mode is active, show that component
   if (compareMode === "two-clubs") {
@@ -145,6 +153,7 @@ export default function CompareSeasonPage() {
                       clubName={selectedClub}
                       maxMatchweek={currentMatchweek}
                       seasonLabel="Current Season"
+                      clubColor={selectedClubColor}
                     />
                   </div>
                 </div>
@@ -180,6 +189,7 @@ export default function CompareSeasonPage() {
                           clubName={selectedClub}
                           maxMatchweek={currentMatchweek}
                           seasonLabel={selectedSeason}
+                          clubColor={selectedClubColor}
                         />
                       </div>
                     </div>

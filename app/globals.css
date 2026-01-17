@@ -932,11 +932,11 @@ nextjs-portal:not(:empty) {
 
 .club-match-results__team--highlight {
   font-weight: 600;
-  color: #37003c;
+  color: var(--club-highlight-color, #37003c);
 }
 
 .dark .club-match-results__team--highlight {
-  color: #a855f7;
+  color: var(--club-highlight-color, #a855f7);
 }
 
 .club-match-results__score {
