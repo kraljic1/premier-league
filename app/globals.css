@@ -390,12 +390,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 5rem;
-  padding-bottom: 4rem;
+  margin-bottom: 1.5rem;
   width: 100%;
   position: relative;
   z-index: 10;
-  overflow: visible;
 }
 
 .compare-season-page__comparison {
@@ -1406,29 +1404,35 @@ nextjs-portal:not(:empty) {
 
 .compare-season-page__season-dropdown {
   max-width: 300px;
-  position: relative;
-  z-index: 1;
-  margin-bottom: 0;
-  padding-bottom: 18rem;
 }
 
-/* Responsive: reduce padding on smaller screens */
-@media (max-width: 768px) {
-  .compare-season-page__season-dropdown {
-    padding-bottom: 18rem;
-  }
-}
-
-@media (max-width: 640px) {
-  .compare-season-page__season-dropdown {
-    padding-bottom: 16rem;
-  }
-}
-
-/* SeasonDropdown z-index when open */
 .season-dropdown-container {
   position: relative;
-  z-index: 1;
+}
+
+.season-dropdown__button {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  text-align: left;
+  border: 2px solid var(--pl-border-light);
+  border-radius: 0.5rem;
+  background-color: var(--pl-bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.season-dropdown__button:hover {
+  border-color: var(--pl-primary);
+  background-color: var(--pl-bg-accent);
+}
+
+.season-dropdown__button:focus {
+  outline: none;
+  border-color: var(--pl-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .season-dropdown-menu {
@@ -2673,6 +2677,181 @@ nextjs-portal:not(:empty) {
     padding: 0.875rem 1rem;
     font-size: 0.8125rem;
   }
+}
+
+/* Season Selection Modal */
+.season-selection-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  backdrop-filter: blur(0px);
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.season-selection-modal-overlay--open {
+  background-color: rgba(0, 0, 0, 0.85);
+  opacity: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 1rem;
+  pointer-events: auto;
+}
+
+.season-selection-modal {
+  position: relative;
+  background-color: var(--pl-bg-primary);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 12px 24px -8px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.95) translateY(20px);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  z-index: 100000;
+}
+
+.season-selection-modal--open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .season-selection-modal-overlay--open {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .season-selection-modal {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(100%);
+  }
+
+  .season-selection-modal--open {
+    transform: translateY(0);
+  }
+}
+
+.season-selection-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--pl-border-light);
+  flex-shrink: 0;
+}
+
+.season-selection-modal__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--pl-text-primary);
+  margin: 0;
+}
+
+.season-selection-modal__subtitle {
+  font-size: 0.875rem;
+  color: var(--pl-text-secondary);
+  margin: 0.25rem 0 0;
+}
+
+.season-selection-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--pl-text-secondary);
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.season-selection-modal__close:hover {
+  background-color: var(--pl-bg-accent);
+  color: var(--pl-text-primary);
+}
+
+.season-selection-modal__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  color: var(--pl-text-secondary);
+}
+
+.season-selection-modal__list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+
+.season-selection-modal__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.season-selection-modal__item:hover {
+  background-color: var(--pl-bg-accent);
+}
+
+.season-selection-modal__item--selected {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.dark .season-selection-modal__item--selected {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.season-selection-modal__item-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.season-selection-modal__item-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--pl-text-secondary);
+  flex-shrink: 0;
+}
+
+.season-selection-modal__item-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--pl-text-primary);
+}
+
+.season-selection-modal__item-check {
+  width: 20px;
+  height: 20px;
+  color: var(--pl-primary);
+  flex-shrink: 0;
 }
 
 /* Club Selector Card */
