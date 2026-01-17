@@ -22,6 +22,7 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
     setClubB,
     selectedSeason,
     handleSeasonChange,
+    isCurrentSeason,
     clubAStats,
     clubBStats,
     headToHeadMatches,
@@ -30,6 +31,10 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
     isLoading,
     error,
     refetch,
+    currentMatchweek,
+    effectiveMatchweek,
+    showFullSeason,
+    setShowFullSeason,
   } = useCompareTwoClubs();
 
   return (
@@ -42,15 +47,36 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
           <div className="two-clubs-comparison__vs">vs</div>
           <ClubDropdown selectedClub={clubB} onSelect={setClubB} label="Club B" />
         </div>
-        <div className="two-clubs-comparison__season">
+        <div className="two-clubs-comparison__season-controls">
           <SeasonDropdown
             seasons={availableSeasons}
             selectedSeason={selectedSeason}
             onSelect={handleSeasonChange}
             label="Select Season"
           />
+          {!isCurrentSeason && currentMatchweek > 0 && (
+            <MatchweekToggle
+              showFullSeason={showFullSeason}
+              onToggle={setShowFullSeason}
+              currentMatchweek={currentMatchweek}
+            />
+          )}
         </div>
       </div>
+
+      {clubA && clubB && !isLoading && !error && (
+        <div className="two-clubs-comparison__matchweek-info">
+          {isCurrentSeason ? (
+            <span>Showing stats through Matchweek {effectiveMatchweek}</span>
+          ) : (
+            <span>
+              {showFullSeason
+                ? `Showing full season (38 matchweeks)`
+                : `Showing stats through Matchweek ${effectiveMatchweek} (same as current season progress)`}
+            </span>
+          )}
+        </div>
+      )}
 
       {!clubA || !clubB ? (
         <EmptyState
@@ -88,6 +114,33 @@ function TwoClubsHeader({ onClose }: { onClose: () => void }) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 6L6 18M6 6l12 12" />
         </svg>
+      </button>
+    </div>
+  );
+}
+
+interface MatchweekToggleProps {
+  showFullSeason: boolean;
+  onToggle: (value: boolean) => void;
+  currentMatchweek: number;
+}
+
+function MatchweekToggle({ showFullSeason, onToggle, currentMatchweek }: MatchweekToggleProps) {
+  return (
+    <div className="matchweek-toggle">
+      <button
+        className={`matchweek-toggle__btn ${!showFullSeason ? 'matchweek-toggle__btn--active' : ''}`}
+        onClick={() => onToggle(false)}
+        type="button"
+      >
+        At MW {currentMatchweek}
+      </button>
+      <button
+        className={`matchweek-toggle__btn ${showFullSeason ? 'matchweek-toggle__btn--active' : ''}`}
+        onClick={() => onToggle(true)}
+        type="button"
+      >
+        Full Season
       </button>
     </div>
   );

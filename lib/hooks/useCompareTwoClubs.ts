@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { calculatePointsForClub } from "../utils-comparison";
+import { calculatePointsForClub, getCurrentMatchweekFromFixtures } from "../utils-comparison";
 import {
   fetchCurrentSeasonFixtures,
   fetchHistoricalSeason,
@@ -42,6 +42,7 @@ export function useCompareTwoClubs() {
   const [clubB, setClubB] = useState<string | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
   const [isCurrentSeason, setIsCurrentSeason] = useState(true);
+  const [showFullSeason, setShowFullSeason] = useState(false);
 
   // Fetch current season fixtures
   const {
@@ -83,33 +84,52 @@ export function useCompareTwoClubs() {
     return isCurrentSeason ? currentSeasonFixtures : historicalFixtures;
   }, [isCurrentSeason, currentSeasonFixtures, historicalFixtures]);
 
+  // Calculate current matchweek from the current season fixtures
+  const currentMatchweek = useMemo(() => {
+    return getCurrentMatchweekFromFixtures(currentSeasonFixtures);
+  }, [currentSeasonFixtures]);
+
+  // Determine which matchweek limit to use for stats calculation
+  const effectiveMatchweek = useMemo(() => {
+    // For current season, always show data up to current matchweek
+    if (isCurrentSeason) {
+      return currentMatchweek;
+    }
+    // For historical seasons, use toggle to decide
+    return showFullSeason ? 38 : currentMatchweek;
+  }, [isCurrentSeason, showFullSeason, currentMatchweek]);
+
   // Get all available seasons (current + previous)
   const availableSeasons = useMemo(() => {
     const previousSeasons = getPreviousSeasons(5);
     return [getCurrentSeasonFull(), ...previousSeasons];
   }, []);
 
-  // Calculate stats for both clubs
+  // Calculate stats for both clubs based on effective matchweek
   const clubAStats = useMemo(() => {
     if (!clubA || fixtures.length === 0) return null;
-    return calculatePointsForClub(fixtures, clubA, 38);
-  }, [clubA, fixtures]);
+    return calculatePointsForClub(fixtures, clubA, effectiveMatchweek);
+  }, [clubA, fixtures, effectiveMatchweek]);
 
   const clubBStats = useMemo(() => {
     if (!clubB || fixtures.length === 0) return null;
-    return calculatePointsForClub(fixtures, clubB, 38);
-  }, [clubB, fixtures]);
+    return calculatePointsForClub(fixtures, clubB, effectiveMatchweek);
+  }, [clubB, fixtures, effectiveMatchweek]);
 
-  // Get head-to-head data
+  // Get head-to-head data (filtered by matchweek)
   const headToHeadMatches = useMemo(() => {
     if (!clubA || !clubB || fixtures.length === 0) return [];
-    return getFinishedHeadToHeadMatches(fixtures, clubA, clubB);
-  }, [clubA, clubB, fixtures]);
+    const allH2H = getFinishedHeadToHeadMatches(fixtures, clubA, clubB);
+    // Filter by matchweek limit
+    return allH2H.filter((f) => f.matchweek <= effectiveMatchweek);
+  }, [clubA, clubB, fixtures, effectiveMatchweek]);
 
   const headToHeadSummary = useMemo(() => {
     if (!clubA || !clubB || fixtures.length === 0) return null;
-    return calculateHeadToHead(fixtures, clubA, clubB);
-  }, [clubA, clubB, fixtures]);
+    // Filter fixtures by matchweek before calculating
+    const filteredFixtures = fixtures.filter((f) => f.matchweek <= effectiveMatchweek);
+    return calculateHeadToHead(filteredFixtures, clubA, clubB);
+  }, [clubA, clubB, fixtures, effectiveMatchweek]);
 
   const handleSeasonChange = (season: string | null) => {
     if (season === getCurrentSeasonFull()) {
@@ -144,5 +164,10 @@ export function useCompareTwoClubs() {
       if (!isCurrentSeason) refetchHistorical();
     },
     currentSeasonLabel,
+    // New matchweek-related values
+    currentMatchweek,
+    effectiveMatchweek,
+    showFullSeason,
+    setShowFullSeason,
   };
 }
