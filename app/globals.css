@@ -1896,17 +1896,17 @@ nextjs-portal:not(:empty) {
 
 /* Club Selector Card */
 .club-selector-card {
-  min-height: 140px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
 .club-selector-card__logo {
-  width: 48px;
-  height: 48px;
-  max-width: 48px;
-  max-height: 48px;
+  width: 96px;
+  height: 96px;
+  max-width: 96px;
+  max-height: 96px;
   object-fit: contain;
   object-position: center;
   flex-shrink: 0;
@@ -1963,6 +1963,269 @@ nextjs-portal:not(:empty) {
   max-height: 20px;
   object-fit: contain;
   object-position: center;
+  flex-shrink: 0;
+}
+
+/* Fixture Card - Consistent Logo and Name Positioning */
+.fixture-card__teams {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.fixture-card__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.fixture-card__logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+}
+
+.fixture-card__logo {
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.fixture-card__team-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pl-text-primary);
+  text-align: center;
+  line-height: 1.2;
+  word-wrap: break-word;
+}
+
+.dark .fixture-card__team-name {
+  color: var(--pl-text-inverse);
+}
+
+.fixture-card__vs {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pl-text-secondary);
+  flex-shrink: 0;
+}
+
+.fixture-card__logo-placeholder {
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--pl-primary);
+  color: var(--pl-text-inverse);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Match Countdown - Consistent Logo and Name Positioning */
+.match-countdown__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.match-countdown__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.9;
+  color: var(--pl-text-inverse);
+}
+
+.match-countdown__teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.match-countdown__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.match-countdown__logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+}
+
+.match-countdown__logo {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.match-countdown__team-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--pl-text-inverse);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.match-countdown__vs {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pl-text-inverse);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* Standings Row - Consistent Logo and Name Positioning */
+.standings-row__club {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.standings-row__logo {
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.standings-row__logo-placeholder {
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--pl-primary);
+  color: var(--pl-text-inverse);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.standings-row__club-name {
+  font-weight: 500;
+  color: var(--pl-text-primary);
+}
+
+.dark .standings-row__club-name {
+  color: var(--pl-text-inverse);
+}
+
+/* Club Match Results - Team Logo */
+.club-match-results__team-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.club-match-results__team-logo {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.club-match-results__team-logo-placeholder {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--pl-primary);
+  color: var(--pl-text-inverse);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* Comparison Summary - Club Logo */
+.comparison-summary__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.comparison-summary__logo {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+/* Two Clubs Comparison - Club Logo */
+.two-clubs-comparison__club-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.two-clubs-comparison__club-logo {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+}
+
+.two-clubs-comparison__club-logo-placeholder {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--pl-primary);
+  color: var(--pl-text-inverse);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.25rem;
   flex-shrink: 0;
 }
 

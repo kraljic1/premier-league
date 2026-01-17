@@ -1,14 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { RefreshButton } from "@/components/RefreshButton";
 import { TableSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
-import { ClubLogo } from "@/components/ClubLogo";
 import { Standing } from "@/lib/types";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { getClubByName } from "@/lib/clubs";
 
 async function fetchStandings(): Promise<Standing[]> {
   const res = await fetch("/api/standings", {
@@ -110,6 +111,8 @@ export default function StandingsContent() {
 }
 
 function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<string, any> }) {
+  const [imageError, setImageError] = useState(false);
+  
   const positionColors: Record<number, string> = {
     1: "bg-yellow-100 dark:bg-yellow-900/20",
     2: "bg-gray-100 dark:bg-gray-800",
@@ -119,9 +122,13 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
     20: "bg-red-100 dark:bg-red-900/20",
   };
 
-  // Find club data and get logo URL from database if available
+  // Find club data and get logo URL with proper fallback chain
   const clubEntry = Object.values(clubs).find((c: any) => c.name === standing.club);
-  const logoUrl = clubEntry?.logoUrlFromDb || null;
+  const hardcodedClub = getClubByName(standing.club);
+  
+  // Try database logo first, then hardcoded logoUrl, then null
+  const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
+  const shouldShowPlaceholder = !logoUrl || imageError;
 
   return (
     <tr
@@ -131,7 +138,24 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
     >
       <td className="p-2 font-semibold">{standing.position}</td>
       <td className="p-2 font-medium">
-        <ClubLogo clubName={standing.club} size={20} logoUrl={logoUrl} context="standings" />
+        <div className="standings-row__club">
+          {shouldShowPlaceholder ? (
+            <div className="standings-row__logo-placeholder">
+              {standing.club.charAt(0)}
+            </div>
+          ) : (
+            <img
+              src={logoUrl}
+              alt={`${standing.club} logo`}
+              width={40}
+              height={40}
+              className="standings-row__logo"
+              loading="lazy"
+              onError={() => setImageError(true)}
+            />
+          )}
+          <span className="standings-row__club-name">{standing.club}</span>
+        </div>
       </td>
       <td className="p-2 text-center">{standing.played}</td>
       <td className="p-2 text-center">{standing.won}</td>

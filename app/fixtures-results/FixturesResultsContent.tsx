@@ -9,10 +9,10 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { SearchBar } from "@/components/SearchBar";
 import { MatchweekSelector } from "@/components/MatchweekSelector";
-import { ClubLogo } from "@/components/ClubLogo";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { getClubByName } from "@/lib/clubs";
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
@@ -254,32 +254,76 @@ export default function FixturesResultsContent() {
 }
 
 function MatchCard({ fixture, isResult, clubs }: { fixture: Fixture; isResult: boolean; clubs: Record<string, any> }) {
+  const [homeImageError, setHomeImageError] = useState(false);
+  const [awayImageError, setAwayImageError] = useState(false);
+  
   const isFinished = fixture.status === "finished";
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
 
-  // Get logo URLs from clubs object
+  // Get logo URLs with proper fallback chain
   const homeClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
   const awayClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
-  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
-  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
+  const homeHardcodedClub = getClubByName(fixture.homeTeam);
+  const awayHardcodedClub = getClubByName(fixture.awayTeam);
+  
+  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || homeClubEntry?.logoUrl || homeHardcodedClub?.logoUrl || null;
+  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || awayClubEntry?.logoUrl || awayHardcodedClub?.logoUrl || null;
 
   return (
     <div
-      className={`p-4 rounded-lg border ${
+      className={`match-card p-4 ${
         fixture.isDerby
           ? "border-red-500 bg-red-50 dark:bg-red-900/20"
           : isResult
           ? "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50"
-          : "border-gray-200 dark:border-gray-700"
+          : ""
       }`}
     >
       <div className="text-sm text-gray-600 dark:text-gray-400">
         {formatDate(fixture.date)}
       </div>
-      <div className="mt-2 font-semibold flex items-center gap-2 flex-wrap">
-        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} context="fixture" position="home" />
-        <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} context="fixture" position="away" />
+      <div className="fixture-card__teams">
+        <div className="fixture-card__team">
+          <div className="fixture-card__logo-wrapper">
+            {homeLogoUrl && !homeImageError ? (
+              <img
+                src={homeLogoUrl}
+                alt={`${fixture.homeTeam} logo`}
+                width={40}
+                height={40}
+                className="fixture-card__logo"
+                loading="lazy"
+                onError={() => setHomeImageError(true)}
+              />
+            ) : (
+              <div className="fixture-card__logo-placeholder">
+                {fixture.homeTeam.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className="fixture-card__team-name">{fixture.homeTeam}</div>
+        </div>
+        <span className="fixture-card__vs">vs</span>
+        <div className="fixture-card__team">
+          <div className="fixture-card__logo-wrapper">
+            {awayLogoUrl && !awayImageError ? (
+              <img
+                src={awayLogoUrl}
+                alt={`${fixture.awayTeam} logo`}
+                width={40}
+                height={40}
+                className="fixture-card__logo"
+                loading="lazy"
+                onError={() => setAwayImageError(true)}
+              />
+            ) : (
+              <div className="fixture-card__logo-placeholder">
+                {fixture.awayTeam.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div className="fixture-card__team-name">{fixture.awayTeam}</div>
+        </div>
       </div>
       {hasScore ? (
         <div className={`text-lg font-bold mt-2 ${isResult ? "text-gray-900 dark:text-gray-100" : ""}`}>

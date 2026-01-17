@@ -13,6 +13,7 @@ import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { SafeImage } from "@/components/SafeImage";
 
 // Dynamically import heavy components for better code splitting
 // Using ssr: false to prevent hydration mismatches with browser-only code
@@ -225,15 +226,37 @@ function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<strin
         </span>
       </div>
 
-      <div className="mt-3 font-semibold flex items-center gap-3 flex-wrap">
-        <div itemProp="homeTeam" itemScope itemType="https://schema.org/SportsTeam">
+      <div className="fixture-card__teams">
+        <div className="fixture-card__team" itemProp="homeTeam" itemScope itemType="https://schema.org/SportsTeam">
           <meta itemProp="name" content={fixture.homeTeam} />
-          <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} context="fixture" position="home" />
+          <div className="fixture-card__logo-wrapper">
+            <SafeImage
+              src={homeLogoUrl || (Object.values(clubs).find((c: any) => c.name === fixture.homeTeam)?.logoUrl) || ''}
+              alt={`${fixture.homeTeam} logo`}
+              width={40}
+              height={40}
+              className="fixture-card__logo"
+              loading="lazy"
+              unoptimized={Boolean(homeLogoUrl?.endsWith('.svg'))}
+            />
+          </div>
+          <div className="fixture-card__team-name">{fixture.homeTeam}</div>
         </div>
-        <span className="pl-body-sm text-gray-500">vs</span>
-        <div itemProp="awayTeam" itemScope itemType="https://schema.org/SportsTeam">
+        <span className="fixture-card__vs">vs</span>
+        <div className="fixture-card__team" itemProp="awayTeam" itemScope itemType="https://schema.org/SportsTeam">
           <meta itemProp="name" content={fixture.awayTeam} />
-          <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} context="fixture" position="away" />
+          <div className="fixture-card__logo-wrapper">
+            <SafeImage
+              src={awayLogoUrl || (Object.values(clubs).find((c: any) => c.name === fixture.awayTeam)?.logoUrl) || ''}
+              alt={`${fixture.awayTeam} logo`}
+              width={40}
+              height={40}
+              className="fixture-card__logo"
+              loading="lazy"
+              unoptimized={Boolean(awayLogoUrl?.endsWith('.svg'))}
+            />
+          </div>
+          <div className="fixture-card__team-name">{fixture.awayTeam}</div>
         </div>
       </div>
 

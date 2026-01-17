@@ -12,6 +12,7 @@ import { HeadToHeadSection } from "./HeadToHeadSection";
 import { useCompareTwoClubs } from "@/lib/hooks/useCompareTwoClubs";
 import { getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
+import { useClubs } from "@/lib/hooks/useClubs";
 
 interface TwoClubsComparisonProps {
   onClose: () => void;
@@ -219,9 +220,32 @@ interface ClubStatsCardProps {
 }
 
 function ClubStatsCard({ clubName, stats, season }: ClubStatsCardProps) {
+  const { clubs } = useClubs();
+  
+  // Get logo URL for club
+  const clubEntry = Object.values(clubs).find((c: any) => c.name === clubName);
+  const hardcodedClub = getClubByName(clubName);
+  const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
+
   return (
     <div className="two-clubs-comparison__club-stats">
-      <h3 className="two-clubs-comparison__club-name">{clubName}</h3>
+      <div className="two-clubs-comparison__club-header">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={`${clubName} logo`}
+            className="two-clubs-comparison__club-logo"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="two-clubs-comparison__club-logo-placeholder">
+            {clubName.charAt(0)}
+          </div>
+        )}
+        <h3 className="two-clubs-comparison__club-name">{clubName}</h3>
+      </div>
       {stats ? (
         <SeasonStatsCompact stats={stats} title={`${season}`} />
       ) : (

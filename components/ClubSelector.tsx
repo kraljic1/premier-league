@@ -87,8 +87,8 @@ export function ClubSelector() {
                   <SafeImage
                     src={club.logoUrlFromDb || club.logoUrl!}
                     alt={`${club.name} logo`}
-                    width={48}
-                    height={48}
+                    width={96}
+                    height={96}
                     className="club-selector-card__logo"
                     loading="lazy"
                     unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}

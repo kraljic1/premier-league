@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Fixture } from "@/lib/types";
+import { useClubs } from "@/lib/hooks/useClubs";
+import { getClubByName } from "@/lib/clubs";
 
 interface ClubMatchResultsProps {
   fixtures: Fixture[];
@@ -17,6 +20,8 @@ export function ClubMatchResults({
   seasonLabel,
   clubColor = "#37003c",
 }: ClubMatchResultsProps) {
+  const { clubs } = useClubs();
+  
   // Filter fixtures for this club up to maxMatchweek
   const clubFixtures = fixtures
     .filter(
@@ -28,6 +33,13 @@ export function ClubMatchResults({
         f.awayScore !== null
     )
     .sort((a, b) => a.matchweek - b.matchweek);
+
+  // Helper function to get logo URL for a team
+  const getTeamLogoUrl = (teamName: string) => {
+    const clubEntry = Object.values(clubs).find((c: any) => c.name === teamName);
+    const hardcodedClub = getClubByName(teamName);
+    return clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
+  };
 
   if (clubFixtures.length === 0) {
     return (
@@ -74,17 +86,52 @@ export function ClubMatchResults({
                 resultClass = "club-match-results__result--loss";
               }
 
+              const homeLogoUrl = getTeamLogoUrl(fixture.homeTeam);
+              const awayLogoUrl = getTeamLogoUrl(fixture.awayTeam);
+
               return (
                 <tr key={fixture.id} className={isHome ? "" : "club-match-results__row--away"}>
                   <td className="club-match-results__matchweek">{fixture.matchweek}</td>
                   <td className={`club-match-results__team ${isHome ? "club-match-results__team--highlight" : ""}`}>
-                    {fixture.homeTeam}
+                    <div className="club-match-results__team-cell">
+                      {homeLogoUrl ? (
+                        <img
+                          src={homeLogoUrl}
+                          alt={`${fixture.homeTeam} logo`}
+                          className="club-match-results__team-logo"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="club-match-results__team-logo-placeholder">
+                          {fixture.homeTeam.charAt(0)}
+                        </div>
+                      )}
+                      <span>{fixture.homeTeam}</span>
+                    </div>
                   </td>
                   <td className="club-match-results__score">
                     {fixture.homeScore} - {fixture.awayScore}
                   </td>
                   <td className={`club-match-results__team ${!isHome ? "club-match-results__team--highlight" : ""}`}>
-                    {fixture.awayTeam}
+                    <div className="club-match-results__team-cell">
+                      {awayLogoUrl ? (
+                        <img
+                          src={awayLogoUrl}
+                          alt={`${fixture.awayTeam} logo`}
+                          className="club-match-results__team-logo"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="club-match-results__team-logo-placeholder">
+                          {fixture.awayTeam.charAt(0)}
+                        </div>
+                      )}
+                      <span>{fixture.awayTeam}</span>
+                    </div>
                   </td>
                   <td className={`club-match-results__result ${resultClass}`}>
                     {result}

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { getTimeUntil } from "@/lib/utils";
-import { ClubLogo } from "@/components/ClubLogo";
 import { Fixture } from "@/lib/types";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { SafeImage } from "@/components/SafeImage";
 
 interface MatchCountdownProps {
   fixture: Fixture;
@@ -38,14 +38,51 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
     );
   }
 
+  const homeClubData = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
+  const awayClubData = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
+  const homeFinalLogoUrl = homeLogoUrl || homeClubData?.logoUrl || '';
+  const awayFinalLogoUrl = awayLogoUrl || awayClubData?.logoUrl || '';
+
   return (
     <div className="match-countdown text-center p-6 rounded-lg">
-      <h3 className="text-sm font-medium mb-4 opacity-90 flex items-center justify-center gap-2 flex-wrap">
-        <span>Next Match:</span>
-        <ClubLogo clubName={fixture.homeTeam} size={20} logoUrl={homeLogoUrl} context="countdown" position="home" />
-        <span>vs</span>
-        <ClubLogo clubName={fixture.awayTeam} size={20} logoUrl={awayLogoUrl} context="countdown" position="away" />
-      </h3>
+      <div className="match-countdown__header">
+        <span className="match-countdown__label">Next Match:</span>
+        <div className="match-countdown__teams">
+          <div className="match-countdown__team">
+            <div className="match-countdown__logo-wrapper">
+              {homeFinalLogoUrl && (
+                <SafeImage
+                  src={homeFinalLogoUrl}
+                  alt={`${fixture.homeTeam} logo`}
+                  width={48}
+                  height={48}
+                  className="match-countdown__logo"
+                  loading="lazy"
+                  unoptimized={Boolean(homeFinalLogoUrl.endsWith('.svg'))}
+                />
+              )}
+            </div>
+            <div className="match-countdown__team-name">{fixture.homeTeam}</div>
+          </div>
+          <span className="match-countdown__vs">vs</span>
+          <div className="match-countdown__team">
+            <div className="match-countdown__logo-wrapper">
+              {awayFinalLogoUrl && (
+                <SafeImage
+                  src={awayFinalLogoUrl}
+                  alt={`${fixture.awayTeam} logo`}
+                  width={48}
+                  height={48}
+                  className="match-countdown__logo"
+                  loading="lazy"
+                  unoptimized={Boolean(awayFinalLogoUrl.endsWith('.svg'))}
+                />
+              )}
+            </div>
+            <div className="match-countdown__team-name">{fixture.awayTeam}</div>
+          </div>
+        </div>
+      </div>
       <div className="flex justify-center gap-4">
         <TimeUnit value={timeLeft.days} label="Days" />
         <TimeUnit value={timeLeft.hours} label="Hours" />

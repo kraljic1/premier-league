@@ -1,5 +1,8 @@
 "use client";
 
+import { useClubs } from "@/lib/hooks/useClubs";
+import { getClubByName } from "@/lib/clubs";
+
 interface ComparisonSummaryProps {
   current: {
     points: number;
@@ -27,14 +30,32 @@ export function ComparisonSummary({
   historical,
   clubName,
 }: ComparisonSummaryProps) {
+  const { clubs } = useClubs();
   const pointsDiff = current.points - historical.points;
   const winsDiff = current.wins - historical.wins;
   const goalsForDiff = current.goalsFor - historical.goalsFor;
   const goalsAgainstDiff = current.goalsAgainst - historical.goalsAgainst;
 
+  // Get logo URL for club
+  const clubEntry = Object.values(clubs).find((c: any) => c.name === clubName);
+  const hardcodedClub = getClubByName(clubName);
+  const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
+
   return (
     <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <h3 className="text-lg font-semibold mb-4">Comparison Summary</h3>
+      <div className="comparison-summary__header">
+        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt={`${clubName} logo`}
+            className="comparison-summary__logo"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        )}
+        <h3 className="text-lg font-semibold mb-4">Comparison Summary</h3>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ComparisonItem
           label="Points"
