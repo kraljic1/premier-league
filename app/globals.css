@@ -2295,18 +2295,20 @@ nextjs-portal:not(:empty) {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 0;
   opacity: 0;
   transition: opacity 0.2s ease, background-color 0.2s ease;
   backdrop-filter: blur(0px);
+  pointer-events: none;
 }
 
 .club-selection-modal-overlay--open {
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.75);
   opacity: 1;
   backdrop-filter: blur(4px);
   padding: 1rem;
+  pointer-events: auto;
 }
 
 @media (max-width: 640px) {
@@ -2317,6 +2319,7 @@ nextjs-portal:not(:empty) {
 }
 
 .club-selection-modal {
+  position: relative;
   background-color: var(--pl-bg-primary);
   border-radius: 1rem;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -2330,6 +2333,7 @@ nextjs-portal:not(:empty) {
   transform: scale(0.95) translateY(20px);
   opacity: 0;
   transition: transform 0.2s ease, opacity 0.2s ease;
+  z-index: 10000;
 }
 
 .club-selection-modal--open {
