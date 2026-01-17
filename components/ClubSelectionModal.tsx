@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "@/components/SafeImage";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -22,9 +23,15 @@ export function ClubSelectionModal({
 }: ClubSelectionModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { clubs, isLoading } = useClubs();
+
+  // Ensure portal mounts only on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
@@ -76,7 +83,8 @@ export function ClubSelectionModal({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // Don't render on server or if not mounted
+  if (!mounted || !isOpen) return null;
 
   const filteredClubs = Object.values(clubs).filter((club) =>
     club.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -92,7 +100,7 @@ export function ClubSelectionModal({
     }
   };
 
-  return (
+  const modalContent = (
     <div className={`club-selection-modal-overlay ${isAnimating ? "club-selection-modal-overlay--open" : ""}`}>
       <div 
         className={`club-selection-modal ${isAnimating ? "club-selection-modal--open" : ""}`} 
@@ -242,4 +250,7 @@ export function ClubSelectionModal({
       </div>
     </div>
   );
+
+  // Use portal to render modal at document body level
+  return createPortal(modalContent, document.body);
 }

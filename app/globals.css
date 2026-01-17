@@ -2188,6 +2188,20 @@ nextjs-portal:not(:empty) {
   cursor: not-allowed;
 }
 
+.club-selector__add-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.club-selector__add-button:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+
+.club-selector__add-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
 .club-selector__empty {
   padding: 2rem;
   text-align: center;
@@ -2284,29 +2298,27 @@ nextjs-portal:not(:empty) {
 }
 
 /* Club Selection Modal */
-/* Club Selection Modal */
 .club-selection-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: rgba(0, 0, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 99999;
   padding: 0;
   opacity: 0;
   transition: opacity 0.2s ease, background-color 0.2s ease;
   backdrop-filter: blur(0px);
   pointer-events: none;
+  isolation: isolate;
 }
 
 .club-selection-modal-overlay--open {
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.85);
   opacity: 1;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   padding: 1rem;
   pointer-events: auto;
 }
@@ -2322,8 +2334,8 @@ nextjs-portal:not(:empty) {
   position: relative;
   background-color: var(--pl-bg-primary);
   border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 12px 24px -8px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
@@ -2333,7 +2345,7 @@ nextjs-portal:not(:empty) {
   transform: scale(0.95) translateY(20px);
   opacity: 0;
   transition: transform 0.2s ease, opacity 0.2s ease;
-  z-index: 10000;
+  z-index: 100000;
 }
 
 .club-selection-modal--open {
