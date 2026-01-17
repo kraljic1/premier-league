@@ -21,12 +21,14 @@ export function ClubSelectionModal({
   maxClubs,
 }: ClubSelectionModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAnimating, setIsAnimating] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { clubs, isLoading } = useClubs();
 
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     }
@@ -34,6 +36,11 @@ export function ClubSelectionModal({
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
+      setIsAnimating(true);
+      // Focus search input after animation
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
     }
 
     return () => {
@@ -61,6 +68,14 @@ export function ClubSelectionModal({
     };
   }, [isOpen, onClose]);
 
+  // Reset search when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery("");
+      setIsAnimating(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const filteredClubs = Object.values(clubs).filter((club) =>
@@ -78,12 +93,20 @@ export function ClubSelectionModal({
   };
 
   return (
-    <div className="club-selection-modal-overlay">
-      <div className="club-selection-modal" ref={modalRef}>
+    <div className={`club-selection-modal-overlay ${isAnimating ? "club-selection-modal-overlay--open" : ""}`}>
+      <div 
+        className={`club-selection-modal ${isAnimating ? "club-selection-modal--open" : ""}`} 
+        ref={modalRef}
+      >
         <div className="club-selection-modal__header">
-          <h3 className="club-selection-modal__title">
-            Select Clubs ({selectedClubs.length}/{maxClubs})
-          </h3>
+          <div>
+            <h3 className="club-selection-modal__title">
+              Select Your Clubs
+            </h3>
+            <p className="club-selection-modal__subtitle">
+              {selectedClubs.length} of {maxClubs} selected
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -108,12 +131,12 @@ export function ClubSelectionModal({
 
         <div className="club-selection-modal__search">
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search clubs..."
             className="club-selection-modal__search-input"
-            autoFocus
           />
           <svg
             className="club-selection-modal__search-icon"
@@ -134,6 +157,10 @@ export function ClubSelectionModal({
           <div className="club-selection-modal__loading">
             <LoadingSpinner size="md" />
           </div>
+        ) : filteredClubs.length === 0 ? (
+          <div className="club-selection-modal__empty">
+            <p>No clubs found matching "{searchQuery}"</p>
+          </div>
         ) : (
           <div className="club-selection-modal__grid">
             {filteredClubs.map((club) => {
@@ -149,10 +176,25 @@ export function ClubSelectionModal({
                     isSelected ? "club-selection-modal__card--selected" : ""
                   } ${isDisabled ? "club-selection-modal__card--disabled" : ""}`}
                   disabled={isDisabled}
+                  aria-label={`${isSelected ? "Remove" : "Add"} ${club.name}`}
                 >
-                  <div className="club-selection-modal__card-badge">
-                    {club.shortName}
-                  </div>
+                  {isSelected && (
+                    <div className="club-selection-modal__card-check">
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
                   <div className="club-selection-modal__card-logo">
                     {(club.logoUrlFromDb || club.logoUrl) && (
                       <SafeImage
@@ -173,23 +215,6 @@ export function ClubSelectionModal({
                   <div className="club-selection-modal__card-name">
                     {club.name}
                   </div>
-                  {isSelected && (
-                    <div className="club-selection-modal__card-check">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                  )}
                 </button>
               );
             })}
@@ -198,6 +223,19 @@ export function ClubSelectionModal({
 
         {selectedClubs.length >= maxClubs && (
           <div className="club-selection-modal__limit-message">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
             Maximum {maxClubs} clubs selected. Remove a club to add another.
           </div>
         )}

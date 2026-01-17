@@ -2284,18 +2284,36 @@ nextjs-portal:not(:empty) {
 }
 
 /* Club Selection Modal */
+/* Club Selection Modal */
 .club-selection-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  backdrop-filter: blur(0px);
+}
+
+.club-selection-modal-overlay--open {
+  background-color: rgba(0, 0, 0, 0.6);
+  opacity: 1;
+  backdrop-filter: blur(4px);
   padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .club-selection-modal-overlay--open {
+    padding: 0;
+    align-items: flex-end;
+  }
 }
 
 .club-selection-modal {
@@ -2304,32 +2322,66 @@ nextjs-portal:not(:empty) {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transform: scale(0.95) translateY(20px);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.club-selection-modal--open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
 }
 
 @media (max-width: 640px) {
   .club-selection-modal {
+    max-width: 100%;
     max-height: 95vh;
-    border-radius: 0.75rem;
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(100%);
+  }
+
+  .club-selection-modal--open {
+    transform: translateY(0);
   }
 }
 
 .club-selection-modal__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 1.5rem;
   border-bottom: 1px solid var(--pl-border-light);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .club-selection-modal__header {
+    padding: 1.25rem 1rem;
+  }
 }
 
 .club-selection-modal__title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--pl-text-primary);
+  margin: 0 0 0.25rem 0;
+  line-height: 1.2;
+}
+
+@media (max-width: 640px) {
+  .club-selection-modal__title {
+    font-size: 1.25rem;
+  }
+}
+
+.club-selection-modal__subtitle {
+  font-size: 0.875rem;
+  color: var(--pl-text-secondary);
   margin: 0;
 }
 
@@ -2337,8 +2389,8 @@ nextjs-portal:not(:empty) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   background: none;
   border: none;
@@ -2346,6 +2398,8 @@ nextjs-portal:not(:empty) {
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 1rem;
 }
 
 .club-selection-modal__close:hover {
@@ -2353,16 +2407,27 @@ nextjs-portal:not(:empty) {
   color: var(--pl-text-primary);
 }
 
+.club-selection-modal__close:active {
+  transform: scale(0.95);
+}
+
 .club-selection-modal__search {
   position: relative;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--pl-border-light);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .club-selection-modal__search {
+    padding: 1rem;
+  }
 }
 
 .club-selection-modal__search-input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid var(--pl-border-light);
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 2px solid var(--pl-border-light);
   border-radius: 0.5rem;
   background-color: var(--pl-bg-primary);
   color: var(--pl-text-primary);
@@ -2378,7 +2443,7 @@ nextjs-portal:not(:empty) {
 
 .club-selection-modal__search-icon {
   position: absolute;
-  left: 2rem;
+  left: 2.25rem;
   top: 50%;
   transform: translateY(-50%);
   width: 1.25rem;
@@ -2387,26 +2452,43 @@ nextjs-portal:not(:empty) {
   pointer-events: none;
 }
 
-.club-selection-modal__loading {
+@media (max-width: 640px) {
+  .club-selection-modal__search-icon {
+    left: 1.75rem;
+  }
+}
+
+.club-selection-modal__loading,
+.club-selection-modal__empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 4rem 2rem;
+  color: var(--pl-text-secondary);
+  font-size: 0.875rem;
 }
 
 .club-selection-modal__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
   padding: 1rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 @media (min-width: 640px) {
   .club-selection-modal__grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
     padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .club-selection-modal__grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
 
@@ -2415,24 +2497,38 @@ nextjs-portal:not(:empty) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem 0.75rem;
+  justify-content: center;
+  padding: 1rem 0.5rem;
   background-color: var(--pl-bg-card);
   border: 2px solid var(--pl-border-light);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 140px;
+  min-height: 130px;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .club-selection-modal__card {
+    min-height: 150px;
+    padding: 1.25rem 0.75rem;
+  }
 }
 
 .club-selection-modal__card:hover:not(:disabled) {
   border-color: var(--pl-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.club-selection-modal__card:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .club-selection-modal__card--selected {
   border-color: var(--pl-primary);
   background-color: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 1px var(--pl-primary);
 }
 
 .dark .club-selection-modal__card--selected {
@@ -2442,43 +2538,35 @@ nextjs-portal:not(:empty) {
 .club-selection-modal__card--disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.club-selection-modal__card-badge {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  color: var(--pl-text-primary);
-}
-
-.dark .club-selection-modal__card-badge {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: var(--pl-text-inverse);
+  pointer-events: none;
 }
 
 .club-selection-modal__card-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.5rem;
-  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .club-selection-modal__logo {
-  width: 64px;
-  height: 64px;
-  max-width: 64px;
-  max-height: 64px;
+  width: 56px;
+  height: 56px;
+  max-width: 56px;
+  max-height: 56px;
   object-fit: contain;
   object-position: center;
   flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .club-selection-modal__logo {
+    width: 64px;
+    height: 64px;
+    max-width: 64px;
+    max-height: 64px;
+  }
 }
 
 .club-selection-modal__card-name {
@@ -2486,11 +2574,18 @@ nextjs-portal:not(:empty) {
   font-weight: 500;
   color: var(--pl-text-primary);
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.3;
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
   width: 100%;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .club-selection-modal__card-name {
+    font-size: 0.8125rem;
+  }
 }
 
 .club-selection-modal__card-check {
@@ -2500,24 +2595,37 @@ nextjs-portal:not(:empty) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background-color: var(--pl-primary);
   color: white;
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .club-selection-modal__limit-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 1rem 1.5rem;
   background-color: rgba(251, 191, 36, 0.1);
   border-top: 1px solid var(--pl-border-light);
   color: var(--pl-text-primary);
   font-size: 0.875rem;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .dark .club-selection-modal__limit-message {
   background-color: rgba(251, 191, 36, 0.2);
+}
+
+@media (max-width: 640px) {
+  .club-selection-modal__limit-message {
+    padding: 0.875rem 1rem;
+    font-size: 0.8125rem;
+  }
 }
 
 /* Club Selector Card */
