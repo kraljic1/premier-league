@@ -1,6 +1,6 @@
 import bundleAnalyzer from '@next/bundle-analyzer';
-import WebpackObfuscator from 'webpack-obfuscator';
 import TerserPlugin from 'terser-webpack-plugin';
+// NOTE: WebpackObfuscator removed - it breaks React's hydration
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -145,11 +145,13 @@ const nextConfig = {
     return Math.random().toString(36).substring(2, 15);
   },
 
-  // Webpack configuration for code obfuscation
+  // Webpack configuration for code optimization
+  // NOTE: WebpackObfuscator disabled - it breaks React's hydration by mangling internal properties
+  // The obfuscator transforms React's internal Set/Map operations causing "Cannot read properties of undefined (reading 'add')"
   webpack: (config, { dev, isServer }) => {
-    // Only apply obfuscation in production client-side builds
+    // Only apply optimizations in production client-side builds
     if (!dev && !isServer) {
-      // Enhanced Terser configuration for better minification
+      // Enhanced Terser configuration for better minification (safe)
       config.optimization.minimizer = [
         new TerserPlugin({
           terserOptions: {
@@ -158,44 +160,10 @@ const nextConfig = {
               drop_debugger: true,
               pure_funcs: ['console.log', 'console.info', 'console.debug'],
             },
-            mangle: {
-              properties: {
-                regex: /^_[A-Za-z]/, // Mangle private properties (starting with _)
-              },
-            },
+            mangle: true, // Standard mangling without property mangling
           },
         }),
       ];
-
-      // Apply basic webpack obfuscator to make code harder to read
-      config.plugins.push(
-        new WebpackObfuscator({
-          compact: true,
-          controlFlowFlattening: false,
-          deadCodeInjection: false,
-          debugProtection: false,
-          disableConsoleOutput: true,
-          identifierNamesGenerator: 'hexadecimal',
-          log: false,
-          numbersToExpressions: false,
-          renameGlobals: false,
-          selfDefending: false,
-          simplify: true,
-          splitStrings: false,
-          stringArray: true,
-          stringArrayCallsTransform: false,
-          stringArrayEncoding: [],
-          stringArrayIndexShift: true,
-          stringArrayRotate: true,
-          stringArrayShuffle: true,
-          stringArrayWrappersCount: 1,
-          stringArrayWrappersChainedCalls: true,
-          stringArrayWrappersParametersMaxCount: 2,
-          stringArrayWrappersType: 'variable',
-          transformObjectKeys: false,
-          unicodeEscapeSequence: false,
-        })
-      );
     }
 
     return config;
