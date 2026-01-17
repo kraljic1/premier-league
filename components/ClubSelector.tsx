@@ -1,27 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { CLUBS } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "@/components/SafeImage";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ClubSelectionModal } from "@/components/ClubSelectionModal";
-
-interface ClubWithLogo {
-  id: string;
-  name: string;
-  shortName: string;
-  primaryColor: string;
-  secondaryColor: string;
-  textColor: string;
-  logoUrl?: string;
-  logoUrlFromDb?: string | null;
-}
+import { PrimaryClubModal } from "@/components/PrimaryClubModal";
 
 export function ClubSelector() {
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPrimaryModalOpen, setIsPrimaryModalOpen] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
   const primaryClub = useAppStore((state) => state.primaryClub);
   const addClub = useAppStore((state) => state.addClub);
@@ -157,11 +148,13 @@ export function ClubSelector() {
 
       {safeMyClubs.length > 0 && (
         <div className="mt-4">
-          <label className="text-sm font-medium">Set Primary Club:</label>
-          <PrimaryClubDropdown
-            myClubs={safeMyClubs}
+          <label className="block text-sm font-medium mb-1">
+            Set Primary Club:
+          </label>
+          <PrimaryClubButton
+            clubs={clubs}
             primaryClub={safePrimaryClub}
-            setPrimaryClub={setPrimaryClub}
+            onClick={() => setIsPrimaryModalOpen(true)}
           />
         </div>
       )}
@@ -173,140 +166,68 @@ export function ClubSelector() {
         onToggleClub={handleToggleClub}
         maxClubs={5}
       />
+
+      <PrimaryClubModal
+        isOpen={isPrimaryModalOpen}
+        onClose={() => setIsPrimaryModalOpen(false)}
+        myClubs={safeMyClubs}
+        primaryClub={safePrimaryClub}
+        onSelect={setPrimaryClub}
+      />
     </div>
   );
 }
 
-interface PrimaryClubDropdownProps {
-  myClubs: string[];
+interface PrimaryClubButtonProps {
+  clubs: Record<string, any>;
   primaryClub: string | null;
-  setPrimaryClub: (clubId: string | null) => void;
+  onClick: () => void;
 }
 
-function PrimaryClubDropdown({
-  myClubs,
-  primaryClub,
-  setPrimaryClub,
-}: PrimaryClubDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const { clubs, isLoading } = useClubs();
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const selectedClub = primaryClub ? (clubs[primaryClub] || CLUBS[primaryClub]) : null as ClubWithLogo | null;
-
-  if (isLoading) {
-    return (
-      <div className="mt-1">
-        <LoadingSpinner size="sm" />
-      </div>
-    );
-  }
+function PrimaryClubButton({ clubs, primaryClub, onClick }: PrimaryClubButtonProps) {
+  const selectedClub = primaryClub 
+    ? (clubs[primaryClub] || CLUBS[primaryClub]) 
+    : null;
+  const logoUrl = selectedClub?.logoUrlFromDb || selectedClub?.logoUrl;
 
   return (
-    <div className="relative mt-1" ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3 py-2 text-left border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+    <button
+      type="button"
+      onClick={onClick}
+      className="primary-club-button"
+    >
+      <div className="flex items-center gap-2">
+        {selectedClub && logoUrl ? (
+          <>
+            <SafeImage
+              src={logoUrl}
+              alt={`${selectedClub.name} logo`}
+              width={24}
+              height={24}
+              className="club-dropdown-logo"
+              loading="lazy"
+              unoptimized={logoUrl.endsWith(".svg")}
+            />
+            <span>{selectedClub.name}</span>
+          </>
+        ) : (
+          <span className="text-gray-500 dark:text-gray-400">None</span>
+        )}
+      </div>
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
       >
-        <div className="flex items-center gap-2">
-          {selectedClub ? (
-            <>
-              {(selectedClub.logoUrlFromDb || selectedClub.logoUrl) && (
-                <SafeImage
-                  src={selectedClub.logoUrlFromDb || selectedClub.logoUrl!}
-                  alt={`${selectedClub.name} logo`}
-                  width={20}
-                  height={20}
-                  className="club-dropdown-logo"
-                  loading="lazy"
-                  unoptimized={Boolean((selectedClub.logoUrlFromDb || selectedClub.logoUrl)?.endsWith('.svg'))}
-                />
-              )}
-              <span>{selectedClub.name}</span>
-            </>
-          ) : (
-            <span className="text-gray-500 dark:text-gray-400">None</span>
-          )}
-        </div>
-        <svg
-          className={`w-5 h-5 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-      {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setPrimaryClub(null);
-              setIsOpen(false);
-            }}
-            className={`w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
-              !primaryClub ? "bg-blue-50 dark:bg-blue-900/20" : ""
-            }`}
-          >
-            <span className="text-gray-500 dark:text-gray-400">None</span>
-          </button>
-          {myClubs
-            .map((clubId) => clubs[clubId] || CLUBS[clubId])
-            .filter((club): club is NonNullable<typeof club> => !!club)
-            .map((club) => (
-              <button
-                key={club.id}
-                type="button"
-                onClick={() => {
-                  setPrimaryClub(club.id);
-                  setIsOpen(false);
-                }}
-                className={`w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
-                  primaryClub === club.id ? "bg-blue-50 dark:bg-blue-900/20" : ""
-                }`}
-              >
-                {(club.logoUrlFromDb || club.logoUrl) && (
-                  <SafeImage
-                    src={club.logoUrlFromDb || club.logoUrl!}
-                    alt={`${club.name} logo`}
-                    width={20}
-                    height={20}
-                    className="club-dropdown-logo"
-                    loading="lazy"
-                    unoptimized={Boolean((club.logoUrlFromDb || club.logoUrl)?.endsWith('.svg'))}
-                  />
-                )}
-                <span>{club.name}</span>
-              </button>
-            ))}
-        </div>
-      )}
-    </div>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </button>
   );
 }
 
