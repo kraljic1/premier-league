@@ -24,7 +24,12 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
 
   // Function to initialize GA4
   const initializeGA4 = () => {
-    if (window.gtag) return; // Already initialized
+    if (window.gtag) {
+      console.log("[GA4] Already initialized");
+      return; // Already initialized
+    }
+
+    console.log("[GA4] Initializing Google Analytics with ID:", measurementId);
 
     // Initialize gtag function
     window.dataLayer = window.dataLayer || [];
@@ -40,22 +45,39 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     script1.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
     document.head.appendChild(script1);
 
+    script1.onload = () => {
+      console.log("[GA4] Script loaded successfully");
+    };
+
+    script1.onerror = () => {
+      console.error("[GA4] Failed to load script");
+    };
+
     // Initialize GA4
     gtag("js", new Date());
     gtag("config", measurementId, {
       page_path: window.location.pathname,
     });
+
+    console.log("[GA4] Configuration sent");
   };
 
   useEffect(() => {
     // Check initial consent status
     const consent = localStorage.getItem("cookie-consent");
+    console.log("[GA4] Cookie consent status:", consent);
+    
     if (consent === "accepted") {
       initializeGA4();
+    } else if (!consent) {
+      console.log("[GA4] No consent decision yet - waiting for user to accept cookies");
+    } else {
+      console.log("[GA4] Cookies rejected - GA4 will not load");
     }
 
     // Listen for consent changes
     const handleConsentChange = (event: CustomEvent) => {
+      console.log("[GA4] Consent changed:", event.detail.consent);
       if (event.detail.consent === "accepted") {
         initializeGA4();
       }
@@ -84,6 +106,7 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     }
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
+    console.log("[GA4] Tracking page view:", url);
     window.gtag("config", measurementId, {
       page_path: url,
     });
