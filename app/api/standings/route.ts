@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { scrapeStandings } from "@/lib/scrapers/standings";
 import { supabase, supabaseServer, StandingRow } from "@/lib/supabase";
 import { Standing } from "@/lib/types";
+import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
 
 export const revalidate = 1800; // 30 minutes
 
@@ -17,6 +18,7 @@ async function refreshStandingsInBackground() {
   try {
     console.log("[Standings API] Background refresh started...");
     
+    const currentSeason = getCurrentSeasonFull();
     const scrapedStandings = await scrapeStandings();
     console.log(`[Standings API] Background refresh: Successfully scraped ${scrapedStandings.length} standings`);
 
@@ -33,11 +35,11 @@ async function refreshStandingsInBackground() {
         goal_difference: standing.goalDifference,
         points: standing.points,
         form: standing.form,
-        season: '2025'
+        season: currentSeason
       }));
 
       // Delete existing standings and insert new ones
-      await supabaseServer.from('standings').delete().eq('season', '2025');
+      await supabaseServer.from('standings').delete().eq('season', currentSeason);
       const { error: insertError } = await supabaseServer
         .from('standings')
         .insert(dbStandings);
@@ -63,14 +65,16 @@ async function refreshStandingsInBackground() {
 
 export async function GET() {
   try {
+    const currentSeason = getCurrentSeasonFull();
+    
     // Check database and cache metadata in parallel
-    console.log("[Standings API] Checking database for standings...");
+    console.log(`[Standings API] Checking database for standings (season: ${currentSeason})...`);
 
     const [standingsResult, cacheMetaResult] = await Promise.all([
       supabaseServer
         .from('standings')
         .select('*')
-        .eq('season', '2025')
+        .eq('season', currentSeason)
         .order('position', { ascending: true }),
       supabaseServer
         .from('cache_metadata')
@@ -88,7 +92,7 @@ export async function GET() {
     }
 
     // Log database count for debugging
-    console.log(`[Standings API] Database returned ${standingsData?.length || 0} standings for season 2025`);
+    console.log(`[Standings API] Database returned ${standingsData?.length || 0} standings for season ${currentSeason}`);
 
     // Check if data exists and is recent
     const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
@@ -161,14 +165,14 @@ export async function GET() {
           goal_difference: standing.goalDifference,
           points: standing.points,
           form: standing.form,
-          season: '2025'
+          season: currentSeason
         }));
 
         // Delete existing standings for this season and insert new ones
         const { error: deleteError } = await supabaseServer
           .from('standings')
           .delete()
-          .eq('season', '2025');
+          .eq('season', currentSeason);
 
         if (deleteError) {
           console.error("[Standings API] Error deleting old standings:", deleteError);

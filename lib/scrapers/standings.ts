@@ -84,19 +84,95 @@ export async function scrapeStandings(): Promise<Standing[]> {
         const wonEl = row.querySelector('[data-testid*="won"], [data-testid*="Won"]');
         const drawnEl = row.querySelector('[data-testid*="drawn"], [data-testid*="Drawn"]');
         const lostEl = row.querySelector('[data-testid*="lost"], [data-testid*="Lost"]');
-        const goalsForEl = row.querySelector('[data-testid*="goalsFor"], [data-testid*="GoalsFor"]');
-        const goalsAgainstEl = row.querySelector('[data-testid*="goalsAgainst"], [data-testid*="GoalsAgainst"]');
-        const goalDiffEl = row.querySelector('[data-testid*="goalDifference"], [data-testid*="GoalDifference"]');
+        const goalsForEl = row.querySelector('[data-testid*="goalsFor"], [data-testid*="GoalsFor"], [data-testid*="goals-for"], [data-testid*="GF"]');
+        const goalsAgainstEl = row.querySelector('[data-testid*="goalsAgainst"], [data-testid*="GoalsAgainst"], [data-testid*="goals-against"], [data-testid*="GA"]');
+        const goalDiffEl = row.querySelector('[data-testid*="goalDifference"], [data-testid*="GoalDifference"], [data-testid*="goal-difference"], [data-testid*="GD"]');
         const pointsEl = row.querySelector('[data-testid*="points"], [data-testid*="Points"]');
         
-        const played = playedEl ? parseInt(playedEl.textContent?.trim() || '0') : (parseInt(numbers[1] || '0') || 0);
-        const won = wonEl ? parseInt(wonEl.textContent?.trim() || '0') : (parseInt(numbers[2] || '0') || 0);
-        const drawn = drawnEl ? parseInt(drawnEl.textContent?.trim() || '0') : (parseInt(numbers[3] || '0') || 0);
-        const lost = lostEl ? parseInt(lostEl.textContent?.trim() || '0') : (parseInt(numbers[4] || '0') || 0);
-        const goalsFor = goalsForEl ? parseInt(goalsForEl.textContent?.trim() || '0') : (parseInt(numbers[5] || '0') || 0);
-        const goalsAgainst = goalsAgainstEl ? parseInt(goalsAgainstEl.textContent?.trim() || '0') : (parseInt(numbers[6] || '0') || 0);
-        const goalDifference = goalDiffEl ? parseInt(goalDiffEl.textContent?.trim() || '0') : (goalsFor - goalsAgainst);
-        const points = pointsEl ? parseInt(pointsEl.textContent?.trim() || '0') : (parseInt(numbers[numbers.length - 1] || '0') || 0);
+        // Try to find stats by column index in table structure
+        const cells = row.querySelectorAll('td');
+        const getCellValue = (index: number) => {
+          if (cells[index]) {
+            const text = cells[index].textContent?.trim() || '';
+            const num = parseInt(text);
+            return isNaN(num) ? 0 : num;
+          }
+          return 0;
+        };
+        
+        // Extract numbers from the row text - filter out position numbers
+        const allNumbers = allText.match(/\d+/g) || [];
+        // Remove position number (usually first number)
+        const statsNumbers = allNumbers.slice(1);
+        
+        const played = playedEl ? parseInt(playedEl.textContent?.trim() || '0') : (getCellValue(2) || parseInt(statsNumbers[0] || '0') || 0);
+        const won = wonEl ? parseInt(wonEl.textContent?.trim() || '0') : (getCellValue(3) || parseInt(statsNumbers[1] || '0') || 0);
+        const drawn = drawnEl ? parseInt(drawnEl.textContent?.trim() || '0') : (getCellValue(4) || parseInt(statsNumbers[2] || '0') || 0);
+        const lost = lostEl ? parseInt(lostEl.textContent?.trim() || '0') : (getCellValue(5) || parseInt(statsNumbers[3] || '0') || 0);
+        
+        // Goals For and Against - try multiple extraction methods
+        let goalsFor = goalsForEl ? parseInt(goalsForEl.textContent?.trim() || '0') : 0;
+        let goalsAgainst = goalsAgainstEl ? parseInt(goalsAgainstEl.textContent?.trim() || '0') : 0;
+        
+        // If not found via data-testid, try cell index (GF is usually 6th column, GA is 7th)
+        // But first, let's check all cells to find the right ones
+        if (!goalsFor || !goalsAgainst) {
+          // Try to find cells by looking for headers in the table
+          const headerRow = row.closest('table')?.querySelector('thead tr');
+          if (headerRow) {
+            const headers = Array.from(headerRow.querySelectorAll('th'));
+            const gfIndex = headers.findIndex(h => {
+              const text = h.textContent?.toLowerCase() || '';
+              return text.includes('gf') || text.includes('goals for') || text.includes('for');
+            });
+            const gaIndex = headers.findIndex(h => {
+              const text = h.textContent?.toLowerCase() || '';
+              return text.includes('ga') || text.includes('goals against') || text.includes('against');
+            });
+            
+            if (gfIndex >= 0 && !goalsFor) {
+              goalsFor = getCellValue(gfIndex);
+            }
+            if (gaIndex >= 0 && !goalsAgainst) {
+              goalsAgainst = getCellValue(gaIndex);
+            }
+          }
+        }
+        
+        // Fallback: try cell index (GF is usually 6th column, GA is 7th)
+        if (!goalsFor) {
+          goalsFor = getCellValue(6) || parseInt(statsNumbers[4] || '0') || 0;
+        }
+        if (!goalsAgainst) {
+          goalsAgainst = getCellValue(7) || parseInt(statsNumbers[5] || '0') || 0;
+        }
+        
+        // Try to extract from text patterns like "40" or "GF: 40"
+        if (!goalsFor || !goalsAgainst) {
+          const goalsPattern = allText.match(/GF[:\s]*(\d+)|(\d+)[:\s]*GA|(\d+)[:\s]*(\d+)/i);
+          if (goalsPattern) {
+            if (!goalsFor && goalsPattern[1]) goalsFor = parseInt(goalsPattern[1]);
+            if (!goalsAgainst && goalsPattern[2]) goalsAgainst = parseInt(goalsPattern[2]);
+            if (!goalsFor && goalsPattern[3]) goalsFor = parseInt(goalsPattern[3]);
+            if (!goalsAgainst && goalsPattern[4]) goalsAgainst = parseInt(goalsPattern[4]);
+          }
+        }
+        
+        // Debug logging for problematic extractions
+        if (played > 0 && (goalsFor === 0 || goalsAgainst === 0)) {
+          debug.push(`${club}: Played=${played}, GF=${goalsFor}, GA=${goalsAgainst}, Cells=${cells.length}, Numbers=${statsNumbers.join(',')}`);
+        }
+        
+        // Calculate goal difference if we have goalsFor and goalsAgainst
+        let goalDifference = goalDiffEl ? parseInt(goalDiffEl.textContent?.trim() || '0') : 0;
+        if (!goalDifference && goalsFor && goalsAgainst) {
+          goalDifference = goalsFor - goalsAgainst;
+        } else if (!goalDifference) {
+          // Try to extract from cell or numbers array
+          goalDifference = getCellValue(8) || parseInt(statsNumbers[6] || '0') || 0;
+        }
+        
+        const points = pointsEl ? parseInt(pointsEl.textContent?.trim() || '0') : (getCellValue(9) || parseInt(statsNumbers[statsNumbers.length - 1] || '0') || 0);
         
         // Extract form - look for form indicators (W/D/L results)
         const formElement = row.querySelector('.standings-row__form, [class*="form"]');
@@ -174,6 +250,17 @@ export async function scrapeStandings(): Promise<Standing[]> {
       if (seenClubs.has(standingData.club)) continue;
       seenClubs.add(standingData.club);
       
+      // Calculate goal difference if we have goalsFor and goalsAgainst
+      let goalDifference = standingData.goalDifference;
+      if (!goalDifference && standingData.goalsFor !== undefined && standingData.goalsAgainst !== undefined) {
+        goalDifference = standingData.goalsFor - standingData.goalsAgainst;
+      }
+      
+      // Validate data - if we have played games but no goals, log a warning
+      if (standingData.played > 0 && standingData.goalsFor === 0 && standingData.goalsAgainst === 0) {
+        console.warn(`[Standings Scraper] Warning: ${standingData.club} has ${standingData.played} games played but GF/GA are 0. This may indicate extraction failure.`);
+      }
+      
       standings.push({
         position: standingData.position || standings.length + 1,
         club: standingData.club,
@@ -181,9 +268,9 @@ export async function scrapeStandings(): Promise<Standing[]> {
         won: standingData.won || 0,
         drawn: standingData.drawn || 0,
         lost: standingData.lost || 0,
-        goalsFor: standingData.goalsFor || 0,
-        goalsAgainst: standingData.goalsAgainst || 0,
-        goalDifference: standingData.goalDifference || (standingData.goalsFor - standingData.goalsAgainst) || 0,
+        goalsFor: standingData.goalsFor ?? 0,
+        goalsAgainst: standingData.goalsAgainst ?? 0,
+        goalDifference: goalDifference ?? 0,
         points: standingData.points || 0,
         form: standingData.form || '',
       });

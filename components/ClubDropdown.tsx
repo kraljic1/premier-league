@@ -40,7 +40,7 @@ export function ClubDropdown({
     : null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative club-dropdown-container" ref={dropdownRef}>
       <label className="block text-sm font-medium mb-1">{label}</label>
       <button
         type="button"
@@ -84,7 +84,7 @@ export function ClubDropdown({
         </svg>
       </button>
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div className="club-dropdown-menu absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
           {clubs.map((club) => (
             <button
               key={club.id}
