@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { scrapeStandings } from "@/lib/scrapers/standings";
 import { supabase, supabaseServer, StandingRow } from "@/lib/supabase";
 import { Standing } from "@/lib/types";
-import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
+import { getCurrentSeasonFull, getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
 export const revalidate = 1800; // 30 minutes
 
@@ -66,15 +66,17 @@ async function refreshStandingsInBackground() {
 export async function GET() {
   try {
     const currentSeason = getCurrentSeasonFull();
+    const currentSeasonShort = getCurrentSeasonShort();
     
     // Check database and cache metadata in parallel
-    console.log(`[Standings API] Checking database for standings (season: ${currentSeason})...`);
+    // Query for both full format (2025/2026) and short format (2025/26) and legacy format (2025)
+    console.log(`[Standings API] Checking database for standings (season: ${currentSeason} or ${currentSeasonShort} or 2025)...`);
 
     const [standingsResult, cacheMetaResult] = await Promise.all([
       supabaseServer
         .from('standings')
         .select('*')
-        .eq('season', currentSeason)
+        .or(`season.eq.${currentSeason},season.eq.${currentSeasonShort},season.eq.2025`)
         .order('position', { ascending: true }),
       supabaseServer
         .from('cache_metadata')
@@ -208,10 +210,19 @@ export async function GET() {
       console.error("[Standings API] Scraping failed:", scrapeError);
 
       // If scraping fails but we have database data, return it
-      if (standingsData && standingsData.length > 0) {
-        console.log(`[Standings API] Returning ${standingsData.length} standings from database (fallback)`);
+      // Try to get data with any season format as fallback
+      const fallbackResult = await supabaseServer
+        .from('standings')
+        .select('*')
+        .or(`season.eq.${currentSeason},season.eq.${currentSeasonShort},season.eq.2025`)
+        .order('position', { ascending: true });
+      
+      const fallbackData = fallbackResult.data as StandingRow[] | null;
+      
+      if (fallbackData && fallbackData.length > 0) {
+        console.log(`[Standings API] Returning ${fallbackData.length} standings from database (fallback)`);
 
-        const standings: Standing[] = standingsData.map(row => ({
+        const standings: Standing[] = fallbackData.map(row => ({
           position: row.position,
           club: row.club,
           played: row.played,

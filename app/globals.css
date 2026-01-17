@@ -374,7 +374,8 @@ body {
   margin-bottom: 2rem;
   width: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 10;
+  overflow: visible;
 }
 
 .compare-season-page__comparison {
@@ -384,7 +385,7 @@ body {
   width: 100%;
   max-width: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 0;
 }
 
 /* Enhanced Match Cards */
@@ -1239,6 +1240,8 @@ nextjs-portal:not(:empty) {
   border: 1px solid rgba(0, 0, 0, 0.05);
   width: 100%;
   max-width: 100%;
+  position: relative;
+  z-index: 0;
 }
 
 .dark .season-stats-compact {
@@ -1354,8 +1357,19 @@ nextjs-portal:not(:empty) {
 .compare-season-page__season-dropdown {
   max-width: 300px;
   position: relative;
-  z-index: 15;
+  z-index: 100;
   isolation: isolate;
+}
+
+/* SeasonDropdown z-index when open */
+.season-dropdown-container {
+  position: relative;
+  z-index: 100;
+}
+
+.season-dropdown-menu {
+  z-index: 9999 !important;
+  position: absolute !important;
 }
 
 /* Ensure ClubDropdown appears above SeasonDropdown when open */
