@@ -113,8 +113,8 @@ export function ClubSelector() {
                     <SafeImage
                       src={club.logoUrlFromDb || club.logoUrl!}
                       alt={`${club.name} logo`}
-                      width={32}
-                      height={32}
+                      width={48}
+                      height={48}
                       className="club-selector__chip-logo"
                       loading="lazy"
                       unoptimized={Boolean(
