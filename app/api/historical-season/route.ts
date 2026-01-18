@@ -6,11 +6,6 @@ import { seasonYearToShortFormat } from "@/lib/utils/season-utils";
 // Force dynamic rendering since we use request.url
 export const dynamic = 'force-dynamic';
 
-const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL']!;
-const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-
-const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
-
 /**
  * POST /api/historical-season
  * Historical data is imported via CSV files using scripts/import-csv-results.ts
@@ -36,6 +31,20 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check if Supabase is configured
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+    const supabaseServiceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
+
+    if (!supabaseUrl || !supabaseServiceKey || supabaseUrl === 'https://placeholder.supabase.co') {
+      return NextResponse.json(
+        { error: "Database service is not configured" },
+        { status: 503 }
+      );
+    }
+
+    // Create client with actual environment variables
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+
     const { searchParams } = new URL(request.url);
     const seasonYear = searchParams.get("seasonYear");
 
@@ -55,7 +64,7 @@ export async function GET(request: NextRequest) {
     console.log(`[Historical Season API] Fetching fixtures WHERE season = '${season}'`);
 
     // Fetch fixtures for this season from database
-    const { data: fixturesData, error: fetchError } = await supabaseServer
+    const { data: fixturesData, error: fetchError } = await supabaseClient
       .from("fixtures")
       .select("*")
       .eq("season", season)
