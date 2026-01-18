@@ -175,13 +175,19 @@ function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<st
       <td className="standings-table__col-stat font-bold">{standing.points}</td>
       <td className="standings-table__col-form">
         <div className="standings-row__form">
-          {standing.form?.split("").map((result, idx) => (
-            <div
-              key={idx}
-              className={`standings-row__form-item ${getFormColor(result)}`}
-              title={result}
-            />
-          ))}
+          {standing.form && standing.form.length > 0 ? (
+            standing.form.split("").map((result, idx) => (
+              <div
+                key={idx}
+                className={`standings-row__form-item ${getFormColor(result)}`}
+                title={result === "W" ? "Win" : result === "D" ? "Draw" : "Loss"}
+              />
+            ))
+          ) : (
+            <span className="text-xs text-gray-400 dark:text-gray-500" title="Form data not available">
+              -
+            </span>
+          )}
         </div>
       </td>
     </tr>

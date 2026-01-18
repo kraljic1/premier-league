@@ -82,6 +82,54 @@ async function scrapeStandingsFromRezultati(): Promise<Standing[]> {
     const goalDifference = parseInt($(cells[8]).text().trim()) || goalsFor - goalsAgainst;
     const points = parseInt($(cells[cells.length - 1]).text().trim()) || 0;
 
+    // Extract form (last 5-6 results) - look for form indicators
+    let form = "";
+    const formCell = $row.find("[class*='form'], [class*='last'], [class*='Form']");
+    
+    if (formCell.length > 0) {
+      // Try to extract from spans/divs with class names indicating win/draw/loss
+      formCell.find("span, div, a").each((_, el) => {
+        const $el = $(el);
+        const className = $el.attr("class") || "";
+        const text = $el.text().trim().toUpperCase();
+        const title = $el.attr("title") || "";
+        
+        // Check class names for win/draw/loss indicators
+        if (className.includes("win") || className.includes("victory") || text === "W" || title.includes("win") || title.includes("victory")) {
+          form += "W";
+        } else if (className.includes("draw") || className.includes("tie") || text === "D" || title.includes("draw") || title.includes("tie")) {
+          form += "D";
+        } else if (className.includes("loss") || className.includes("defeat") || className.includes("lose") || text === "L" || title.includes("loss") || title.includes("defeat")) {
+          form += "L";
+        }
+      });
+      
+      // If we didn't find form via classes, try to extract from text content
+      if (!form) {
+        const formText = formCell.text().trim().toUpperCase();
+        // Look for patterns like "WWDLW" or "W W D L W"
+        const formMatches = formText.match(/[WDL]/g);
+        if (formMatches) {
+          form = formMatches.slice(0, 6).join("");
+        }
+      }
+      
+      // Limit to last 6 results
+      form = form.slice(-6);
+    } else {
+      // Fallback: try to find form in the last cell or second-to-last cell
+      // Sometimes form is in a separate column
+      const lastCells = cells.slice(-3); // Check last 3 cells
+      for (const cell of lastCells) {
+        const cellText = $(cell).text().trim().toUpperCase();
+        const formMatches = cellText.match(/^[WDL]{3,6}$/); // Match strings like "WWDLW"
+        if (formMatches) {
+          form = formMatches[0];
+          break;
+        }
+      }
+    }
+
     standings.push({
       position,
       club,
@@ -93,7 +141,7 @@ async function scrapeStandingsFromRezultati(): Promise<Standing[]> {
       goalsAgainst,
       goalDifference,
       points,
-      form: "",
+      form: form || "",
     });
   });
 

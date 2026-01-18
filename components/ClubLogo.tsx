@@ -115,6 +115,36 @@ export const ClubLogo = memo(function ClubLogo({
     }
   };
 
+  // Generate fallback with club initials
+  const getClubInitials = () => {
+    const words = clubName.split(' ');
+    if (words.length >= 2) {
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+    return clubName.substring(0, 2).toUpperCase();
+  };
+
+  const fallbackPlaceholder = (
+    <div
+      className="club-logo__image club-logo__placeholder"
+      style={{
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: club?.primaryColor || '#37003c',
+        color: club?.textColor || '#ffffff',
+        borderRadius: '50%',
+        fontSize: `${size * 0.4}px`,
+        fontWeight: 700,
+      }}
+      aria-hidden="true"
+    >
+      {getClubInitials()}
+    </div>
+  );
+
   return (
     <div className={`club-logo ${className}`}>
       <SafeImage
@@ -125,6 +155,8 @@ export const ClubLogo = memo(function ClubLogo({
         height={size}
         loading="lazy"
         unoptimized={isSvg}
+        onError={() => setImageError(true)}
+        fallback={fallbackPlaceholder}
       />
       <span className="club-logo__name">{clubName}</span>
     </div>

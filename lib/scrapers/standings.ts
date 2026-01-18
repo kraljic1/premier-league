@@ -175,12 +175,12 @@ export async function scrapeStandings(): Promise<Standing[]> {
         const points = pointsEl ? parseInt(pointsEl.textContent?.trim() || '0') : (getCellValue(9) || parseInt(statsNumbers[statsNumbers.length - 1] || '0') || 0);
         
         // Extract form - look for form indicators (W/D/L results)
-        const formElement = row.querySelector('.standings-row__form, [class*="form"]');
+        const formElement = row.querySelector('.standings-row__form, [class*="form"], [class*="Form"]');
         let form = '';
         
         if (formElement) {
           // Form items are links with data-testid="teamFormItem" containing divs with score classes
-          const formItems = formElement.querySelectorAll('[data-testid="teamFormItem"], .team-form-item');
+          const formItems = formElement.querySelectorAll('[data-testid="teamFormItem"], .team-form-item, a[href*="match"], [class*="form-item"]');
           
           if (formItems.length > 0) {
             form = Array.from(formItems)
@@ -188,16 +188,28 @@ export async function scrapeStandings(): Promise<Standing[]> {
               .map(item => {
                 // Check aria-label first (e.g., "Arsenal vs Crystal Palace. Win" or "... Lose")
                 const ariaLabel = item.getAttribute('aria-label') || '';
-                if (ariaLabel.includes('Win')) return 'W';
-                if (ariaLabel.includes('Draw')) return 'D';
-                if (ariaLabel.includes('Lose') || ariaLabel.includes('Loss') || ariaLabel.includes('Defeat')) return 'L';
+                if (ariaLabel.includes('Win') || ariaLabel.includes('win') || ariaLabel.includes('Victory')) return 'W';
+                if (ariaLabel.includes('Draw') || ariaLabel.includes('draw') || ariaLabel.includes('Tie')) return 'D';
+                if (ariaLabel.includes('Lose') || ariaLabel.includes('Loss') || ariaLabel.includes('Defeat') || ariaLabel.includes('lose') || ariaLabel.includes('loss')) return 'L';
+                
+                // Check title attribute
+                const title = item.getAttribute('title') || '';
+                if (title.includes('Win') || title.includes('win') || title.includes('Victory')) return 'W';
+                if (title.includes('Draw') || title.includes('draw') || title.includes('Tie')) return 'D';
+                if (title.includes('Lose') || title.includes('Loss') || title.includes('Defeat') || title.includes('lose') || title.includes('loss')) return 'L';
                 
                 // Fallback: check class names
-                const scoreDiv = item.querySelector('[class*="score"]');
-                const className = scoreDiv?.className || '';
-                if (className.includes('--win') || className.includes('win')) return 'W';
-                if (className.includes('--draw') || className.includes('draw')) return 'D';
-                if (className.includes('--lose') || className.includes('--loss') || className.includes('lose') || className.includes('loss')) return 'L';
+                const scoreDiv = item.querySelector('[class*="score"], [class*="result"]');
+                const className = (scoreDiv?.className || item.className || '').toLowerCase();
+                if (className.includes('--win') || className.includes('win') || className.includes('victory')) return 'W';
+                if (className.includes('--draw') || className.includes('draw') || className.includes('tie')) return 'D';
+                if (className.includes('--lose') || className.includes('--loss') || className.includes('lose') || className.includes('loss') || className.includes('defeat')) return 'L';
+                
+                // Check text content
+                const text = item.textContent?.trim().toUpperCase() || '';
+                if (text === 'W' || text.includes('WIN')) return 'W';
+                if (text === 'D' || text.includes('DRAW')) return 'D';
+                if (text === 'L' || text.includes('LOSS') || text.includes('LOSE')) return 'L';
                 
                 return '';
               })
@@ -206,7 +218,29 @@ export async function scrapeStandings(): Promise<Standing[]> {
           } else {
             // Fallback: try to extract from text or other elements
             const formText = formElement.textContent?.trim() || '';
-            form = formText.slice(0, 6).replace(/[^WDL]/g, '');
+            // Look for patterns like "WWDLW" or "W W D L W"
+            const formMatches = formText.match(/[WDL]/g);
+            if (formMatches) {
+              form = formMatches.slice(0, 6).join('');
+            } else {
+              // Try to find form in child elements
+              const allText = Array.from(formElement.querySelectorAll('*'))
+                .map(el => el.textContent?.trim().toUpperCase() || '')
+                .join(' ');
+              const allMatches = allText.match(/[WDL]/g);
+              if (allMatches) {
+                form = allMatches.slice(0, 6).join('');
+              }
+            }
+          }
+        }
+        
+        // If still no form found, try looking in the entire row for form indicators
+        if (!form) {
+          const rowText = row.textContent?.trim().toUpperCase() || '';
+          const formPattern = rowText.match(/[WDL]{3,6}/);
+          if (formPattern) {
+            form = formPattern[0].slice(-6); // Get last 6 characters
           }
         }
         
