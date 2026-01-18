@@ -9,6 +9,8 @@ interface SafeImageProps {
   loading?: "lazy" | "eager";
   priority?: boolean;
   unoptimized?: boolean;
+  /** If true, CSS class controls dimensions instead of inline styles */
+  cssControlledSize?: boolean;
 }
 
 /**
@@ -23,6 +25,7 @@ export function SafeImage({
   className = "",
   loading = "lazy",
   priority = false,
+  cssControlledSize = false,
 }: SafeImageProps) {
   // Generate WebP/AVIF sources for better performance
   const getOptimizedSrc = (originalSrc: string) => {
@@ -35,6 +38,16 @@ export function SafeImage({
 
   const optimizedSrc = getOptimizedSrc(src);
 
+  // When CSS controls size, don't override with inline styles
+  const imageStyle = cssControlledSize
+    ? { objectFit: 'contain' as const }
+    : {
+        aspectRatio: `${width} / ${height}`,
+        width: 'auto',
+        height: 'auto',
+        maxWidth: '100%',
+      };
+
   return (
     <img
       src={optimizedSrc}
@@ -44,13 +57,7 @@ export function SafeImage({
       className={className}
       loading={priority ? "eager" : loading}
       decoding="async"
-      // CLS Prevention: explicit dimensions
-      style={{
-        aspectRatio: `${width} / ${height}`,
-        width: 'auto',
-        height: 'auto',
-        maxWidth: '100%',
-      }}
+      style={imageStyle}
       // Performance hints
       fetchPriority={priority ? "high" : "auto"}
     />

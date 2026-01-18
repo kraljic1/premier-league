@@ -111,6 +111,7 @@ export function ClubSelector() {
                       unoptimized={Boolean(
                         (club.logoUrlFromDb || club.logoUrl)?.endsWith(".svg")
                       )}
+                      cssControlledSize={true}
                     />
                   )}
                   <span className="club-selector__chip-name">{club.name}</span>

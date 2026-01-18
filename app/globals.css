@@ -2279,8 +2279,12 @@ nextjs-portal:not(:empty) {
 }
 
 .club-selector__chip-logo {
-  width: 48px;
-  height: 48px;
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
   flex-shrink: 0;
   object-fit: contain;
 }
