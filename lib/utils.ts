@@ -41,6 +41,7 @@ export function getTimeUntil(date: string | Date): {
 /**
  * Determines the current matchweek based on finished matches.
  * Returns the highest matchweek that has at least one finished match.
+ * If a matchweek has started (any matches finished), it's considered current.
  * If no matches are finished, returns 0.
  */
 export function getCurrentMatchweek(fixtures: Array<{ matchweek: number; status: string }>): number {
@@ -50,22 +51,11 @@ export function getCurrentMatchweek(fixtures: Array<{ matchweek: number; status:
     return 0;
   }
 
-  // Find the highest matchweek with finished matches
+  // Find the highest matchweek with finished matches - this is the current matchweek
+  // Once any match in a matchweek is finished, that matchweek is considered "current"
   const finishedMatchweeks = finishedMatches.map(f => f.matchweek);
   const maxFinishedMatchweek = Math.max(...finishedMatchweeks);
 
-  // Check if this matchweek is fully completed (should have ~10 matches)
-  // For Premier League, each matchweek should have 10 matches (20 teams)
-  const matchesInMaxWeek = finishedMatches.filter(f => f.matchweek === maxFinishedMatchweek).length;
-  
-  // If we have a reasonable number of matches in the highest matchweek, consider it current
-  // Otherwise, the current matchweek might be the next one
-  if (matchesInMaxWeek >= 8) {
-    // Most matches in this week are finished, so we're likely in or past this matchweek
-    return maxFinishedMatchweek;
-  } else {
-    // Not enough matches finished in the highest week, so current is likely the previous week
-    return Math.max(0, maxFinishedMatchweek - 1);
-  }
+  return maxFinishedMatchweek;
 }
 

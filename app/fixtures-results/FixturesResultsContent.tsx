@@ -103,10 +103,12 @@ export default function FixturesResultsContent() {
     return true;
   });
 
-  // Find the current matchweek (earliest upcoming fixture's matchweek)
-  const currentMatchweek = upcomingFixtures.length > 0 
-    ? Math.min(...upcomingFixtures.map(f => f.matchweek))
-    : null;
+  // Find the current matchweek - the highest matchweek that has at least one finished match
+  // This represents the matchweek currently in progress or most recently completed
+  const finishedFixtures = fixtures.filter(f => f.status === "finished");
+  const currentMatchweek = finishedFixtures.length > 0
+    ? Math.max(...finishedFixtures.map(f => f.matchweek))
+    : (upcomingFixtures.length > 0 ? Math.min(...upcomingFixtures.map(f => f.matchweek)) : null);
 
   // Auto-select current matchweek when switching to fixtures tab
   useEffect(() => {
