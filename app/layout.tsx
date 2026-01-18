@@ -14,6 +14,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { StructuredData } from "@/components/StructuredData";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { RelatedContent } from "@/components/RelatedContent";
+import { BackToTop } from "@/components/BackToTop";
 import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
 // Optimize font loading with display swap for better performance and CLS prevention
@@ -128,6 +129,7 @@ export default function RootLayout({
               {children}
             </main>
             <RelatedContent />
+            <BackToTop />
             <Footer />
           </div>
         </Providers>
