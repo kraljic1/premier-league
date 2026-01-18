@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
 // Note: Client components can't export metadata directly in Next.js
 // Metadata is handled at the layout level
@@ -11,6 +10,7 @@ import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { FutureMatchesFilter } from "@/components/FutureMatchesFilter";
+import { CompetitionFilter, type CompetitionOption } from "@/components/CompetitionFilter";
 import { ClubFixtureCard } from "@/components/ClubFixtureCard";
 import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
@@ -23,8 +23,14 @@ type ClubFixtureData = {
   fixtures: Fixture[];
 };
 
-async function fetchFixtures(): Promise<Fixture[]> {
-  const res = await fetch("/api/fixtures", {
+async function fetchFixtures(competitions: string[]): Promise<Fixture[]> {
+  const params = new URLSearchParams();
+  if (competitions.length > 0) {
+    params.set("competitions", competitions.join(","));
+  }
+
+  const url = params.toString() ? `/api/fixtures?${params.toString()}` : "/api/fixtures";
+  const res = await fetch(url, {
     next: { revalidate: 1800 }, // Revalidate every 30 minutes
   });
   if (!res.ok) throw new Error("Failed to fetch fixtures");
@@ -60,6 +66,7 @@ export default function ComparePage() {
   const [mounted, setMounted] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
   const [futureMatchesCount, setFutureMatchesCount] = useState<number | null>(5);
+  const [selectedCompetitions, setSelectedCompetitions] = useState<string[]>([]);
   
   useEffect(() => {
     setMounted(true);
@@ -73,14 +80,30 @@ export default function ComparePage() {
     setFutureMatchesCount(count);
   };
   
+  const competitionOptions: CompetitionOption[] = useMemo(
+    () => [
+      { id: "fa-cup", label: "FA Cup", value: "FA Cup" },
+      { id: "carabao-cup", label: "Carabao Cup", value: "Carabao Cup" },
+      { id: "champions-league", label: "UEFA Champions League", value: "UEFA Champions League" },
+      { id: "europa-league", label: "UEFA Europa League", value: "UEFA Europa League" },
+      { id: "conference-league", label: "UEFA Conference League", value: "UEFA Conference League" },
+    ],
+    []
+  );
+
+  const competitionsToInclude = useMemo(
+    () => ["Premier League", ...selectedCompetitions],
+    [selectedCompetitions]
+  );
+
   const {
     data: fixtures = [],
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["fixtures"],
-    queryFn: fetchFixtures,
+    queryKey: ["fixtures", competitionsToInclude],
+    queryFn: () => fetchFixtures(competitionsToInclude),
   });
 
   const clubNames = useMemo(() => {
@@ -89,8 +112,18 @@ export default function ComparePage() {
       .filter((name): name is string => Boolean(name));
   }, [safeMyClubs]);
 
-  // Determine current matchweek from finished matches
-  const currentMatchweek = useMemo(() => getCurrentMatchweek(fixtures), [fixtures]);
+  const leagueFixtures = useMemo(
+    () => fixtures.filter((fixture) => (fixture.competition || "Premier League") === "Premier League"),
+    [fixtures]
+  );
+
+  const filteredFixtures = useMemo(() => {
+    const competitionSet = new Set(competitionsToInclude);
+    return fixtures.filter((fixture) => competitionSet.has(fixture.competition || "Premier League"));
+  }, [fixtures, competitionsToInclude]);
+
+  // Determine current matchweek from finished Premier League matches
+  const currentMatchweek = useMemo(() => getCurrentMatchweek(leagueFixtures), [leagueFixtures]);
   
   // Log for debugging
   useEffect(() => {
@@ -104,7 +137,7 @@ export default function ComparePage() {
     console.log(`[ComparePage] Recalculating clubFixtures with limit: ${futureMatchesCount}`);
     
     return clubNames.map((clubName: string) => {
-      const clubAllFixtures = fixtures.filter(
+      const clubAllFixtures = filteredFixtures.filter(
         (f: Fixture) => f.homeTeam === clubName || f.awayTeam === clubName
       );
       
@@ -128,7 +161,7 @@ export default function ComparePage() {
         fixtures: validatedFixtures,
       };
     });
-  }, [clubNames, fixtures, futureMatchesCount, currentMatchweek]);
+  }, [clubNames, filteredFixtures, futureMatchesCount, currentMatchweek]);
 
   return (
     <div className="compare-page">
@@ -138,10 +171,17 @@ export default function ComparePage() {
       </div>
 
       {clubNames.length > 0 && !isLoading && !error && (
-        <FutureMatchesFilter
-          selectedCount={futureMatchesCount}
-          onSelect={handleFutureMatchesCountChange}
-        />
+        <div className="compare-page__filters">
+          <FutureMatchesFilter
+            selectedCount={futureMatchesCount}
+            onSelect={handleFutureMatchesCountChange}
+          />
+          <CompetitionFilter
+            options={competitionOptions}
+            selected={selectedCompetitions}
+            onChange={setSelectedCompetitions}
+          />
+        </div>
       )}
 
       {clubNames.length === 0 ? (

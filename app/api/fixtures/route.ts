@@ -18,6 +18,7 @@ import {
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+const DEFAULT_COMPETITIONS = ["Premier League"];
 
 // Get current season values dynamically (auto-updates each year)
 const CURRENT_SEASON_START = getCurrentSeasonStartDate();
@@ -26,6 +27,24 @@ const SEASON_FILTER = getCurrentSeasonFilter();
 
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
+
+function normalizeCompetition(competition: string | null | undefined): string {
+  return competition || "Premier League";
+}
+
+function parseCompetitions(request: NextRequest): string[] {
+  const competitionsParam = request.nextUrl.searchParams.get("competitions");
+  if (!competitionsParam) {
+    return DEFAULT_COMPETITIONS;
+  }
+
+  const competitions = competitionsParam
+    .split(",")
+    .map((competition) => competition.trim())
+    .filter(Boolean);
+
+  return competitions.length > 0 ? competitions : DEFAULT_COMPETITIONS;
+}
 
 /**
  * Background refresh function - scrapes and stores fixtures without blocking the response
@@ -65,7 +84,10 @@ async function refreshFixturesInBackground() {
         away_score: fixture.awayScore,
         matchweek: fixture.matchweek,
         status: fixture.status,
-        is_derby: fixture.isDerby || false
+        is_derby: fixture.isDerby || false,
+        season: fixture.season || undefined,
+        competition: "Premier League",
+        competition_round: null
       }));
 
       const { error: insertError } = await supabaseServer
@@ -95,6 +117,8 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    const selectedCompetitions = parseCompetitions(request);
+    const selectedCompetitionSet = new Set(selectedCompetitions);
     // Validate environment configuration
     const envValidation = validateEnvironment();
     if (!envValidation.valid) {
@@ -160,7 +184,9 @@ export async function GET(request: NextRequest) {
       // Then refresh in background if stale
       if (fixturesData && fixturesData.length > 0) {
         // Convert database format to app format
-        const fixtures: Fixture[] = fixturesData.map(row => ({
+        const fixtures: Fixture[] = fixturesData
+          .filter((row) => selectedCompetitionSet.has(normalizeCompetition(row.competition)))
+          .map(row => ({
           id: row.id,
           date: row.date,
           homeTeam: row.home_team,
@@ -169,13 +195,16 @@ export async function GET(request: NextRequest) {
           awayScore: row.away_score,
           matchweek: row.matchweek,
           status: row.status as Fixture['status'],
-          isDerby: row.is_derby
+          isDerby: row.is_derby,
+          season: row.season || undefined,
+          competition: normalizeCompetition(row.competition),
+          competitionRound: row.competition_round
         }));
 
         // If data is fresh, return immediately
         if (isDataFresh) {
           console.log(`[Fixtures API] Returning ${fixtures.length} fixtures from database (fresh)`);
-          return NextResponse.json(fixtures, {
+        return NextResponse.json(fixtures, {
             headers: {
               "X-Cache": "HIT",
               "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
@@ -234,7 +263,10 @@ export async function GET(request: NextRequest) {
           away_score: fixture.awayScore,
           matchweek: fixture.matchweek,
           status: fixture.status,
-          is_derby: fixture.isDerby || false
+          is_derby: fixture.isDerby || false,
+          season: fixture.season || undefined,
+          competition: "Premier League",
+          competition_round: null
         }));
 
         // Upsert fixtures (update if exists, insert if not)
@@ -270,7 +302,13 @@ export async function GET(request: NextRequest) {
       if (fetchError) {
         console.error("[Fixtures API] Error fetching all fixtures after upsert:", fetchError);
         // Fallback to returning scraped fixtures if fetch fails
-        return NextResponse.json(scrapedFixtures, {
+        const normalizedScrapedFixtures = scrapedFixtures.map((fixture) => ({
+          ...fixture,
+          competition: "Premier League",
+          competitionRound: null
+        }));
+
+        return NextResponse.json(normalizedScrapedFixtures, {
           headers: {
             "X-Cache": "MISS-SCRAPED",
             "X-Source": scrapeSource,
@@ -280,17 +318,22 @@ export async function GET(request: NextRequest) {
       }
 
       // Convert database format to app format
-      const allFixtures: Fixture[] = (allFixturesData || []).map(row => ({
-        id: row.id,
-        date: row.date,
-        homeTeam: row.home_team,
-        awayTeam: row.away_team,
-        homeScore: row.home_score,
-        awayScore: row.away_score,
-        matchweek: row.matchweek,
-        status: row.status as Fixture['status'],
-        isDerby: row.is_derby
-      }));
+      const allFixtures: Fixture[] = (allFixturesData || [])
+        .filter((row) => selectedCompetitionSet.has(normalizeCompetition(row.competition)))
+        .map(row => ({
+          id: row.id,
+          date: row.date,
+          homeTeam: row.home_team,
+          awayTeam: row.away_team,
+          homeScore: row.home_score,
+          awayScore: row.away_score,
+          matchweek: row.matchweek,
+          status: row.status as Fixture['status'],
+          isDerby: row.is_derby,
+          season: row.season || undefined,
+          competition: normalizeCompetition(row.competition),
+          competitionRound: row.competition_round
+        }));
 
       const finishedCount = allFixtures.filter(f => f.status === 'finished').length;
       const upcomingCount = allFixtures.filter(f => f.status !== 'finished').length;
@@ -310,7 +353,9 @@ export async function GET(request: NextRequest) {
       if (fixturesData && fixturesData.length > 0) {
         console.log(`[Fixtures API] Returning ${fixturesData.length} fixtures from database (fallback)`);
 
-        const fixtures: Fixture[] = fixturesData.map((row: FixtureRow) => ({
+        const fixtures: Fixture[] = fixturesData
+          .filter((row) => selectedCompetitionSet.has(normalizeCompetition(row.competition)))
+          .map((row: FixtureRow) => ({
           id: row.id,
           date: row.date,
           homeTeam: row.home_team,
@@ -319,7 +364,10 @@ export async function GET(request: NextRequest) {
           awayScore: row.away_score,
           matchweek: row.matchweek,
           status: row.status as Fixture['status'],
-          isDerby: row.is_derby
+          isDerby: row.is_derby,
+          season: row.season || undefined,
+          competition: normalizeCompetition(row.competition),
+          competitionRound: row.competition_round
         }));
 
         return NextResponse.json(fixtures, {

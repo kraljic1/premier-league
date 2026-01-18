@@ -71,6 +71,9 @@ function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
   const opponent = isHome ? fixture.awayTeam : fixture.homeTeam;
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
   const primaryColor = clubData?.primaryColor || "#37003c";
+  const competition = fixture.competition || "Premier League";
+  const isLeagueFixture = competition === "Premier League";
+  const roundLabel = fixture.competitionRound || `Round ${fixture.matchweek}`;
   
   // Get logo URL for opponent from clubs object
   const opponentClubEntry = Object.values(clubs).find((c: any) => c.name === opponent);
@@ -83,7 +86,14 @@ function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
     >
       <div className="match-item__header">
         <span className="match-item__date">{formatDate(fixture.date)}</span>
-        <span className="match-item__matchweek">MW {fixture.matchweek}</span>
+        <span className="match-item__meta">
+          {!isLeagueFixture && (
+            <span className="match-item__competition">{competition}</span>
+          )}
+          <span className="match-item__matchweek">
+            {isLeagueFixture ? `MW ${fixture.matchweek}` : roundLabel}
+          </span>
+        </span>
       </div>
       <div className="match-item__teams">
         <div className="match-item__team-info">

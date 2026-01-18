@@ -44,8 +44,14 @@ export function getTimeUntil(date: string | Date): {
  * If a matchweek has started (any matches finished), it's considered current.
  * If no matches are finished, returns 0.
  */
-export function getCurrentMatchweek(fixtures: Array<{ matchweek: number; status: string }>): number {
-  const finishedMatches = fixtures.filter(f => f.status === "finished");
+export function getCurrentMatchweek(
+  fixtures: Array<{ matchweek: number; status: string; competition?: string | null }>
+): number {
+  const finishedMatches = fixtures.filter(
+    (fixture) =>
+      fixture.status === "finished" &&
+      (!fixture.competition || fixture.competition === "Premier League")
+  );
   
   if (finishedMatches.length === 0) {
     return 0;

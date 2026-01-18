@@ -14,9 +14,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
+const DEFAULT_COMPETITIONS = ["Premier League"];
 
 // Type for cache metadata result
 type CacheMetaResult = { last_updated: string } | null;
+
+function normalizeCompetition(competition: string | null | undefined): string {
+  return competition || "Premier League";
+}
 
 // Get current season values dynamically (auto-updates each year)
 const CURRENT_SEASON_START = getCurrentSeasonStartDate();
@@ -66,6 +71,8 @@ export async function GET(request: Request) {
     const dbError = resultsResult.error;
     const cacheMeta = cacheMetaResult.data as CacheMetaResult;
 
+    const competitionSet = new Set(DEFAULT_COMPETITIONS);
+
     // Log Supabase configuration for debugging
     const hasSupabaseUrl = !!process.env['NEXT_PUBLIC_SUPABASE_URL'];
     const hasServiceRoleKey = !!process.env['SUPABASE_SERVICE_ROLE_KEY'];
@@ -92,17 +99,22 @@ export async function GET(request: Request) {
     // If we have data in database (even if stale), return it immediately for fast response
     if (resultsData && resultsData.length > 0) {
       // Convert database format to app format
-      const results: Fixture[] = resultsData.map(row => ({
-        id: row.id,
-        date: row.date,
-        homeTeam: row.home_team,
-        awayTeam: row.away_team,
-        homeScore: row.home_score,
-        awayScore: row.away_score,
-        matchweek: row.matchweek,
-        status: row.status as Fixture['status'],
-        isDerby: row.is_derby
-      }));
+      const results: Fixture[] = resultsData
+        .filter((row) => competitionSet.has(normalizeCompetition(row.competition)))
+        .map(row => ({
+          id: row.id,
+          date: row.date,
+          homeTeam: row.home_team,
+          awayTeam: row.away_team,
+          homeScore: row.home_score,
+          awayScore: row.away_score,
+          matchweek: row.matchweek,
+          status: row.status as Fixture['status'],
+          isDerby: row.is_derby,
+          season: row.season || undefined,
+          competition: normalizeCompetition(row.competition),
+          competitionRound: row.competition_round
+        }));
 
       // If data is fresh, return immediately
       if (isDataFresh) {
@@ -158,7 +170,10 @@ export async function GET(request: Request) {
           away_score: result.awayScore,
           matchweek: result.matchweek,
           status: 'finished' as const, // Results are always finished matches
-          is_derby: result.isDerby || false
+          is_derby: result.isDerby || false,
+          season: result.season || undefined,
+          competition: "Premier League",
+          competition_round: null
         }));
 
         // Upsert results (merge with existing data, don't replace)
@@ -198,7 +213,13 @@ export async function GET(request: Request) {
       if (fetchError) {
         console.error("[Results API] Error fetching all results after upsert:", fetchError);
         // Fallback to returning scraped results if fetch fails
-        return NextResponse.json(scrapedResults, {
+        const normalizedScrapedResults = scrapedResults.map((result) => ({
+          ...result,
+          competition: "Premier League",
+          competitionRound: null
+        }));
+
+        return NextResponse.json(normalizedScrapedResults, {
           headers: {
             "X-Cache": "MISS-SCRAPED",
             "X-Source": scrapeSource,
@@ -208,17 +229,22 @@ export async function GET(request: Request) {
       }
 
       // Convert database format to app format
-      const allResults: Fixture[] = (allResultsData || []).map(row => ({
-        id: row.id,
-        date: row.date,
-        homeTeam: row.home_team,
-        awayTeam: row.away_team,
-        homeScore: row.home_score,
-        awayScore: row.away_score,
-        matchweek: row.matchweek,
-        status: row.status as Fixture['status'],
-        isDerby: row.is_derby
-      }));
+      const allResults: Fixture[] = (allResultsData || [])
+        .filter((row) => competitionSet.has(normalizeCompetition(row.competition)))
+        .map(row => ({
+          id: row.id,
+          date: row.date,
+          homeTeam: row.home_team,
+          awayTeam: row.away_team,
+          homeScore: row.home_score,
+          awayScore: row.away_score,
+          matchweek: row.matchweek,
+          status: row.status as Fixture['status'],
+          isDerby: row.is_derby,
+          season: row.season || undefined,
+          competition: normalizeCompetition(row.competition),
+          competitionRound: row.competition_round
+        }));
 
       console.log(`[Results API] Returning ${allResults.length} total results from database (${scrapedResults.length} newly scraped)`);
 
@@ -236,17 +262,22 @@ export async function GET(request: Request) {
       if (resultsData && resultsData.length > 0) {
         console.log(`[Results API] Returning ${resultsData.length} results from database (fallback)`);
 
-        const results: Fixture[] = resultsData.map(row => ({
-          id: row.id,
-          date: row.date,
-          homeTeam: row.home_team,
-          awayTeam: row.away_team,
-          homeScore: row.home_score,
-          awayScore: row.away_score,
-          matchweek: row.matchweek,
-          status: row.status as Fixture['status'],
-          isDerby: row.is_derby
-        }));
+        const results: Fixture[] = resultsData
+          .filter((row) => competitionSet.has(normalizeCompetition(row.competition)))
+          .map(row => ({
+            id: row.id,
+            date: row.date,
+            homeTeam: row.home_team,
+            awayTeam: row.away_team,
+            homeScore: row.home_score,
+            awayScore: row.away_score,
+            matchweek: row.matchweek,
+            status: row.status as Fixture['status'],
+            isDerby: row.is_derby,
+            season: row.season || undefined,
+            competition: normalizeCompetition(row.competition),
+            competitionRound: row.competition_round
+          }));
 
         return NextResponse.json(results, {
           headers: {

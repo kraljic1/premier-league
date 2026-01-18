@@ -20,6 +20,8 @@ export interface Fixture {
   status: "scheduled" | "live" | "finished";
   isDerby?: boolean;
   season?: string; // e.g., "2024/2025", "2025/2026"
+  competition?: string | null; // e.g., "Premier League", "FA Cup"
+  competitionRound?: string | null;
 }
 
 export interface Standing {

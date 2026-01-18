@@ -52,6 +52,8 @@ export type Database = {
           status: 'scheduled' | 'live' | 'finished'
           is_derby: boolean
           season: string | null
+          competition: string | null
+          competition_round: string | null
           created_at: string
           updated_at: string
         }
@@ -66,6 +68,8 @@ export type Database = {
           status: 'scheduled' | 'live' | 'finished'
           is_derby?: boolean
           season?: string | null
+          competition?: string | null
+          competition_round?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -80,6 +84,8 @@ export type Database = {
           status?: 'scheduled' | 'live' | 'finished'
           is_derby?: boolean
           season?: string | null
+          competition?: string | null
+          competition_round?: string | null
           created_at?: string
           updated_at?: string
         }
