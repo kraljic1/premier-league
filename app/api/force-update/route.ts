@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
         } catch (dbError) {
           console.error("[ForceUpdate] Exception storing fixtures:", dbError);
           errors.push("fixtures");
-          dbErrors.push({ type: "fixtures", exception: dbError.message });
+          dbErrors.push({ type: "fixtures", exception: dbError instanceof Error ? dbError.message : String(dbError) });
         }
       } else {
         console.error("[ForceUpdate] Empty fixtures array");
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
         } catch (dbError) {
           console.error("[ForceUpdate] Exception storing results:", dbError);
           errors.push("results");
-          dbErrors.push({ type: "results", exception: dbError.message });
+          dbErrors.push({ type: "results", exception: dbError instanceof Error ? dbError.message : String(dbError) });
         }
       } else {
         console.error("[ForceUpdate] Empty results array");

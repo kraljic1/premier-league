@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Scraper test error:', error);
     return NextResponse.json({
-      error: error.message,
-      stack: error.stack,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     }, { status: 500 });
   }
 }
