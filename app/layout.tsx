@@ -109,7 +109,7 @@ export default function RootLayout({
         <CookieConsent />
         <Providers>
           <ClubTheme />
-          <div className="min-h-screen" style={{ backgroundColor: 'var(--pl-bg-primary)' }}>
+          <div className="min-h-screen">
             <header className="header-bar">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
                 <div className="flex items-center min-w-0">
@@ -125,7 +125,7 @@ export default function RootLayout({
             </header>
             <Navigation />
             <Breadcrumbs />
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden stadium-pattern">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden">
               {children}
             </main>
             <RelatedContent />
