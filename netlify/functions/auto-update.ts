@@ -30,9 +30,10 @@ const REZULTATI_URL = "https://www.rezultati.com/nogomet/engleska/premier-league
 const REZULTATI_STANDINGS_URL = "https://www.rezultati.com/nogomet/engleska/premier-league/tablica/";
 
 // Match duration: 45min + 15min halftime + 45min + ~10min added time = ~115min
-// Adding buffer for delays: check matches that started 120-180 minutes ago
-const CHECK_WINDOW_START_MS = 120 * 60 * 1000;  // 120 minutes (match likely just finished)
-const CHECK_WINDOW_END_MS = 180 * 60 * 1000;    // 180 minutes (3 hours max window)
+// Adding buffer for delays: check matches that started 100-240 minutes ago
+// WIDENED: Increased window to catch delayed matches and ensure updates
+const CHECK_WINDOW_START_MS = 100 * 60 * 1000;  // 100 minutes (match likely finishing)
+const CHECK_WINDOW_END_MS = 240 * 60 * 1000;    // 240 minutes (4 hours max window)
 
 interface MatchResult {
   homeTeam: string;
@@ -68,14 +69,16 @@ interface Standing {
 /**
  * Check scheduled_updates table to see if it's time to update
  * Uses pre-calculated schedule from daily scheduler function
+ * 
+ * IMPROVED: Wider time window (30 min) and no status filter to catch all updates
  */
 async function getMatchesToUpdate(): Promise<ScheduledMatch[]> {
   const now = new Date();
   
   // Check scheduled_updates table for updates that should run now
-  // Allow 5 minute window: check if update_time is within last 5 minutes
-  const timeWindowStart = new Date(now.getTime() - 5 * 60 * 1000); // 5 min ago
-  const timeWindowEnd = new Date(now.getTime() + 1 * 60 * 1000); // 1 min in future
+  // WIDENED: Allow 30 minute window to catch any missed updates
+  const timeWindowStart = new Date(now.getTime() - 30 * 60 * 1000); // 30 min ago
+  const timeWindowEnd = new Date(now.getTime() + 5 * 60 * 1000); // 5 min in future
   
   console.log(`[AutoUpdate] Checking scheduled updates:`);
   console.log(`  Time window: ${timeWindowStart.toISOString()} to ${timeWindowEnd.toISOString()}`);
@@ -95,26 +98,31 @@ async function getMatchesToUpdate(): Promise<ScheduledMatch[]> {
     });
     
     // Get full match details from fixtures table
+    // FIX: Don't filter by status - we want to update regardless of current status
+    // This ensures we catch matches even if a partial update changed the status
     const matchIds = scheduledUpdates.map(s => s.match_id);
     const { data: fixtures } = await supabase
       .from("fixtures")
       .select("id, date, home_team, away_team, status")
-      .in("id", matchIds)
-      .eq("status", "scheduled");
+      .in("id", matchIds);
     
+    // Return all matches, we'll update them with results regardless of current status
     return fixtures || [];
   }
   
   // Fallback: If scheduled_updates table doesn't exist or is empty, use old method
+  // IMPROVED: Check wider window and include matches that might already be marked as 'live'
   console.log(`[AutoUpdate] No scheduled updates found, checking fixtures calendar (fallback)...`);
   
   const windowStart = new Date(now.getTime() - CHECK_WINDOW_END_MS); // 180 min ago
   const windowEnd = new Date(now.getTime() - CHECK_WINDOW_START_MS); // 120 min ago
   
+  // FIX: Check for both 'scheduled' and 'live' status matches
+  // Also check for matches without scores that might have been partially updated
   const { data, error } = await supabase
     .from("fixtures")
     .select("id, date, home_team, away_team, status")
-    .eq("status", "scheduled")
+    .in("status", ["scheduled", "live"])
     .gte("date", windowStart.toISOString())
     .lte("date", windowEnd.toISOString())
     .order("date", { ascending: true });
@@ -471,11 +479,64 @@ async function getUpcomingMatches(): Promise<void> {
   }
 }
 
+/**
+ * Check if there are any matches from today that should have finished but still show as scheduled/live
+ * This is a safety net to catch any missed updates
+ */
+async function getUnupdatedTodayMatches(): Promise<ScheduledMatch[]> {
+  const now = new Date();
+  
+  // Get start of today (midnight)
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  
+  // Look for matches that started more than 2.5 hours ago but aren't marked as finished
+  const cutoffTime = new Date(now.getTime() - 150 * 60 * 1000); // 2.5 hours ago
+  
+  const { data, error } = await supabase
+    .from("fixtures")
+    .select("id, date, home_team, away_team, status, home_score, away_score")
+    .in("status", ["scheduled", "live"])
+    .gte("date", todayStart.toISOString())
+    .lte("date", cutoffTime.toISOString())
+    .order("date", { ascending: true });
+  
+  if (error) {
+    console.error("[AutoUpdate] Error checking unupdated matches:", error);
+    return [];
+  }
+  
+  // Filter for matches that don't have scores yet
+  const unupdated = (data || []).filter(m => m.home_score === null || m.away_score === null);
+  
+  if (unupdated.length > 0) {
+    console.log(`[AutoUpdate] Found ${unupdated.length} unupdated match(es) from today:`);
+    unupdated.forEach(m => {
+      console.log(`  - ${m.home_team} vs ${m.away_team} (status: ${m.status}, started: ${new Date(m.date).toLocaleTimeString()})`);
+    });
+  }
+  
+  return unupdated;
+}
+
+/**
+ * Check if we should do a late-night sweep (between 10 PM and 2 AM)
+ * This catches any matches that were missed during the day
+ */
+function shouldDoLateNightSweep(): boolean {
+  const now = new Date();
+  const hour = now.getUTCHours();
+  
+  // Run sweep between 22:00 and 02:00 UTC (typical end of match day)
+  return hour >= 22 || hour <= 2;
+}
+
 // Schedule: Run every 5 minutes - but ONLY does work when matches finish
 // Uses fixtures calendar: checks fixtures table first, exits immediately if no matches
 // This is efficient because:
 // - Super quick database query (checks fixtures calendar)
-// - Only scrapes when matches are detected (120 min after match start)
+// - Only scrapes when matches are detected (100 min after match start)
+// - Late-night sweep catches any missed updates
 // - Exits in <1 second when no matches need updating (minimal cost)
 export const handler = schedule("*/5 * * * *", async (event, context) => {
   console.log("[AutoUpdate] =========================================");
@@ -489,9 +550,42 @@ export const handler = schedule("*/5 * * * *", async (event, context) => {
     }
 
     // Step 1: Check fixtures calendar for matches that likely just finished
-    const matchesToUpdate = await getMatchesToUpdate();
+    let matchesToUpdate = await getMatchesToUpdate();
 
+    // Step 1b: If no scheduled updates found, check for unupdated matches from today
+    // This is a safety net to catch any missed updates
     if (matchesToUpdate.length === 0) {
+      const unupdatedMatches = await getUnupdatedTodayMatches();
+      if (unupdatedMatches.length > 0) {
+        console.log(`[AutoUpdate] Found ${unupdatedMatches.length} unupdated matches from today - forcing update`);
+        matchesToUpdate = unupdatedMatches;
+      }
+    }
+
+    // Step 1c: Late-night sweep - always update during post-match hours
+    const isLateNight = shouldDoLateNightSweep();
+    let forceLateNightUpdate = false;
+    
+    if (matchesToUpdate.length === 0 && isLateNight) {
+      // Check if there were any matches today at all
+      const now = new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const { data: todayMatches } = await supabase
+        .from("fixtures")
+        .select("id, date, home_team, away_team, status")
+        .gte("date", todayStart.toISOString())
+        .lte("date", now.toISOString())
+        .limit(1);
+      
+      if (todayMatches && todayMatches.length > 0) {
+        console.log(`[AutoUpdate] Late-night sweep: Found matches from today, forcing update check`);
+        forceLateNightUpdate = true;
+      }
+    }
+
+    if (matchesToUpdate.length === 0 && !forceLateNightUpdate) {
       // Show upcoming matches for visibility
       await getUpcomingMatches();
       
@@ -512,20 +606,46 @@ export const handler = schedule("*/5 * * * *", async (event, context) => {
       };
     }
 
-    console.log(`[AutoUpdate] Found ${matchesToUpdate.length} matches that may have finished:`);
-    matchesToUpdate.forEach(m => {
-      console.log(`  - ${m.home_team} vs ${m.away_team} (${new Date(m.date).toLocaleString()})`);
-    });
+    if (matchesToUpdate.length > 0) {
+      console.log(`[AutoUpdate] Found ${matchesToUpdate.length} matches that may have finished:`);
+      matchesToUpdate.forEach(m => {
+        console.log(`  - ${m.home_team} vs ${m.away_team} (${new Date(m.date).toLocaleString()})`);
+      });
+    } else if (forceLateNightUpdate) {
+      console.log(`[AutoUpdate] Running late-night sweep to ensure all results are captured`);
+    }
 
     // Step 2: Fetch results from Rezultati.com
-    const results = await fetchResults();
+    let results: MatchResult[] = [];
+    let scrapeAttempts = 0;
+    const maxAttempts = 3;
+    
+    // Retry logic for scraping
+    while (scrapeAttempts < maxAttempts) {
+      try {
+        scrapeAttempts++;
+        results = await fetchResults();
+        if (results.length > 0) {
+          console.log(`[AutoUpdate] Successfully scraped ${results.length} results (attempt ${scrapeAttempts})`);
+          break;
+        }
+        console.log(`[AutoUpdate] Scrape attempt ${scrapeAttempts} returned 0 results, retrying...`);
+        // Wait 2 seconds before retry
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (scrapeError) {
+        console.error(`[AutoUpdate] Scrape attempt ${scrapeAttempts} failed:`, scrapeError);
+        if (scrapeAttempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+    }
 
     // Step 3: Update database with new results
     const updatedCount = await updateDatabase(results);
 
-    // Step 4: Update standings 120 minutes after matches begin
-    // This ensures standings are updated whenever matches finish (120 min after start)
-    console.log("[AutoUpdate] Updating standings (120 minutes after match start)...");
+    // Step 4: Update standings whenever we have matches to update
+    // This ensures standings are always in sync with results
+    console.log("[AutoUpdate] Updating standings...");
     const standingsUpdated = await updateStandings();
 
     const duration = Math.round((Date.now() - startTime) / 1000);
@@ -540,6 +660,8 @@ export const handler = schedule("*/5 * * * *", async (event, context) => {
         matchesChecked: matchesToUpdate.length,
         resultsUpdated: updatedCount,
         standingsUpdated: standingsUpdated,
+        scrapeAttempts,
+        lateNightSweep: forceLateNightUpdate,
         duration: `${duration}s`,
         timestamp: new Date().toISOString(),
       }),

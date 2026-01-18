@@ -12,6 +12,7 @@ import { MatchweekSelector } from "@/components/MatchweekSelector";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
 import { getClubByName } from "@/lib/clubs";
 import { PageHeaderReveal, PageSectionReveal, CardGridReveal } from "@/components/ContentReveal";
 
@@ -45,6 +46,9 @@ export default function FixturesResultsContent() {
   
   // Fetch all clubs in one API call to avoid rate limiting
   const { clubs } = useClubs();
+  
+  // Get match day aware refetch configuration
+  const { refetchInterval, staleTime, isMatchDay } = useMatchDayRefetch();
 
   const {
     data: fixtures = [],
@@ -55,8 +59,9 @@ export default function FixturesResultsContent() {
     queryKey: ["fixtures"],
     queryFn: fetchFixtures,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
+    refetchOnWindowFocus: isMatchDay, // Auto refetch on focus during match days
+    refetchInterval: refetchInterval || false, // Auto refetch during match days
+    staleTime,
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
@@ -69,8 +74,9 @@ export default function FixturesResultsContent() {
     queryKey: ["results"],
     queryFn: fetchResults,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 25 * 60 * 1000, // Consider data fresh for 25 minutes
+    refetchOnWindowFocus: isMatchDay, // Auto refetch on focus during match days
+    refetchInterval: refetchInterval || false, // Auto refetch during match days
+    staleTime,
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 

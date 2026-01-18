@@ -18,10 +18,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface ScheduledUpdate {
   match_id: string;
-  update_time: string; // When to run the update (match start + 120 min)
+  update_time: string; // When to run the update (match start + offset)
   home_team: string;
   away_team: string;
   match_start: string;
+  update_type: string; // 'primary', 'secondary', 'final'
 }
 
 /**
@@ -54,6 +55,10 @@ async function ensureScheduledUpdatesTable() {
 
 /**
  * Find all upcoming matches and calculate update times
+ * IMPROVED: Creates multiple update times per match:
+ * - Primary: 120 min after start (when match likely just finished)
+ * - Secondary: 180 min after start (catch any delayed finishes)  
+ * - Final: 240 min after start (final safety net, 4 hours after start)
  */
 async function scheduleUpdates(): Promise<number> {
   const now = new Date();
@@ -82,21 +87,36 @@ async function scheduleUpdates(): Promise<number> {
 
   console.log(`[ScheduleUpdates] Found ${fixtures.length} upcoming matches`);
 
-  // Calculate update times (match start + 120 minutes)
-  const scheduledUpdates: ScheduledUpdate[] = fixtures.map((fixture) => {
+  // Calculate multiple update times per match for redundancy
+  const UPDATE_OFFSETS = [
+    { minutes: 120, type: 'primary' },   // 2 hours - match likely just finished
+    { minutes: 180, type: 'secondary' }, // 3 hours - catch delayed finishes
+    { minutes: 240, type: 'final' },     // 4 hours - final safety net
+  ];
+  
+  const scheduledUpdates: ScheduledUpdate[] = [];
+  
+  fixtures.forEach((fixture) => {
     const matchStart = new Date(fixture.date);
-    const updateTime = new Date(matchStart.getTime() + 120 * 60 * 1000); // +120 minutes
-
-    return {
-      match_id: fixture.id,
-      update_time: updateTime.toISOString(),
-      home_team: fixture.home_team,
-      away_team: fixture.away_team,
-      match_start: fixture.date,
-    };
+    
+    UPDATE_OFFSETS.forEach((offset) => {
+      const updateTime = new Date(matchStart.getTime() + offset.minutes * 60 * 1000);
+      
+      // Only schedule if update time is in the future
+      if (updateTime > now) {
+        scheduledUpdates.push({
+          match_id: `${fixture.id}-${offset.type}`, // Unique ID per update type
+          update_time: updateTime.toISOString(),
+          home_team: fixture.home_team,
+          away_team: fixture.away_team,
+          match_start: fixture.date,
+          update_type: offset.type,
+        });
+      }
+    });
   });
 
-  // Clear old scheduled updates
+  // Clear old scheduled updates (ones that have already passed)
   await supabase.from("scheduled_updates").delete().lt("update_time", now.toISOString());
 
   // Insert new scheduled updates
@@ -112,15 +132,25 @@ async function scheduleUpdates(): Promise<number> {
     throw insertError;
   }
 
-  console.log(`[ScheduleUpdates] Scheduled ${scheduledUpdates.length} updates:`);
-  scheduledUpdates.slice(0, 5).forEach((update) => {
-    const updateTime = new Date(update.update_time);
-    console.log(
-      `  - ${update.home_team} vs ${update.away_team}: Update at ${updateTime.toLocaleString()}`
-    );
+  // Group updates by match for logging
+  const uniqueMatches = fixtures.length;
+  console.log(`[ScheduleUpdates] Scheduled ${scheduledUpdates.length} update checks for ${uniqueMatches} matches:`);
+  
+  // Show first few matches with their update times
+  const matchGroups = fixtures.slice(0, 3);
+  matchGroups.forEach((fixture) => {
+    const matchStart = new Date(fixture.date);
+    console.log(`  - ${fixture.home_team} vs ${fixture.away_team} (starts: ${matchStart.toLocaleString()})`);
+    UPDATE_OFFSETS.forEach((offset) => {
+      const updateTime = new Date(matchStart.getTime() + offset.minutes * 60 * 1000);
+      if (updateTime > now) {
+        console.log(`    → ${offset.type} update at ${updateTime.toLocaleTimeString()}`);
+      }
+    });
   });
-  if (scheduledUpdates.length > 5) {
-    console.log(`  ... and ${scheduledUpdates.length - 5} more`);
+  
+  if (fixtures.length > 3) {
+    console.log(`  ... and ${fixtures.length - 3} more matches`);
   }
 
   return scheduledUpdates.length;

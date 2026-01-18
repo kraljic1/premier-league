@@ -13,6 +13,7 @@ import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
 import { SafeImage } from "@/components/SafeImage";
 import { PageHeaderReveal, PageSectionReveal, CardGridReveal } from "@/components/ContentReveal";
 
@@ -98,6 +99,12 @@ function getWeekendFixtures(fixtures: Fixture[]): Fixture[] {
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
   const myClubs = useAppStore((state) => state.myClubs);
+  
+  // Get match day aware refetch configuration
+  // During match days: refetch every 5 minutes to keep scores updated
+  // Outside match days: rely on stale time for caching
+  const { refetchInterval, staleTime, isMatchDay } = useMatchDayRefetch();
+  
   const {
     data: fixtures = [],
     isLoading,
@@ -106,6 +113,9 @@ export default function HomePage() {
   } = useQuery({
     queryKey: ["fixtures"],
     queryFn: fetchFixtures,
+    refetchInterval: refetchInterval || false, // 0 means no interval
+    staleTime,
+    refetchOnWindowFocus: isMatchDay, // Only refetch on focus during match days
   });
   
   // Fetch all clubs in one API call to avoid rate limiting

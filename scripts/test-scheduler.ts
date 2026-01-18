@@ -84,33 +84,71 @@ async function testScheduler() {
 
   console.log(`✅ Found ${fixtures.length} upcoming matches\n`);
 
-  // Calculate update times
-  const scheduledUpdates = fixtures.map((fixture) => {
+  // Calculate multiple update times per match for redundancy
+  const UPDATE_OFFSETS = [
+    { minutes: 120, type: 'primary' },   // 2 hours - match likely just finished
+    { minutes: 180, type: 'secondary' }, // 3 hours - catch delayed finishes
+    { minutes: 240, type: 'final' },     // 4 hours - final safety net
+  ];
+  
+  const scheduledUpdates: Array<{
+    match_id: string;
+    update_time: string;
+    home_team: string;
+    away_team: string;
+    match_start: string;
+    update_type: string;
+  }> = [];
+  
+  fixtures.forEach((fixture) => {
     const matchStart = new Date(fixture.date);
-    const updateTime = new Date(matchStart.getTime() + 120 * 60 * 1000); // +120 minutes
-
-    return {
-      match_id: fixture.id,
-      update_time: updateTime.toISOString(),
-      home_team: fixture.home_team,
-      away_team: fixture.away_team,
-      match_start: fixture.date,
-    };
+    
+    UPDATE_OFFSETS.forEach((offset) => {
+      const updateTime = new Date(matchStart.getTime() + offset.minutes * 60 * 1000);
+      
+      // Only schedule if update time is in the future
+      if (updateTime > now) {
+        scheduledUpdates.push({
+          match_id: `${fixture.id}-${offset.type}`,
+          update_time: updateTime.toISOString(),
+          home_team: fixture.home_team,
+          away_team: fixture.away_team,
+          match_start: fixture.date,
+          update_type: offset.type,
+        });
+      }
+    });
   });
 
   console.log('📋 Scheduled updates to be created:\n');
-  scheduledUpdates.slice(0, 10).forEach((update) => {
-    const matchStart = new Date(update.match_start);
-    const updateTime = new Date(update.update_time);
-    console.log(`  ${update.home_team} vs ${update.away_team}`);
+  
+  // Group updates by match for cleaner display
+  const matchGroups: Record<string, typeof scheduledUpdates> = {};
+  scheduledUpdates.forEach((update) => {
+    const baseId = update.match_id.replace(/-primary|-secondary|-final/, '');
+    if (!matchGroups[baseId]) matchGroups[baseId] = [];
+    matchGroups[baseId].push(update);
+  });
+  
+  const groupEntries = Object.entries(matchGroups).slice(0, 5);
+  groupEntries.forEach(([, updates]) => {
+    const first = updates[0];
+    const matchStart = new Date(first.match_start);
+    console.log(`  ${first.home_team} vs ${first.away_team}`);
     console.log(`    Match start: ${matchStart.toLocaleString()}`);
-    console.log(`    Update time: ${updateTime.toLocaleString()} (120 min after start)`);
+    updates.forEach((update) => {
+      const updateTime = new Date(update.update_time);
+      console.log(`    → ${update.update_type} update: ${updateTime.toLocaleString()}`);
+    });
     console.log('');
   });
 
-  if (scheduledUpdates.length > 10) {
-    console.log(`  ... and ${scheduledUpdates.length - 10} more matches\n`);
+  const totalMatches = Object.keys(matchGroups).length;
+  if (totalMatches > 5) {
+    console.log(`  ... and ${totalMatches - 5} more matches\n`);
   }
+  
+  console.log(`📊 Total: ${scheduledUpdates.length} update checks for ${totalMatches} matches\n`);
 
   // Clear old scheduled updates
   console.log('🧹 Cleaning old scheduled updates...');
