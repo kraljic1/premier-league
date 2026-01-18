@@ -18,6 +18,9 @@ const isCacheableScheme = (url) => {
   return scheme === 'http:' || scheme === 'https:';
 };
 
+// Only handle same-origin requests in the service worker
+const isSameOrigin = (url) => url.origin === self.location.origin;
+
 // Cache strategies
 const cacheFirst = async (request) => {
   const url = new URL(request.url);
@@ -131,6 +134,11 @@ self.addEventListener("fetch", (event) => {
   // Skip unsupported URL schemes (chrome-extension, moz-extension, etc.)
   if (!isCacheableScheme(url)) {
     return; // Let browser handle it natively
+  }
+
+  // Skip cross-origin requests to avoid CSP/connect-src violations
+  if (!isSameOrigin(url)) {
+    return;
   }
 
   // API routes - Network first with cache fallback

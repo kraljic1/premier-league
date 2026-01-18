@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
  * and allows smooth scrolling back to the top of the page
  */
 export function BackToTop() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // Always visible for debugging
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -15,7 +15,9 @@ export function BackToTop() {
 
     const toggleVisibility = () => {
       // Show button when user scrolls down 300px
-      setIsVisible(window.pageYOffset > 300);
+      const shouldBeVisible = window.pageYOffset > 300;
+      setIsVisible(shouldBeVisible);
+      // console.log('Scroll position:', window.pageYOffset, 'Button visible:', shouldBeVisible);
     };
 
     window.addEventListener("scroll", toggleVisibility);
@@ -45,7 +47,12 @@ export function BackToTop() {
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-4 pointer-events-none"
-      } bg-[var(--pl-primary)] hover:bg-[var(--pl-primary-dark)] text-[var(--pl-text-inverse)] border border-[var(--pl-border-light)] hover:shadow-xl`}
+      }`}
+      style={{
+        backgroundColor: '#37003c',
+        color: '#ffffff',
+        border: '1px solid rgba(55, 0, 60, 0.1)'
+      }}
       aria-label="Scroll to top"
       title="Back to top"
     >

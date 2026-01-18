@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { RefreshButton } from "@/components/RefreshButton";
 import { TableSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
-import { Standing } from "@/lib/types";
+import { Standing, Fixture } from "@/lib/types";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
-import { getClubByName } from "@/lib/clubs";
+import { buildStandingsFormMap } from "@/lib/utils/standings-form";
+import { StandingRow } from "@/components/StandingRow";
 
 async function fetchStandings(): Promise<Standing[]> {
   const res = await fetch("/api/standings", {
@@ -22,17 +23,13 @@ async function fetchStandings(): Promise<Standing[]> {
   return Array.isArray(data) ? data : [];
 }
 
-function getFormColor(result: string): string {
-  switch (result) {
-    case "W":
-      return "bg-green-500";
-    case "D":
-      return "bg-yellow-500";
-    case "L":
-      return "bg-red-500";
-    default:
-      return "bg-gray-300";
-  }
+async function fetchFixtures(): Promise<Fixture[]> {
+  const res = await fetch("/api/fixtures", {
+    next: { revalidate: 1800 }, // Revalidate every 30 minutes
+  });
+  if (!res.ok) throw new Error("Failed to fetch fixtures");
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 export default function StandingsContent() {
@@ -56,6 +53,25 @@ export default function StandingsContent() {
 
   // Fetch all clubs in one API call to avoid rate limiting
   const { clubs } = useClubs();
+
+  const needsFormData = standings.some(
+    (standing) => !standing.form || standing.form.trim().length === 0
+  );
+
+  const { data: fixtures = [] } = useQuery({
+    queryKey: ["fixtures"],
+    queryFn: fetchFixtures,
+    enabled: needsFormData,
+    refetchOnWindowFocus: isMatchDay,
+    refetchInterval: refetchInterval || false,
+    staleTime,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  const formMap = useMemo(() => {
+    if (!needsFormData || fixtures.length === 0) return {};
+    return buildStandingsFormMap(fixtures, standings);
+  }, [fixtures, needsFormData, standings]);
 
   return (
     <div className="space-y-6">
@@ -105,92 +121,18 @@ export default function StandingsContent() {
             </thead>
             <tbody>
               {standings.map((standing) => (
-                <StandingRow key={standing.club} standing={standing} clubs={clubs} />
+                <StandingRow
+                  key={standing.club}
+                  standing={standing}
+                  clubs={clubs}
+                  formOverride={formMap[standing.club]}
+                />
               ))}
             </tbody>
           </table>
         </div>
       )}
     </div>
-  );
-}
-
-function StandingRow({ standing, clubs }: { standing: Standing; clubs: Record<string, any> }) {
-  const [imageError, setImageError] = useState(false);
-  
-  const positionColors: Record<number, string> = {
-    1: "bg-yellow-100 dark:bg-yellow-900/20",
-    2: "bg-gray-100 dark:bg-gray-800",
-    3: "bg-orange-100 dark:bg-orange-900/20",
-    18: "bg-red-100 dark:bg-red-900/20",
-    19: "bg-red-100 dark:bg-red-900/20",
-    20: "bg-red-100 dark:bg-red-900/20",
-  };
-
-  // Find club data and get logo URL with proper fallback chain
-  const clubEntry = Object.values(clubs).find((c: any) => c.name === standing.club);
-  const hardcodedClub = getClubByName(standing.club);
-  
-  // Try database logo first, then hardcoded logoUrl, then null
-  const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
-  const shouldShowPlaceholder = !logoUrl || imageError;
-
-  return (
-    <tr
-      className={`border-b border-gray-200 dark:border-gray-700 ${
-        positionColors[standing.position] || ""
-      }`}
-    >
-      <td className="standings-table__col-pos font-semibold">{standing.position}</td>
-      <td className="standings-table__col-club font-medium">
-        <div className="standings-row__club">
-          {shouldShowPlaceholder ? (
-            <div className="standings-row__logo-placeholder">
-              {standing.club.charAt(0)}
-            </div>
-          ) : (
-            <img
-              src={logoUrl}
-              alt={`${standing.club} logo`}
-              width={40}
-              height={40}
-              className="standings-row__logo"
-              loading="lazy"
-              onError={() => setImageError(true)}
-            />
-          )}
-          <span className="standings-row__club-name">{standing.club}</span>
-        </div>
-      </td>
-      <td className="standings-table__col-stat">{standing.played}</td>
-      <td className="standings-table__col-stat">{standing.won}</td>
-      <td className="standings-table__col-stat">{standing.drawn}</td>
-      <td className="standings-table__col-stat">{standing.lost}</td>
-      <td className="standings-table__col-stat">{standing.goalsFor}</td>
-      <td className="standings-table__col-stat">{standing.goalsAgainst}</td>
-      <td className="standings-table__col-stat">
-        {standing.goalDifference > 0 ? "+" : ""}
-        {standing.goalDifference}
-      </td>
-      <td className="standings-table__col-stat font-bold">{standing.points}</td>
-      <td className="standings-table__col-form">
-        <div className="standings-row__form">
-          {standing.form && standing.form.length > 0 ? (
-            standing.form.split("").map((result, idx) => (
-              <div
-                key={idx}
-                className={`standings-row__form-item ${getFormColor(result)}`}
-                title={result === "W" ? "Win" : result === "D" ? "Draw" : "Loss"}
-              />
-            ))
-          ) : (
-            <span className="text-xs text-gray-400 dark:text-gray-500" title="Form data not available">
-              -
-            </span>
-          )}
-        </div>
-      </td>
-    </tr>
   );
 }
 
