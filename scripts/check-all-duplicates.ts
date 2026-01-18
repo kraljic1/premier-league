@@ -47,7 +47,7 @@ async function checkAllDuplicates() {
   }, {} as Record<string, any[]>);
 
   console.log("Fixtures by season:");
-  Object.entries(bySeason).forEach(([season, fixtures]) => {
+  (Object.entries(bySeason) as [string, any[]][]).forEach(([season, fixtures]) => {
     console.log(`  ${season}: ${fixtures.length} fixtures`);
   });
 
@@ -55,7 +55,7 @@ async function checkAllDuplicates() {
   const duplicatesBySeason: Record<string, any[]> = {};
 
   // Check each season for duplicates
-  for (const [season, fixtures] of Object.entries(bySeason)) {
+  for (const [season, fixtures] of Object.entries(bySeason) as [string, any[]][]) {
     const groups: Record<string, any[]> = {};
     
     for (const fixture of fixtures) {
@@ -96,8 +96,8 @@ async function checkAllDuplicates() {
   
   const currentSeasonFixtures = bySeason['2024/25'] || [];
   const teamMatchCounts: Record<string, number> = {};
-  
-  currentSeasonFixtures.forEach(f => {
+
+  currentSeasonFixtures.forEach((f: any) => {
     if (f.status === 'finished' && f.matchweek <= 21) {
       teamMatchCounts[f.home_team] = (teamMatchCounts[f.home_team] || 0) + 1;
       teamMatchCounts[f.away_team] = (teamMatchCounts[f.away_team] || 0) + 1;
