@@ -149,10 +149,11 @@ export function ClubSelector() {
 
       {safeMyClubs.length > 0 && (
         <div className="mt-4">
-          <label className="block text-sm font-medium mb-1">
+          <label htmlFor="primary-club-button" className="block text-sm font-medium mb-1">
             Set Primary Club:
           </label>
           <PrimaryClubButton
+            id="primary-club-button"
             clubs={clubs}
             primaryClub={safePrimaryClub}
             onClick={() => setIsPrimaryModalOpen(true)}
@@ -180,12 +181,13 @@ export function ClubSelector() {
 }
 
 interface PrimaryClubButtonProps {
+  id?: string;
   clubs: Record<string, any>;
   primaryClub: string | null;
   onClick: () => void;
 }
 
-function PrimaryClubButton({ clubs, primaryClub, onClick }: PrimaryClubButtonProps) {
+function PrimaryClubButton({ id, clubs, primaryClub, onClick }: PrimaryClubButtonProps) {
   const selectedClub = primaryClub 
     ? (clubs[primaryClub] || CLUBS[primaryClub]) 
     : null;
@@ -193,6 +195,7 @@ function PrimaryClubButton({ clubs, primaryClub, onClick }: PrimaryClubButtonPro
 
   return (
     <button
+      id={id}
       type="button"
       onClick={onClick}
       className="primary-club-button"

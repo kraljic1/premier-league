@@ -15,7 +15,6 @@ import { formatDate, getCurrentMatchweek } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
 import { SafeImage } from "@/components/SafeImage";
-import { PageHeaderReveal, PageSectionReveal, CardGridReveal } from "@/components/ContentReveal";
 
 // Dynamically import heavy components for better code splitting
 // Using ssr: false to prevent hydration mismatches with browser-only code
@@ -132,19 +131,15 @@ export default function HomePage() {
   return (
     <ErrorBoundary>
       <main className="space-y-8">
-        <PageHeaderReveal>
-          <header className="flex justify-between items-center pl-space-md">
-            <h1 className="pl-heading-lg goal-underline">Home</h1>
-            <RefreshButton />
-          </header>
-        </PageHeaderReveal>
+        <header className="flex justify-between items-center pl-space-md">
+          <h1 className="pl-heading-lg goal-underline">Home</h1>
+          <RefreshButton />
+        </header>
 
-        <PageSectionReveal>
-          <div className="pl-space-lg">
-            <h2 className="pl-heading-md mb-4">My Clubs</h2>
-            <ClubSelector />
-          </div>
-        </PageSectionReveal>
+        <div className="pl-space-lg">
+          <h2 className="pl-heading-md mb-4">My Clubs</h2>
+          <ClubSelector />
+        </div>
 
         {isLoading ? (
           <LoadingSkeleton />
@@ -161,40 +156,34 @@ export default function HomePage() {
         ) : (
           <>
             {nextMatch && (
-              <PageSectionReveal delay={200}>
-                <div className="pl-space-lg">
-                  <h2 className="pl-heading-md mb-4 goal-underline">Next Match</h2>
-                  <MatchCountdown fixture={nextMatch} />
-                </div>
-              </PageSectionReveal>
+              <div className="pl-space-lg">
+                <h2 className="pl-heading-md mb-4 goal-underline">Next Match</h2>
+                <MatchCountdown fixture={nextMatch} />
+              </div>
             )}
 
             {currentMatchweekFixtures.length > 0 && (
-              <PageSectionReveal delay={400}>
-                <div className="pl-space-lg">
-                  <h2 className="pl-heading-md mb-4 goal-underline">
-                    Match week {currentMatchweek === 0 ? 1 : currentMatchweek}
-                  </h2>
-                  <CardGridReveal className="formation-4-3-3">
-                    {currentMatchweekFixtures.map((fixture) => (
-                      <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
-                    ))}
-                  </CardGridReveal>
+              <div className="pl-space-lg">
+                <h2 className="pl-heading-md mb-4 goal-underline">
+                  Match week {currentMatchweek === 0 ? 1 : currentMatchweek}
+                </h2>
+                <div className="formation-4-3-3">
+                  {currentMatchweekFixtures.map((fixture) => (
+                    <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
+                  ))}
                 </div>
-              </PageSectionReveal>
+              </div>
             )}
 
             {nextMatchweekFixtures.length > 0 && (
-              <PageSectionReveal delay={600}>
-                <div className="pl-space-lg">
-                  <h2 className="pl-heading-md mb-4 goal-underline">Next match week</h2>
-                  <CardGridReveal className="formation-4-3-3">
-                    {nextMatchweekFixtures.map((fixture) => (
-                      <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
-                    ))}
-                  </CardGridReveal>
+              <div className="pl-space-lg">
+                <h2 className="pl-heading-md mb-4 goal-underline">Next match week</h2>
+                <div className="formation-4-3-3">
+                  {nextMatchweekFixtures.map((fixture) => (
+                    <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
+                  ))}
                 </div>
-              </PageSectionReveal>
+              </div>
             )}
           </>
         )}

@@ -18,7 +18,6 @@ import { TwoClubsComparison } from "@/components/TwoClubsComparison";
 import { useCompareSeason } from "@/lib/hooks/useCompareSeason";
 import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
 import { getClubByName } from "@/lib/clubs";
-import { PageHeaderReveal, PageSectionReveal } from "@/components/ContentReveal";
 
 type CompareMode = "single-club" | "two-clubs";
 
@@ -63,69 +62,63 @@ export function CompareSeasonClient() {
 
   return (
     <div className="compare-season-page">
-      <PageHeaderReveal>
-        <div className="compare-season-page__header">
-          <h1 className="compare-season-page__title">
-            Compare Season Performance
-          </h1>
-          <p className="compare-season-page__subtitle">
-            Compare a club's current season performance with previous seasons
-          </p>
-          <RefreshButton
-            onRefresh={() => {
-              refetchCurrent();
-              if (selectedSeason) refetchHistorical();
-            }}
-            isLoading={isLoading || isLoadingHistorical}
-            className="compare-season-page__refresh"
-          />
-        </div>
-      </PageHeaderReveal>
+      <div className="compare-season-page__header">
+        <h1 className="compare-season-page__title">
+          Compare Season Performance
+        </h1>
+        <p className="compare-season-page__subtitle">
+          Compare a club's current season performance with previous seasons
+        </p>
+        <RefreshButton
+          onRefresh={() => {
+            refetchCurrent();
+            if (selectedSeason) refetchHistorical();
+          }}
+          isLoading={isLoading || isLoadingHistorical}
+          className="compare-season-page__refresh"
+        />
+      </div>
 
       {compareMode === "two-clubs" ? (
-        <PageSectionReveal delay={200}>
-          <TwoClubsComparison onClose={() => setCompareMode("single-club")} />
-        </PageSectionReveal>
+        <TwoClubsComparison onClose={() => setCompareMode("single-club")} />
       ) : (
         <>
-          <PageSectionReveal delay={200}>
-            <div className="compare-season-page__controls">
-              <div className="compare-season-page__club-row">
-                <div className="compare-season-page__club-dropdown">
-                  <ClubDropdown
-                    selectedClub={selectedClub}
-                    onSelect={setSelectedClub}
-                    label="Select Club"
-                  />
-                </div>
-                <button
-                  onClick={() => setCompareMode("two-clubs")}
-                  className="compare-season-page__add-club-btn"
-                  title="Compare two clubs"
-                  aria-label="Compare two clubs"
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </button>
-              </div>
-              <div className="compare-season-page__season-dropdown">
-                <SeasonDropdown
-                  seasons={availableSeasons}
-                  selectedSeason={selectedSeason}
-                  onSelect={setSelectedSeason}
-                  label="Select Previous Season"
+          <div className="compare-season-page__controls">
+            <div className="compare-season-page__club-row">
+              <div className="compare-season-page__club-dropdown">
+                <ClubDropdown
+                  selectedClub={selectedClub}
+                  onSelect={setSelectedClub}
+                  label="Select Club"
                 />
               </div>
+              <button
+                onClick={() => setCompareMode("two-clubs")}
+                className="compare-season-page__add-club-btn"
+                title="Compare two clubs"
+                aria-label="Compare two clubs"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
             </div>
-          </PageSectionReveal>
+            <div className="compare-season-page__season-dropdown">
+              <SeasonDropdown
+                seasons={availableSeasons}
+                selectedSeason={selectedSeason}
+                onSelect={setSelectedSeason}
+                label="Select Previous Season"
+              />
+            </div>
+          </div>
 
           {!selectedClub ? (
             <EmptyState
@@ -143,8 +136,7 @@ export function CompareSeasonClient() {
               }}
             />
           ) : (
-            <PageSectionReveal delay={400}>
-              <div className="compare-season-page__comparison">
+            <div className="compare-season-page__comparison">
                 {currentMatchweek === 0 ? (
                   <EmptyState
                     title="No Match Data"
@@ -153,71 +145,67 @@ export function CompareSeasonClient() {
                 ) : (
                   <>
                     {/* Current Season Section */}
-                    <PageSectionReveal delay={500} className="mb-8">
-                      <div>
-                        <h2 className="text-lg sm:text-xl font-semibold mb-4">
-                          {mounted ? `Current Season (${currentSeasonLabel}) - ${currentMatchweek} matchweeks` : `Current Season - ${currentMatchweek} matchweeks`}
-                        </h2>
-                        <div className="season-stats-layout">
-                          <div className="season-stats-layout__stats">
-                            {currentSeasonStats && (
-                              <SeasonStatsCompact
-                                stats={currentSeasonStats}
-                                title="Statistics"
-                              />
-                            )}
-                          </div>
-                          <div className="season-stats-layout__results">
-                            <ClubMatchResults
-                              fixtures={currentFixtures}
-                              clubName={selectedClub}
-                              maxMatchweek={currentMatchweek}
-                              seasonLabel="Current Season"
-                              clubColor={selectedClubColor}
+                    <div className="mb-8">
+                      <h2 className="text-lg sm:text-xl font-semibold mb-4">
+                        {mounted ? `Current Season (${currentSeasonLabel}) - ${currentMatchweek} matchweeks` : `Current Season - ${currentMatchweek} matchweeks`}
+                      </h2>
+                      <div className="season-stats-layout">
+                        <div className="season-stats-layout__stats">
+                          {currentSeasonStats && (
+                            <SeasonStatsCompact
+                              stats={currentSeasonStats}
+                              title="Statistics"
                             />
-                          </div>
+                          )}
+                        </div>
+                        <div className="season-stats-layout__results">
+                          <ClubMatchResults
+                            fixtures={currentFixtures}
+                            clubName={selectedClub}
+                            maxMatchweek={currentMatchweek}
+                            seasonLabel="Current Season"
+                            clubColor={selectedClubColor}
+                          />
                         </div>
                       </div>
-                    </PageSectionReveal>
+                    </div>
 
                     {/* Historical Season Section */}
                     {selectedSeason ? (
-                      <PageSectionReveal delay={700} className="mb-8">
-                        <div>
-                          <h2 className="text-lg sm:text-xl font-semibold mb-4">
-                            {selectedSeason} Season (first {currentMatchweek} matchweeks)
-                          </h2>
-                          {isLoadingHistorical ? (
-                            <LoadingSkeleton />
-                          ) : historicalFixtures.length === 0 ? (
-                            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                              <p className="text-yellow-800 dark:text-yellow-200">
-                                No data available for {selectedSeason}.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="season-stats-layout">
-                              <div className="season-stats-layout__stats">
-                                {historicalSeasonStats && (
-                                  <SeasonStatsCompact
-                                    stats={historicalSeasonStats}
-                                    title="Statistics"
-                                  />
-                                )}
-                              </div>
-                              <div className="season-stats-layout__results">
-                                <ClubMatchResults
-                                  fixtures={historicalFixtures}
-                                  clubName={selectedClub}
-                                  maxMatchweek={currentMatchweek}
-                                  seasonLabel={selectedSeason}
-                                  clubColor={selectedClubColor}
+                      <div className="mb-8">
+                        <h2 className="text-lg sm:text-xl font-semibold mb-4">
+                          {selectedSeason} Season (first {currentMatchweek} matchweeks)
+                        </h2>
+                        {isLoadingHistorical ? (
+                          <LoadingSkeleton />
+                        ) : historicalFixtures.length === 0 ? (
+                          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                            <p className="text-yellow-800 dark:text-yellow-200">
+                              No data available for {selectedSeason}.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="season-stats-layout">
+                            <div className="season-stats-layout__stats">
+                              {historicalSeasonStats && (
+                                <SeasonStatsCompact
+                                  stats={historicalSeasonStats}
+                                  title="Statistics"
                                 />
-                              </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </PageSectionReveal>
+                            <div className="season-stats-layout__results">
+                              <ClubMatchResults
+                                fixtures={historicalFixtures}
+                                clubName={selectedClub}
+                                maxMatchweek={currentMatchweek}
+                                seasonLabel={selectedSeason}
+                                clubColor={selectedClubColor}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <EmptyState
                         title="Select a Season"
@@ -227,18 +215,15 @@ export function CompareSeasonClient() {
 
                     {/* Comparison Summary */}
                     {currentSeasonStats && historicalSeasonStats && (
-                      <PageSectionReveal delay={900}>
-                        <ComparisonSummary
-                          current={currentSeasonStats}
-                          historical={historicalSeasonStats}
-                          clubName={selectedClub}
-                        />
-                      </PageSectionReveal>
+                      <ComparisonSummary
+                        current={currentSeasonStats}
+                        historical={historicalSeasonStats}
+                        clubName={selectedClub}
+                      />
                     )}
                   </>
                 )}
-              </div>
-            </PageSectionReveal>
+            </div>
           )}
         </>
       )}

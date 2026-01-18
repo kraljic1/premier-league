@@ -337,15 +337,6 @@ body {
   background-color: rgb(30, 41, 59);
 }
 
-.match-countdown__time-unit {
-  background-color: rgb(71, 85, 105);
-  color: white;
-}
-
-.dark .match-countdown__time-unit {
-  background-color: rgb(51, 65, 85);
-}
-
 /* Compare Page */
 .compare-page {
   padding: 1.5rem 0;
@@ -2337,164 +2328,6 @@ nextjs-portal:not(:empty) {
   animation: trophy-shine 0.8s ease;
 }
 
-/* Content Reveal Animations */
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-in-left {
-  0% {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-in-right {
-  0% {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scale-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slide-in-bottom {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Content Reveal Classes */
-.content-reveal {
-  opacity: 0;
-  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.content-reveal--fade-in {
-  animation: fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.content-reveal--slide-up {
-  animation: slide-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.content-reveal--slide-in-left {
-  animation: slide-in-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.content-reveal--slide-in-right {
-  animation: slide-in-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.content-reveal--scale-in {
-  animation: scale-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.content-reveal--slide-in-bottom {
-  animation: slide-in-bottom 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Staggered animations with delays */
-.content-reveal--stagger-1 { animation-delay: 0.1s; }
-.content-reveal--stagger-2 { animation-delay: 0.2s; }
-.content-reveal--stagger-3 { animation-delay: 0.3s; }
-.content-reveal--stagger-4 { animation-delay: 0.4s; }
-.content-reveal--stagger-5 { animation-delay: 0.5s; }
-.content-reveal--stagger-6 { animation-delay: 0.6s; }
-.content-reveal--stagger-7 { animation-delay: 0.7s; }
-.content-reveal--stagger-8 { animation-delay: 0.8s; }
-
-/* Page section animations */
-.page-section-reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.page-section-reveal--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.page-header-reveal {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.page-header-reveal--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.card-grid-reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-grid-reveal--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Individual card animations */
-.card-reveal {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card-reveal--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Staggered card animations */
-.card-reveal--delay-1 { transition-delay: 0.1s; }
-.card-reveal--delay-2 { transition-delay: 0.2s; }
-.card-reveal--delay-3 { transition-delay: 0.3s; }
-.card-reveal--delay-4 { transition-delay: 0.4s; }
-.card-reveal--delay-5 { transition-delay: 0.5s; }
-.card-reveal--delay-6 { transition-delay: 0.6s; }
 
 /* Enhanced Navigation */
 .nav-trophy {
@@ -2771,17 +2604,17 @@ nextjs-portal:not(:empty) {
   }
 }
 
+.club-selection-modal__fixed-top {
+  flex-shrink: 0;
+  background-color: var(--pl-bg-primary);
+}
+
 .club-selection-modal__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.5rem;
   border-bottom: 1px solid var(--pl-border-light);
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  background-color: var(--pl-bg-primary);
-  z-index: 10;
 }
 
 @media (max-width: 640px) {
@@ -2840,19 +2673,21 @@ nextjs-portal:not(:empty) {
   position: relative;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--pl-border-light);
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  background-color: var(--pl-bg-primary);
-  z-index: 9;
 }
 
 @media (max-width: 640px) {
   .club-selection-modal__search {
     padding: 1rem;
-    position: sticky;
-    top: 0;
   }
+}
+
+.club-selection-modal__scrollable {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .club-selection-modal__search-input {
@@ -2904,9 +2739,6 @@ nextjs-portal:not(:empty) {
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 0.75rem;
   padding: 1rem;
-  overflow-y: auto;
-  flex: 1;
-  min-height: 0;
 }
 
 @media (min-width: 640px) {
@@ -3706,6 +3538,69 @@ nextjs-portal:not(:empty) {
   color: var(--pl-text-inverse);
   opacity: 0.8;
   flex-shrink: 0;
+}
+
+.match-countdown__timer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.match-countdown__time-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 60px;
+  max-width: 80px;
+}
+
+.match-countdown__time-unit {
+  background-color: rgb(71, 85, 105);
+  color: white;
+  font-size: 1.875rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  min-width: 60px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.dark .match-countdown__time-unit {
+  background-color: rgb(51, 65, 85);
+}
+
+.match-countdown__time-label {
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  opacity: 0.8;
+  color: var(--pl-text-inverse);
+}
+
+@media (max-width: 400px) {
+  .match-countdown__timer {
+    gap: 0.5rem;
+  }
+
+  .match-countdown__time-box {
+    min-width: 50px;
+    max-width: 70px;
+  }
+
+  .match-countdown__time-unit {
+    font-size: 1.5rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 50px;
+  }
+
+  .match-countdown__time-label {
+    font-size: 0.65rem;
+  }
 }
 
 /* Standings Table - Column Widths and Alignment */

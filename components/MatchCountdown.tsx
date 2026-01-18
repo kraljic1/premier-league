@@ -83,7 +83,7 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
           </div>
         </div>
       </div>
-      <div className="flex justify-center gap-4">
+      <div className="match-countdown__timer">
         <TimeUnit value={timeLeft.days} label="Days" />
         <TimeUnit value={timeLeft.hours} label="Hours" />
         <TimeUnit value={timeLeft.minutes} label="Minutes" />
@@ -95,11 +95,11 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
 
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="match-countdown__time-unit text-3xl font-bold px-4 py-2 rounded-lg min-w-[60px]">
+    <div className="match-countdown__time-box">
+      <div className="match-countdown__time-unit">
         {String(value).padStart(2, "0")}
       </div>
-      <div className="text-xs mt-1 opacity-80">{label}</div>
+      <div className="match-countdown__time-label">{label}</div>
     </div>
   );
 }
