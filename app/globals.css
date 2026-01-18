@@ -87,6 +87,51 @@ body {
   }
 }
 
+/* Mobile compact spacing for match grids */
+@media (max-width: 640px) {
+  .space-y-8 > * + * {
+    margin-top: 1.25rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .gap-4 {
+    gap: 0.625rem;
+  }
+  
+  /* Compact matchweek headers on mobile */
+  .text-xl.font-semibold,
+  .text-2xl.font-semibold {
+    font-size: 1rem;
+    margin-bottom: 0.625rem;
+  }
+  
+  h2.text-xl,
+  h2.text-2xl {
+    font-size: 1rem;
+    margin-bottom: 0.625rem;
+  }
+  
+  /* Compact grid for match cards */
+  .grid.gap-4 {
+    gap: 0.5rem;
+  }
+  
+  /* Compact page container */
+  .max-w-7xl {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Make two columns on mobile for match cards */
+  .grid.md\:grid-cols-2.lg\:grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+}
+
 /* Premier League Typography Scale */
 .pl-heading-xl {
   font-size: 2.5rem;
@@ -209,6 +254,12 @@ body {
   grid-template-columns: 1fr;
   gap: 1rem;
   width: 100%;
+}
+
+@media (max-width: 640px) {
+  .formation-4-3-3 {
+    gap: 0.5rem;
+  }
 }
 
 @media (min-width: 640px) {
@@ -378,6 +429,13 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
 
+@media (max-width: 640px) {
+  .compare-page__grid {
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (min-width: 768px) {
   .compare-page__grid {
     grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -507,8 +565,17 @@ body {
 
 @media (max-width: 640px) {
   .match-card {
-    min-height: 180px;
+    min-height: 140px;
     border-radius: 8px;
+    padding: 0.75rem !important;
+  }
+  
+  .match-card .text-sm {
+    font-size: 0.6875rem;
+  }
+  
+  .match-card .text-lg {
+    font-size: 0.9375rem;
   }
 }
 
@@ -576,12 +643,27 @@ body {
 
 @media (max-width: 640px) {
   .club-fixture-card__header {
-    padding: 1rem;
-    font-size: 1rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
   }
 
   .club-fixture-card__content {
-    padding: 1rem;
+    padding: 0.625rem;
+  }
+  
+  .club-fixture-card__matches {
+    gap: 0.5rem;
+  }
+  
+  .club-fixture-card__club-name {
+    font-size: 0.875rem;
+  }
+  
+  .club-fixture-card__club-name .club-logo__image {
+    max-width: 22px;
+    max-height: 22px;
+    width: 22px !important;
+    height: 22px !important;
   }
 }
 
@@ -647,6 +729,60 @@ body {
   border-radius: 0.5rem;
   border-left: 3px solid #37003c;
   transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .match-item {
+    padding: 0.5rem 0.625rem;
+    border-left-width: 2px;
+    border-radius: 0.375rem;
+  }
+  
+  .match-item__header {
+    margin-bottom: 0.375rem;
+  }
+  
+  .match-item__date {
+    font-size: 0.625rem;
+  }
+  
+  .match-item__matchweek {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+  
+  .match-item__vs {
+    font-size: 0.75rem;
+  }
+  
+  .match-item__opponent {
+    font-size: 0.8125rem;
+  }
+  
+  .match-item__venue {
+    font-size: 0.625rem;
+    padding: 0.0625rem 0.25rem;
+  }
+  
+  .match-item__score {
+    font-size: 0.875rem;
+    margin-top: 0.125rem;
+  }
+  
+  .match-item__opponent .club-logo__image {
+    max-width: 14px;
+    max-height: 14px;
+    width: 14px !important;
+    height: 14px !important;
+  }
+  
+  .match-item__teams {
+    gap: 0.25rem;
+  }
+  
+  .match-item__team-info {
+    gap: 0.375rem;
+  }
 }
 
 .dark .match-item {
@@ -1248,11 +1384,24 @@ nextjs-portal:not(:empty) {
   background-color: rgb(51, 65, 85);
 }
 
+@media (max-width: 640px) {
+  .club-match-results__title {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
 .club-match-results__table-container {
   max-height: 400px;
   overflow-y: auto;
   overflow-x: auto;
   width: 100%;
+}
+
+@media (max-width: 640px) {
+  .club-match-results__table-container {
+    max-height: 300px;
+  }
 }
 
 .club-match-results__table {
@@ -1510,6 +1659,27 @@ nextjs-portal:not(:empty) {
   font-size: 1.25rem;
   font-weight: 700;
   color: hsl(var(--foreground));
+}
+
+/* Mobile compact season stats */
+@media (max-width: 640px) {
+  .season-stats-compact__title {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .season-stats-compact__item {
+    padding: 0.5rem;
+  }
+  
+  .season-stats-compact__label {
+    font-size: 0.5625rem;
+    margin-bottom: 0.125rem;
+  }
+  
+  .season-stats-compact__value {
+    font-size: 1rem;
+  }
 }
 
 /* Compare Season Page - Controls Layout */
@@ -1921,11 +2091,24 @@ nextjs-portal:not(:empty) {
   padding: 1.5rem;
 }
 
+@media (max-width: 640px) {
+  .two-clubs-comparison__content {
+    padding: 0.75rem;
+  }
+}
+
 .two-clubs-comparison__stats {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr;
   margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .two-clubs-comparison__stats {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
 }
 
 @media (min-width: 768px) {
@@ -1974,6 +2157,15 @@ nextjs-portal:not(:empty) {
   padding: 1rem;
   background-color: rgb(243, 244, 246);
   border-radius: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .two-clubs-comparison__bar-comparison {
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+    padding: 0.625rem;
+    border-radius: 0.5rem;
+  }
 }
 
 .dark .two-clubs-comparison__bar-comparison {
@@ -2084,6 +2276,13 @@ nextjs-portal:not(:empty) {
   padding: 1rem;
 }
 
+@media (max-width: 640px) {
+  .head-to-head {
+    padding: 0.625rem;
+    border-radius: 0.5rem;
+  }
+}
+
 .dark .head-to-head {
   background-color: rgb(51, 65, 85);
 }
@@ -2093,6 +2292,17 @@ nextjs-portal:not(:empty) {
   font-size: 1rem;
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+@media (max-width: 640px) {
+  .head-to-head__title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+  }
+  
+  .head-to-head__matches {
+    gap: 0.375rem;
+  }
 }
 
 .head-to-head__no-matches {
@@ -3475,6 +3685,53 @@ nextjs-portal:not(:empty) {
   justify-content: flex-start;
 }
 
+/* Mobile compact fixture cards */
+@media (max-width: 640px) {
+  .fixture-card__teams {
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+    min-height: 80px;
+  }
+  
+  .fixture-card__team {
+    gap: 0.25rem;
+  }
+  
+  .fixture-card__logo-wrapper {
+    min-height: 28px;
+  }
+  
+  .fixture-card__logo {
+    width: 28px;
+    height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+  }
+  
+  .fixture-card__team-name {
+    font-size: 0.6875rem;
+    min-height: 1.8em;
+    line-height: 1.15;
+  }
+  
+  .fixture-card__vs {
+    font-size: 0.6875rem;
+  }
+  
+  .fixture-card__logo-placeholder {
+    width: 28px;
+    height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+    font-size: 0.75rem;
+  }
+  
+  .fixture-card__footer {
+    margin-top: 0.375rem;
+    min-height: 40px;
+  }
+}
+
 /* Match Countdown - Consistent Logo and Name Positioning */
 .match-countdown__header {
   display: flex;
@@ -3840,6 +4097,28 @@ nextjs-portal:not(:empty) {
   font-weight: 700;
   font-size: 1.25rem;
   flex-shrink: 0;
+}
+
+/* Mobile compact club match results logos */
+@media (max-width: 640px) {
+  .club-match-results__team-cell {
+    gap: 0.25rem;
+  }
+  
+  .club-match-results__team-logo {
+    width: 24px;
+    height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+  }
+  
+  .club-match-results__team-logo-placeholder {
+    width: 24px;
+    height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+    font-size: 0.625rem;
+  }
 }
 
 /* Comparison Summary - Club Logo */
