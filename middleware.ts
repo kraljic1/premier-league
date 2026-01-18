@@ -4,6 +4,8 @@ import { checkRateLimit } from '@/lib/security';
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
+  'https://premierleaguematches.com',
+  'https://www.premierleaguematches.com',
   'https://plmatches.netlify.app',
   'https://plmatches-staging.netlify.app',
   process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : null,
