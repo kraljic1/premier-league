@@ -11,7 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getCurrentMatchweek } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
 import { SafeImage } from "@/components/SafeImage";
@@ -67,33 +67,28 @@ function getNextMatch(fixtures: Fixture[], myClubs: string[]): Fixture | null {
   );
 }
 
-function getTodayFixtures(fixtures: Fixture[]): Fixture[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  return fixtures.filter((f) => {
-    const matchDate = new Date(f.date);
-    return matchDate >= today && matchDate < tomorrow;
-  });
+/**
+ * Gets fixtures from the current matchweek.
+ * Current matchweek is determined by the highest matchweek with finished matches.
+ */
+function getCurrentMatchweekFixtures(fixtures: Fixture[], currentMatchweek: number): Fixture[] {
+  if (currentMatchweek === 0) {
+    // No matches finished yet, show matchweek 1
+    return fixtures.filter((f) => f.matchweek === 1);
+  }
+  return fixtures.filter((f) => f.matchweek === currentMatchweek);
 }
 
-function getWeekendFixtures(fixtures: Fixture[]): Fixture[] {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const daysUntilSaturday = dayOfWeek === 0 ? 6 : 6 - dayOfWeek;
-  const saturday = new Date(now);
-  saturday.setDate(now.getDate() + daysUntilSaturday);
-  saturday.setHours(0, 0, 0, 0);
-  const monday = new Date(saturday);
-  monday.setDate(saturday.getDate() + 2);
-  monday.setHours(23, 59, 59, 999);
-
-  return fixtures.filter((f) => {
-    const matchDate = new Date(f.date);
-    return matchDate >= saturday && matchDate <= monday;
-  });
+/**
+ * Gets fixtures from the next matchweek.
+ */
+function getNextMatchweekFixtures(fixtures: Fixture[], currentMatchweek: number): Fixture[] {
+  const nextMatchweek = currentMatchweek === 0 ? 2 : currentMatchweek + 1;
+  // Cap at 38 (max matchweeks in a season)
+  if (nextMatchweek > 38) {
+    return [];
+  }
+  return fixtures.filter((f) => f.matchweek === nextMatchweek);
 }
 
 export default function HomePage() {
@@ -128,8 +123,11 @@ export default function HomePage() {
   // Use empty array during SSR/before mount to prevent mismatch
   const safeMyClubs = mounted ? myClubs : [];
   const nextMatch = getNextMatch(fixtures, safeMyClubs);
-  const todayFixtures = getTodayFixtures(fixtures);
-  const weekendFixtures = getWeekendFixtures(fixtures);
+  
+  // Calculate current matchweek
+  const currentMatchweek = getCurrentMatchweek(fixtures);
+  const currentMatchweekFixtures = getCurrentMatchweekFixtures(fixtures, currentMatchweek);
+  const nextMatchweekFixtures = getNextMatchweekFixtures(fixtures, currentMatchweek);
 
   return (
     <ErrorBoundary>
@@ -171,12 +169,14 @@ export default function HomePage() {
               </PageSectionReveal>
             )}
 
-            {todayFixtures.length > 0 && (
+            {currentMatchweekFixtures.length > 0 && (
               <PageSectionReveal delay={400}>
                 <div className="pl-space-lg">
-                  <h2 className="pl-heading-md mb-4 goal-underline">Today&apos;s Fixtures</h2>
+                  <h2 className="pl-heading-md mb-4 goal-underline">
+                    Match week {currentMatchweek === 0 ? 1 : currentMatchweek}
+                  </h2>
                   <CardGridReveal className="formation-4-3-3">
-                    {todayFixtures.map((fixture) => (
+                    {currentMatchweekFixtures.map((fixture) => (
                       <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
                     ))}
                   </CardGridReveal>
@@ -184,12 +184,12 @@ export default function HomePage() {
               </PageSectionReveal>
             )}
 
-            {weekendFixtures.length > 0 && (
+            {nextMatchweekFixtures.length > 0 && (
               <PageSectionReveal delay={600}>
                 <div className="pl-space-lg">
-                  <h2 className="pl-heading-md mb-4 goal-underline">Weekend Fixtures</h2>
+                  <h2 className="pl-heading-md mb-4 goal-underline">Next match week</h2>
                   <CardGridReveal className="formation-4-3-3">
-                    {weekendFixtures.map((fixture) => (
+                    {nextMatchweekFixtures.map((fixture) => (
                       <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
                     ))}
                   </CardGridReveal>

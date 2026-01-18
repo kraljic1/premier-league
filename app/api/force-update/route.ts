@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { supabaseServer } from "@/lib/supabase";
-import { scrapeFixturesFromOneFootball, scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
-import { scrapeStandings } from "@/lib/scrapers/standings";
+import { 
+  scrapeFixturesFromOneFootball, 
+  scrapeResultsFromOneFootball,
+  scrapeStandingsFromOneFootball 
+} from "@/lib/scrapers/onefootball-fixtures";
 import { Fixture, Standing } from "@/lib/types";
 import {
   logApiRequest,
@@ -74,11 +77,12 @@ export async function POST(request: NextRequest) {
     
     console.log("[ForceUpdate] Starting forced data refresh...");
     
-    // Scrape all data in parallel
+    // Scrape all data in parallel using HTTP-based scrapers (no Puppeteer)
+    // This is more reliable in serverless environments
     const [fixturesResult, resultsResult, standingsResult] = await Promise.allSettled([
       scrapeFixturesFromOneFootball(),
       scrapeResultsFromOneFootball(),
-      scrapeStandings(),
+      scrapeStandingsFromOneFootball(),
     ]);
     
     let fixturesCount = 0;
