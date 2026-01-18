@@ -31,7 +31,9 @@ export function FixturesResultsList({
             className="scroll-mt-20"
             id={`matchweek-${matchweek}`}
             ref={(element) => {
-              matchweekRefs.current[parseInt(matchweek)] = element;
+              if (matchweekRefs.current) {
+                matchweekRefs.current[parseInt(matchweek)] = element;
+              }
             }}
           >
             <h2 className="text-xl sm:text-2xl font-semibold mb-4">
