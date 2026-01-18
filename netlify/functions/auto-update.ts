@@ -98,16 +98,39 @@ async function getMatchesToUpdate(): Promise<ScheduledMatch[]> {
     });
     
     // Get full match details from fixtures table
-    // FIX: Don't filter by status - we want to update regardless of current status
-    // This ensures we catch matches even if a partial update changed the status
-    const matchIds = scheduledUpdates.map(s => s.match_id);
-    const { data: fixtures } = await supabase
-      .from("fixtures")
-      .select("id, date, home_team, away_team, status")
-      .in("id", matchIds);
+    // FIX: scheduled_updates.match_id includes suffixes (primary/secondary/final),
+    // so we match by date + team names instead of fixture id.
+    const fixturesToUpdate: ScheduledMatch[] = [];
+    const seenFixtureIds = new Set<string>();
+    
+    for (const scheduled of scheduledUpdates) {
+      const dateOnly = new Date(scheduled.match_start).toISOString().split("T")[0];
+      const dateStart = `${dateOnly}T00:00:00.000Z`;
+      const dateEnd = `${dateOnly}T23:59:59.999Z`;
+      
+      const { data: fixtures } = await supabase
+        .from("fixtures")
+        .select("id, date, home_team, away_team, status")
+        .gte("date", dateStart)
+        .lte("date", dateEnd);
+      
+      const normalizedHome = normalizeTeamName(scheduled.home_team);
+      const normalizedAway = normalizeTeamName(scheduled.away_team);
+      
+      const matchingFixture = (fixtures || []).find((fixture) => {
+        const dbHome = normalizeTeamName(fixture.home_team);
+        const dbAway = normalizeTeamName(fixture.away_team);
+        return dbHome === normalizedHome && dbAway === normalizedAway;
+      });
+      
+      if (matchingFixture && !seenFixtureIds.has(matchingFixture.id)) {
+        fixturesToUpdate.push(matchingFixture);
+        seenFixtureIds.add(matchingFixture.id);
+      }
+    }
     
     // Return all matches, we'll update them with results regardless of current status
-    return fixtures || [];
+    return fixturesToUpdate;
   }
   
   // Fallback: If scheduled_updates table doesn't exist or is empty, use old method
@@ -676,6 +699,38 @@ function shouldDoLateNightSweep(): boolean {
   return hour >= 22 || hour <= 2;
 }
 
+/**
+ * Check if we should do a daily catch-up sweep (between 03:00 and 05:00 UTC)
+ * Uses cache_metadata to ensure we only run once per day
+ */
+async function shouldDoDailyCatchUp(): Promise<boolean> {
+  const now = new Date();
+  const hour = now.getUTCHours();
+  
+  if (hour < 3 || hour > 5) return false;
+  
+  const { data } = await supabase
+    .from("cache_metadata")
+    .select("last_updated")
+    .eq("key", "daily_catchup")
+    .maybeSingle();
+  
+  if (!data?.last_updated) return true;
+  
+  const lastUpdated = new Date(data.last_updated);
+  return now.getTime() - lastUpdated.getTime() > 20 * 60 * 60 * 1000;
+}
+
+async function markDailyCatchUp() {
+  await supabase
+    .from("cache_metadata")
+    .upsert({
+      key: "daily_catchup",
+      last_updated: new Date().toISOString(),
+      data_count: 0,
+    }, { onConflict: "key" });
+}
+
 // Schedule: Run every 5 minutes - but ONLY does work when matches finish
 // Uses fixtures calendar: checks fixtures table first, exits immediately if no matches
 // This is efficient because:
@@ -730,7 +785,17 @@ export const handler = schedule("*/5 * * * *", async (event, context) => {
       }
     }
 
+    // Step 1d: Daily catch-up sweep - once per day after matchday
+    let forceDailyCatchUp = false;
     if (matchesToUpdate.length === 0 && !forceLateNightUpdate) {
+      const shouldCatchUp = await shouldDoDailyCatchUp();
+      if (shouldCatchUp) {
+        console.log("[AutoUpdate] Daily catch-up sweep: forcing update check");
+        forceDailyCatchUp = true;
+      }
+    }
+    
+    if (matchesToUpdate.length === 0 && !forceLateNightUpdate && !forceDailyCatchUp) {
       // Show upcoming matches for visibility
       await getUpcomingMatches();
       
@@ -758,6 +823,8 @@ export const handler = schedule("*/5 * * * *", async (event, context) => {
       });
     } else if (forceLateNightUpdate) {
       console.log(`[AutoUpdate] Running late-night sweep to ensure all results are captured`);
+    } else if (forceDailyCatchUp) {
+      console.log(`[AutoUpdate] Running daily catch-up sweep to ensure all results are captured`);
     }
 
     // Step 2: Fetch results from Rezultati.com
@@ -792,6 +859,10 @@ export const handler = schedule("*/5 * * * *", async (event, context) => {
     // This ensures standings are always in sync with results
     console.log("[AutoUpdate] Updating standings...");
     const standingsUpdated = await updateStandings();
+    
+    if (forceDailyCatchUp) {
+      await markDailyCatchUp();
+    }
 
     const duration = Math.round((Date.now() - startTime) / 1000);
 
