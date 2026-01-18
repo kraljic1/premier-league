@@ -282,9 +282,9 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
           continue;
         }
         
-        // Create fixture ID
+        // Create fixture ID (without matchweek to ensure fixtures and results match)
         const dateOnly = parsedDate.toISOString().split('T')[0];
-        const fixtureId = `${cleanHomeTeam.toLowerCase().replace(/\s+/g, '-')}-${cleanAwayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}-${matchweek}`;
+        const fixtureId = `${cleanHomeTeam.toLowerCase().replace(/\s+/g, '-')}-${cleanAwayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}`;
         
         if (seenIds.has(fixtureId)) {
           continue;

@@ -298,9 +298,9 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
           homeTeam = homeTeam.trim().replace(/\s+/g, ' ');
           awayTeam = awayTeam.trim().replace(/\s+/g, ' ');
 
-          // Create fixture ID
+          // Create fixture ID (without matchweek to ensure fixtures and results match)
           var dateOnly = parsedDate.toISOString().split('T')[0];
-          var fixtureId = homeTeam.toLowerCase().replace(/\s+/g, '-') + '-' + awayTeam.toLowerCase().replace(/\s+/g, '-') + '-' + dateOnly + '-' + matchweek;
+          var fixtureId = homeTeam.toLowerCase().replace(/\s+/g, '-') + '-' + awayTeam.toLowerCase().replace(/\s+/g, '-') + '-' + dateOnly;
 
           if (seenFixtureIds.has(fixtureId)) {
             continue;
@@ -371,7 +371,7 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
       }
       
       const dateOnly = date.toISOString().split('T')[0];
-      const fixtureId = `${result.homeTeam.toLowerCase().replace(/\s+/g, '-')}-${result.awayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}-${matchweek}`;
+      const fixtureId = `${result.homeTeam.toLowerCase().replace(/\s+/g, '-')}-${result.awayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}`;
       
       if (seenIds.has(fixtureId)) continue;
       seenIds.add(fixtureId);

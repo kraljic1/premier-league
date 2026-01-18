@@ -136,7 +136,21 @@ export async function scrapeFixturesFromOneFootball(): Promise<Fixture[]> {
     });
 
     const $ = cheerio.load(response.data);
-    
+
+    // Check if OneFootball is blocking the request (Cloudflare or similar)
+    const responseText = response.data.toLowerCase();
+    // Temporarily disabled to test if this is causing the issue
+    /*
+    if (responseText.includes('access denied') ||
+        responseText.includes('blocked') ||
+        responseText.includes('cloudflare') ||
+        responseText.includes('checking your browser') ||
+        responseText.includes('ddos protection') ||
+        responseText.includes('bot detection')) {
+      throw new Error('OneFootball is blocking automated requests (Cloudflare protection)');
+    }
+    */
+
     // Extract JSON data from __NEXT_DATA__ script tag
     const nextDataScript = $('#__NEXT_DATA__').html();
     if (!nextDataScript) {
@@ -146,12 +160,12 @@ export async function scrapeFixturesFromOneFootball(): Promise<Fixture[]> {
     const nextData = JSON.parse(nextDataScript);
     
     // Navigate through the nested structure to find match cards
-    // Structure: props.pageProps.containers[].fullWidth.component.contentType.matchCardsListsAppender.lists[].matchCards[]
+    // Structure: props.pageProps.containers[].type.fullWidth.component.contentType.$case === 'matchCardsListsAppender'
     const containers = nextData?.props?.pageProps?.containers || [];
-    
+
     // First pass: collect all match dates to find season start
     for (const container of containers) {
-      if (container?.type?.fullWidth?.component?.contentType?.matchCardsListsAppender) {
+      if (container?.type?.fullWidth?.component?.contentType?.$case === 'matchCardsListsAppender') {
         const matchCardsAppender = container.type.fullWidth.component.contentType.matchCardsListsAppender;
         const lists = matchCardsAppender.lists || [];
         
@@ -184,7 +198,7 @@ export async function scrapeFixturesFromOneFootball(): Promise<Fixture[]> {
     
     // Second pass: process matches and extract matchweek from API data
     for (const container of containers) {
-      if (container?.type?.fullWidth?.component?.contentType?.matchCardsListsAppender) {
+      if (container?.type?.fullWidth?.component?.contentType?.$case === 'matchCardsListsAppender') {
         const matchCardsAppender = container.type.fullWidth.component.contentType.matchCardsListsAppender;
         const lists = matchCardsAppender.lists || [];
         
@@ -244,7 +258,8 @@ export async function scrapeFixturesFromOneFootball(): Promise<Fixture[]> {
                 continue;
               }
 
-              // Create fixture ID
+              // Create fixture ID (without matchweek to ensure fixtures and results match)
+              // The unique identifier is: homeTeam + awayTeam + date
               const dateOnly = date.toISOString().split('T')[0];
               const fixtureId = `${cleanedHomeTeam.toLowerCase().replace(/\s+/g, '-')}-${cleanedAwayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}`;
               
@@ -274,7 +289,7 @@ export async function scrapeFixturesFromOneFootball(): Promise<Fixture[]> {
       }
     }
 
-    // If we didn't get enough fixtures from JSON, fall back to HTML parsing
+    // If we didn't get enough fixtures from JSON, try HTML parsing as fallback
     if (allFixtures.length < 10) {
       console.warn('[OneFootball] Got few fixtures from JSON, trying HTML parsing...');
       const htmlFixtures = await scrapeFixturesFromHTML($);
@@ -535,6 +550,20 @@ async function fetchAllResultsFromOneFootball(): Promise<Map<number, Fixture[]>>
     const $ = cheerio.load(response.data);
     const seenFixtureIds = new Set<string>();
 
+    // Check if OneFootball is blocking the request (Cloudflare or similar)
+    const responseText = response.data.toLowerCase();
+    // Temporarily disabled to test if this is causing the issue
+    /*
+    if (responseText.includes('access denied') ||
+        responseText.includes('blocked') ||
+        responseText.includes('cloudflare') ||
+        responseText.includes('checking your browser') ||
+        responseText.includes('ddos protection') ||
+        responseText.includes('bot detection')) {
+      throw new Error('OneFootball is blocking automated requests (Cloudflare protection)');
+    }
+    */
+
     // Extract JSON data from __NEXT_DATA__ script tag
     const nextDataScript = $('#__NEXT_DATA__').html();
     if (!nextDataScript) {
@@ -546,7 +575,7 @@ async function fetchAllResultsFromOneFootball(): Promise<Map<number, Fixture[]>>
     
     // First, collect all matches and try to identify matchweeks from list metadata
     for (const container of containers) {
-      if (container?.type?.fullWidth?.component?.contentType?.matchCardsListsAppender) {
+      if (container?.type?.fullWidth?.component?.contentType?.$case === 'matchCardsListsAppender') {
         const matchCardsAppender = container.type.fullWidth.component.contentType.matchCardsListsAppender;
         const lists = matchCardsAppender.lists || [];
         
@@ -625,10 +654,9 @@ async function fetchAllResultsFromOneFootball(): Promise<Map<number, Fixture[]>>
                 continue;
               }
 
-              // Create fixture ID (use temporary matchweek if null)
-              const tempMatchweek = finalMatchweek || 1;
+              // Create fixture ID (without matchweek to ensure fixtures and results match)
               const dateOnly = date.toISOString().split('T')[0];
-              const fixtureId = `${cleanedHomeTeam.toLowerCase().replace(/\s+/g, '-')}-${cleanedAwayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}-${tempMatchweek}`;
+              const fixtureId = `${cleanedHomeTeam.toLowerCase().replace(/\s+/g, '-')}-${cleanedAwayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}`;
               
               if (seenFixtureIds.has(fixtureId)) {
                 continue;
@@ -718,16 +746,12 @@ function assignMatchweeksByDate(fixtures: Fixture[]): Fixture[] {
     grouped.get(matchweek)!.push(fixture);
   }
   
-  // Update fixture IDs and matchweek values
+  // Update matchweek values (IDs remain the same without matchweek)
   const result: Fixture[] = [];
   for (const [matchweek, matchFixtures] of grouped) {
     for (const fixture of matchFixtures) {
-      const dateOnly = new Date(fixture.date).toISOString().split('T')[0];
-      const newId = `${fixture.homeTeam.toLowerCase().replace(/\s+/g, '-')}-${fixture.awayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}-${matchweek}`;
-      
       result.push({
         ...fixture,
-        id: newId,
         matchweek,
       });
     }

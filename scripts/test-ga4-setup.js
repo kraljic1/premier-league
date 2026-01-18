@@ -39,11 +39,11 @@ const gaComponentPath = path.join(process.cwd(), 'components', 'GoogleAnalytics.
 if (fs.existsSync(gaComponentPath)) {
   const gaContent = fs.readFileSync(gaComponentPath, 'utf-8');
   
-  // Check for gtag initialization
-  if (gaContent.includes('window.gtag')) {
-    console.log('   ✅ gtag initialization found');
+  // Check for nextjs-google-analytics import
+  if (gaContent.includes('nextjs-google-analytics')) {
+    console.log('   ✅ nextjs-google-analytics package found');
   } else {
-    console.log('   ❌ gtag initialization not found');
+    console.log('   ❌ nextjs-google-analytics package not found');
     hasErrors = true;
   }
   
@@ -55,11 +55,11 @@ if (fs.existsSync(gaComponentPath)) {
     hasWarnings = true;
   }
   
-  // Check for script loading
-  if (gaContent.includes('googletagmanager.com/gtag/js')) {
-    console.log('   ✅ GA4 script loading found');
+  // Check for NextJsGoogleAnalytics usage
+  if (gaContent.includes('NextJsGoogleAnalytics')) {
+    console.log('   ✅ NextJsGoogleAnalytics component usage found');
   } else {
-    console.log('   ❌ GA4 script loading not found');
+    console.log('   ❌ NextJsGoogleAnalytics component usage not found');
     hasErrors = true;
   }
 } else {

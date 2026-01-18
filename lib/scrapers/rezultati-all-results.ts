@@ -241,7 +241,7 @@ export async function scrapeAllResultsFromRezultati(): Promise<Fixture[]> {
       if (homeTeam.length < 3 || awayTeam.length < 3) continue;
       
       const dateOnly = parsedDate.toISOString().split('T')[0];
-      const fixtureId = `${homeTeam.toLowerCase().replace(/\s+/g, '-')}-${awayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}-${matchweek}`;
+      const fixtureId = `${homeTeam.toLowerCase().replace(/\s+/g, '-')}-${awayTeam.toLowerCase().replace(/\s+/g, '-')}-${dateOnly}`;
       
       if (seenIds.has(fixtureId)) continue;
       seenIds.add(fixtureId);

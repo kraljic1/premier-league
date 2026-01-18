@@ -102,7 +102,7 @@ async function fetchAllRemainingFixtures() {
 
     const dbFixtures = correctedFixtures.map(fixture => {
       const dateOnly = new Date(fixture.date).toISOString().split("T")[0];
-      const id = `${fixture.homeTeam.toLowerCase().replace(/\s+/g, "-")}-${fixture.awayTeam.toLowerCase().replace(/\s+/g, "-")}-${dateOnly}-${fixture.matchweek}`;
+      const id = `${fixture.homeTeam.toLowerCase().replace(/\s+/g, "-")}-${fixture.awayTeam.toLowerCase().replace(/\s+/g, "-")}-${dateOnly}`;
       
       return {
         id,

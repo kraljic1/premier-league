@@ -415,7 +415,7 @@ async function updateDatabase(results: MatchResult[]): Promise<number> {
   
   const dbResults = results.map(result => {
     const dateOnly = new Date(result.date).toISOString().split("T")[0];
-    const id = `${result.homeTeam.toLowerCase().replace(/\s+/g, "-")}-${result.awayTeam.toLowerCase().replace(/\s+/g, "-")}-${dateOnly}-${result.matchweek}`;
+    const id = `${result.homeTeam.toLowerCase().replace(/\s+/g, "-")}-${result.awayTeam.toLowerCase().replace(/\s+/g, "-")}-${dateOnly}`;
     
     return {
       id,

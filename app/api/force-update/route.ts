@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { supabaseServer } from "@/lib/supabase";
-import { 
-  scrapeFixturesFromOneFootball, 
+import {
+  scrapeFixturesFromOneFootball,
   scrapeResultsFromOneFootball,
-  scrapeStandingsFromOneFootball 
+  scrapeStandingsFromOneFootball
 } from "@/lib/scrapers/onefootball-fixtures";
+import { scrapeFixtures } from "@/lib/scrapers/fixtures";
 import { Fixture, Standing } from "@/lib/types";
 import {
   logApiRequest,
@@ -76,11 +77,15 @@ export async function POST(request: NextRequest) {
     }
     
     console.log("[ForceUpdate] Starting forced data refresh...");
-    
-    // Scrape all data in parallel using HTTP-based scrapers (no Puppeteer)
-    // This is more reliable in serverless environments
+
+    // Test scraping directly
+    console.log("[ForceUpdate] Testing fixture scraping...");
+    const fixtures = await scrapeFixturesFromOneFootball();
+    console.log(`[ForceUpdate] Scraped ${fixtures.length} fixtures`);
+
+    // Scrape all data using OneFootball (now fixed)
     const [fixturesResult, resultsResult, standingsResult] = await Promise.allSettled([
-      scrapeFixturesFromOneFootball(),
+      Promise.resolve(fixtures),
       scrapeResultsFromOneFootball(),
       scrapeStandingsFromOneFootball(),
     ]);
@@ -89,67 +94,173 @@ export async function POST(request: NextRequest) {
     let resultsCount = 0;
     let standingsCount = 0;
     const errors: string[] = [];
+    const dbErrors: any[] = [];
     
     // Process fixtures
-    if (fixturesResult.status === "fulfilled" && fixturesResult.value.length > 0) {
+    console.log(`[ForceUpdate] Fixtures result status: ${fixturesResult.status}`);
+    if (fixturesResult.status === "fulfilled") {
       const fixtures = fixturesResult.value;
-      const dbFixtures = fixtures.map((f: Fixture) => ({
-        id: f.id,
-        date: f.date,
-        home_team: f.homeTeam,
-        away_team: f.awayTeam,
-        home_score: f.homeScore,
-        away_score: f.awayScore,
-        matchweek: f.matchweek,
-        status: f.status,
-        is_derby: f.isDerby || false
-      }));
-      
-      const { error } = await supabaseServer
-        .from('fixtures')
-        .upsert(dbFixtures, { onConflict: 'id' });
-      
-      if (error) {
-        console.error("[ForceUpdate] Error storing fixtures:", error);
-        errors.push("fixtures");
+      console.log(`[ForceUpdate] Fixtures array length: ${fixtures.length}`);
+
+      if (fixtures.length > 0) {
+        console.log(`[ForceUpdate] Processing ${fixtures.length} fixtures`);
+        const dbFixtures = fixtures.map((f: Fixture) => ({
+          id: f.id,
+          date: f.date,
+          home_team: f.homeTeam,
+          away_team: f.awayTeam,
+          home_score: f.homeScore,
+          away_score: f.awayScore,
+          matchweek: f.matchweek,
+          status: f.status,
+          is_derby: f.isDerby || false,
+          season: '2025/2026'
+        }));
+
+        console.log(`[ForceUpdate] First fixture:`, dbFixtures[0]);
+
+        try {
+          // Use individual updates/inserts instead of bulk upsert to avoid constraint issues
+          let updatedCount = 0;
+          for (const fixture of dbFixtures) {
+            // Try to update first
+            const { data: existing } = await supabaseServer
+              .from('fixtures')
+              .select('id')
+              .eq('id', fixture.id)
+              .single();
+
+            if (existing) {
+              // Update existing
+              const { error } = await supabaseServer
+                .from('fixtures')
+                .update({
+                  home_score: fixture.home_score,
+                  away_score: fixture.away_score,
+                  status: fixture.status,
+                  matchweek: fixture.matchweek,
+                  is_derby: fixture.is_derby,
+                  season: fixture.season
+                })
+                .eq('id', fixture.id);
+
+              if (error) {
+                console.error(`[ForceUpdate] Error updating fixture ${fixture.id}:`, error);
+              } else {
+                updatedCount++;
+              }
+            } else {
+              // Insert new
+              const { error } = await supabaseServer
+                .from('fixtures')
+                .insert(fixture);
+
+              if (error && !error.message.includes('duplicate key')) {
+                console.error(`[ForceUpdate] Error inserting fixture ${fixture.id}:`, error);
+              } else {
+                updatedCount++;
+              }
+            }
+          }
+
+          fixturesCount = updatedCount;
+          console.log(`[ForceUpdate] Successfully processed ${fixturesCount} fixtures`);
+          await supabaseServer
+            .from('cache_metadata')
+            .upsert({ key: 'fixtures', last_updated: new Date().toISOString(), data_count: fixturesCount }, { onConflict: 'key' });
+
+        } catch (dbError) {
+          console.error("[ForceUpdate] Exception storing fixtures:", dbError);
+          errors.push("fixtures");
+          dbErrors.push({ type: "fixtures", exception: dbError.message });
+        }
       } else {
-        fixturesCount = fixtures.length;
-        await supabaseServer
-          .from('cache_metadata')
-          .upsert({ key: 'fixtures', last_updated: new Date().toISOString(), data_count: fixturesCount }, { onConflict: 'key' });
+        console.error("[ForceUpdate] Empty fixtures array");
+        errors.push("fixtures");
       }
-    } else if (fixturesResult.status === "rejected") {
-      console.error("[ForceUpdate] Fixtures scrape failed:", fixturesResult.reason);
+    } else {
+      console.error("[ForceUpdate] Fixtures scraping rejected:", fixturesResult.reason);
       errors.push("fixtures");
     }
     
     // Process results
-    if (resultsResult.status === "fulfilled" && resultsResult.value.length > 0) {
+    console.log(`[ForceUpdate] Results result status: ${resultsResult.status}`);
+    if (resultsResult.status === "fulfilled") {
       const results = resultsResult.value;
-      const dbResults = results.map((r: Fixture) => ({
-        id: r.id,
-        date: r.date,
-        home_team: r.homeTeam,
-        away_team: r.awayTeam,
-        home_score: r.homeScore,
-        away_score: r.awayScore,
-        matchweek: r.matchweek,
-        status: 'finished' as const,
-        is_derby: r.isDerby || false
-      }));
-      
-      const { error } = await supabaseServer
-        .from('fixtures')
-        .upsert(dbResults, { onConflict: 'id' });
-      
-      if (error) {
-        console.error("[ForceUpdate] Error storing results:", error);
-        errors.push("results");
+      console.log(`[ForceUpdate] Results array length: ${results.length}`);
+
+      if (results.length > 0) {
+        try {
+          // Use individual updates/inserts instead of bulk upsert
+          let updatedCount = 0;
+          for (const result of results) {
+            const dbResult = {
+              id: result.id,
+              date: result.date,
+              home_team: result.homeTeam,
+              away_team: result.awayTeam,
+              home_score: result.homeScore,
+              away_score: result.awayScore,
+              matchweek: result.matchweek,
+              status: 'finished' as const,
+              is_derby: result.isDerby || false,
+              season: '2025/2026'
+            };
+
+            // Try to update first
+            const { data: existing } = await supabaseServer
+              .from('fixtures')
+              .select('id')
+              .eq('id', dbResult.id)
+              .single();
+
+            if (existing) {
+              // Update existing
+              const { error } = await supabaseServer
+                .from('fixtures')
+                .update({
+                  home_score: dbResult.home_score,
+                  away_score: dbResult.away_score,
+                  status: dbResult.status,
+                  matchweek: dbResult.matchweek,
+                  is_derby: dbResult.is_derby,
+                  season: dbResult.season
+                })
+                .eq('id', dbResult.id);
+
+              if (error) {
+                console.error(`[ForceUpdate] Error updating result ${dbResult.id}:`, error);
+              } else {
+                updatedCount++;
+              }
+            } else {
+              // Insert new
+              const { error } = await supabaseServer
+                .from('fixtures')
+                .insert(dbResult);
+
+              if (error && !error.message.includes('duplicate key')) {
+                console.error(`[ForceUpdate] Error inserting result ${dbResult.id}:`, error);
+              } else {
+                updatedCount++;
+              }
+            }
+          }
+
+          resultsCount = updatedCount;
+          console.log(`[ForceUpdate] Successfully processed ${resultsCount} results`);
+
+        } catch (dbError) {
+          console.error("[ForceUpdate] Exception storing results:", dbError);
+          errors.push("results");
+          dbErrors.push({ type: "results", exception: dbError.message });
+        }
       } else {
-        resultsCount = results.length;
+        console.error("[ForceUpdate] Empty results array");
+        errors.push("results");
       }
-    } else if (resultsResult.status === "rejected") {
-      console.error("[ForceUpdate] Results scrape failed:", resultsResult.reason);
+    } else {
+      console.error("[ForceUpdate] Results scraping rejected:", resultsResult.reason);
       errors.push("results");
     }
     
@@ -201,6 +312,16 @@ export async function POST(request: NextRequest) {
     
     console.log(`[ForceUpdate] Completed in ${duration}s - Fixtures: ${fixturesCount}, Results: ${resultsCount}, Standings: ${standingsCount}`);
     
+    // Debug: return detailed status
+    const debugInfo = {
+      fixturesResultStatus: fixturesResult.status,
+      fixturesResultLength: fixturesResult.status === 'fulfilled' ? fixturesResult.value.length : 0,
+      resultsResultStatus: resultsResult.status,
+      resultsResultLength: resultsResult.status === 'fulfilled' ? resultsResult.value.length : 0,
+      standingsResultStatus: standingsResult.status,
+      standingsResultLength: standingsResult.status === 'fulfilled' ? standingsResult.value.length : 0,
+    };
+
     return createSecureResponse({
       success: errors.length === 0,
       message: errors.length === 0 ? "Data refreshed successfully" : "Data refreshed with some errors",

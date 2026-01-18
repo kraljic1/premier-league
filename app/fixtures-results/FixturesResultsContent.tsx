@@ -88,7 +88,20 @@ export default function FixturesResultsContent() {
   };
 
   // Get upcoming fixtures (not finished)
-  const upcomingFixtures = fixtures.filter(f => f.status !== "finished");
+  // Also exclude any fixture that appears in results (in case of cache mismatch)
+  // Check by both ID and team+date combination to handle ID format differences
+  const resultIds = new Set(results.map(r => r.id));
+  const resultKeys = new Set(results.map(r => 
+    `${r.homeTeam}-${r.awayTeam}-${r.date.split('T')[0]}`
+  ));
+  const upcomingFixtures = fixtures.filter(f => {
+    if (f.status === "finished") return false;
+    if (resultIds.has(f.id)) return false;
+    // Also check by team names and date in case IDs don't match
+    const fixtureKey = `${f.homeTeam}-${f.awayTeam}-${f.date.split('T')[0]}`;
+    if (resultKeys.has(fixtureKey)) return false;
+    return true;
+  });
 
   // Find the current matchweek (earliest upcoming fixture's matchweek)
   const currentMatchweek = upcomingFixtures.length > 0 

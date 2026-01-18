@@ -203,9 +203,9 @@ export async function scrapeFixtures(): Promise<Fixture[]> {
       
       // Add fixtures to collection
       for (const fixture of fixtures) {
-        // Use date-only for ID (extract YYYY-MM-DD from ISO string)
+        // Use date-only for ID (without matchweek to ensure fixtures and results match)
         const dateOnly = fixture.date.split('T')[0];
-        const fixtureId = `${fixture.homeTeam}-${fixture.awayTeam}-${dateOnly}-${fixture.matchweek}`;
+        const fixtureId = `${fixture.homeTeam}-${fixture.awayTeam}-${dateOnly}`;
         
         if (!seenFixtureIds.has(fixtureId)) {
           seenFixtureIds.add(fixtureId);
@@ -654,11 +654,10 @@ async function extractFixturesFromPage(page: any, matchweek: number): Promise<Fi
         }
       }
       
-      // Create unique ID
       // Create unique ID using only date (YYYY-MM-DD), not full timestamp
-      // This prevents duplicates when the same match is scraped at different times
+      // Without matchweek to ensure fixtures and results match when status changes
       const dateOnly = date.toISOString().split('T')[0]; // Get just YYYY-MM-DD
-      const fixtureId = `${fixtureData.homeTeam}-${fixtureData.awayTeam}-${dateOnly}-${fixtureData.matchweek}`;
+      const fixtureId = `${fixtureData.homeTeam}-${fixtureData.awayTeam}-${dateOnly}`;
       
       fixtures.push({
         id: fixtureId,
