@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { createPortal } from "react-dom";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "@/components/SafeImage";
@@ -33,6 +33,7 @@ export function ClubSelectionModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { clubs, isLoading } = useClubs();
+  const searchInputId = useId();
 
   // Ensure portal mounts only on client
   useEffect(() => {
@@ -149,8 +150,13 @@ export function ClubSelectionModal({
         </div>
 
         <div className="club-selection-modal__search">
+          <label htmlFor={searchInputId} className="sr-only">
+            Search clubs
+          </label>
           <input
             ref={searchInputRef}
+            id={searchInputId}
+            name="club-search"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

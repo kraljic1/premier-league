@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { SeasonSelectionModal } from "./SeasonSelectionModal";
 
 interface SeasonDropdownProps {
@@ -17,6 +17,8 @@ export function SeasonDropdown({
   label = "Select Season",
 }: SeasonDropdownProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const buttonId = useId();
+  const labelId = `${buttonId}-label`;
 
   const handleSeasonSelect = (season: string) => {
     onSelect(season);
@@ -24,11 +26,13 @@ export function SeasonDropdown({
 
   return (
     <div className="season-dropdown-container">
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <label id={labelId} className="block text-sm font-medium mb-1">{label}</label>
       <button
+        id={buttonId}
         type="button"
         onClick={() => setIsModalOpen(true)}
         className="season-dropdown__button"
+        aria-labelledby={labelId}
       >
         <span>{selectedSeason || "Select a season"}</span>
         <svg

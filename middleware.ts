@@ -95,6 +95,20 @@ export function middleware(request: NextRequest) {
   // CSP for API routes
   if (isApiRoute) {
     response.headers.set('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+  } else {
+    // CSP for HTML pages - allow Google Analytics
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.supabase.co",
+      "img-src 'self' data: https: blob:",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; ');
+    response.headers.set('Content-Security-Policy', cspDirectives);
   }
 
   return response;

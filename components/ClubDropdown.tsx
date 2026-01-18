@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "./SafeImage";
@@ -19,6 +19,8 @@ export function ClubDropdown({
 }: ClubDropdownProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { clubs } = useClubs();
+  const buttonId = useId();
+  const labelId = `${buttonId}-label`;
 
   const selectedClubData = selectedClub
     ? getClubByName(selectedClub)
@@ -41,11 +43,13 @@ export function ClubDropdown({
 
   return (
     <div className="club-dropdown-container">
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <label id={labelId} className="block text-sm font-medium mb-1">{label}</label>
       <button
+        id={buttonId}
         type="button"
         onClick={() => setIsModalOpen(true)}
         className="club-dropdown__button"
+        aria-labelledby={labelId}
       >
         <div className="flex items-center gap-2">
           {selectedClubData && logoUrl ? (

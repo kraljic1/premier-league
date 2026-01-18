@@ -1,15 +1,26 @@
 "use client";
 
+import { useId } from "react";
+
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  label?: string;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Search..." }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Search...", label }: SearchBarProps) {
+  const inputId = useId();
+  const displayLabel = label || "Search";
+
   return (
     <div className="relative">
+      <label htmlFor={inputId} className="sr-only">
+        {displayLabel}
+      </label>
       <input
+        id={inputId}
+        name="search"
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
