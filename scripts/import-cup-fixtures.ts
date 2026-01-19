@@ -240,7 +240,7 @@ async function importSource(source: typeof SOURCES[number], clubSet: Set<string>
     home_score: fixture.homeScore,
     away_score: fixture.awayScore,
     matchweek: fixture.roundNumber || 1,
-    status: fixture.homeScore !== null && fixture.awayScore !== null ? "finished" : "scheduled",
+    status: (fixture.homeScore !== null && fixture.awayScore !== null ? "finished" : "scheduled") as "scheduled" | "live" | "finished",
     is_derby: false,
     season,
     competition: source.competition,

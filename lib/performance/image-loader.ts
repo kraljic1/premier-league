@@ -4,7 +4,7 @@
  */
 
 export interface ImageSource {
-  src: string;
+  src?: string;
   srcset?: string;
   sizes?: string;
   type?: string;
