@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -51,6 +51,8 @@ async function fetchFixtures(): Promise<Fixture[]> {
   if (!res.ok) throw new Error("Failed to fetch fixtures");
   return res.json();
 }
+
+const PREMIER_LEAGUE_COMPETITION = "Premier League";
 
 function getNextMatch(fixtures: Fixture[], myClubs: string[]): Fixture | null {
   const now = new Date();
@@ -123,12 +125,24 @@ export default function HomePage() {
 
   // Use empty array during SSR/before mount to prevent mismatch
   const safeMyClubs = mounted ? myClubs : [];
-  const nextMatch = getNextMatch(fixtures, safeMyClubs);
-  
+  const premierLeagueFixtures = useMemo(
+    () =>
+      fixtures.filter(
+        (fixture) =>
+          (fixture.competition || PREMIER_LEAGUE_COMPETITION) === PREMIER_LEAGUE_COMPETITION
+      ),
+    [fixtures]
+  );
+
+  const nextMatch = getNextMatch(premierLeagueFixtures, safeMyClubs);
+
   // Calculate current matchweek
-  const currentMatchweek = getCurrentMatchweek(fixtures);
-  const currentMatchweekFixtures = getCurrentMatchweekFixtures(fixtures, currentMatchweek);
-  const nextMatchweekFixtures = getNextMatchweekFixtures(fixtures, currentMatchweek);
+  const currentMatchweek = getCurrentMatchweek(premierLeagueFixtures);
+  const currentMatchweekFixtures = getCurrentMatchweekFixtures(
+    premierLeagueFixtures,
+    currentMatchweek
+  );
+  const nextMatchweekFixtures = getNextMatchweekFixtures(premierLeagueFixtures, currentMatchweek);
 
   return (
     <ErrorBoundary>
@@ -153,7 +167,7 @@ export default function HomePage() {
             message="Failed to load fixtures. The scraper may need updating."
             onRetry={() => refetch()}
           />
-        ) : fixtures.length === 0 ? (
+        ) : premierLeagueFixtures.length === 0 ? (
           <EmptyState
             title="No Fixtures Available"
             message="Fixtures data is not available. This may be because the current season hasn't started yet, or the scraper needs to be updated with the correct CSS selectors."
