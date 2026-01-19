@@ -1,5 +1,19 @@
 import { Fixture } from "./types";
 
+const PREMIER_LEAGUE_COMPETITION = "Premier League";
+
+/**
+ * Filters fixtures to Premier League only.
+ * Accepts legacy rows where competition is missing and round is not set.
+ */
+export function filterPremierLeagueFixtures(fixtures: Fixture[]): Fixture[] {
+  return fixtures.filter((fixture) => {
+    if (fixture.competition === PREMIER_LEAGUE_COMPETITION) return true;
+    if (fixture.competition) return false;
+    return fixture.competitionRound === null || fixture.competitionRound === undefined;
+  });
+}
+
 /**
  * Calculates points for a club in a given range of matchweeks
  * Win = 3 points, Draw = 1 point, Loss = 0 points

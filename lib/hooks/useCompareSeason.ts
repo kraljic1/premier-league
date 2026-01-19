@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   calculatePointsForClub,
   getCurrentMatchweekFromFixtures,
+  filterPremierLeagueFixtures,
 } from "../utils-comparison";
 import {
   fetchCurrentSeasonFixtures,
@@ -57,8 +58,13 @@ export function useCompareSeason() {
   });
 
   const currentFixtures = useMemo(() => {
-    return filterCurrentSeasonFixtures(allFixtures);
+    const seasonFixtures = filterCurrentSeasonFixtures(allFixtures);
+    return filterPremierLeagueFixtures(seasonFixtures);
   }, [allFixtures]);
+
+  const filteredHistoricalFixtures = useMemo(() => {
+    return filterPremierLeagueFixtures(historicalFixtures);
+  }, [historicalFixtures]);
 
   const {
     data: historicalFixtures = [],
@@ -102,11 +108,11 @@ export function useCompareSeason() {
   }, [selectedClub, currentFixtures, currentMatchweek]);
 
   const historicalSeasonStats = useMemo(() => {
-    if (!selectedClub || !selectedSeason || historicalFixtures.length === 0) {
+    if (!selectedClub || !selectedSeason || filteredHistoricalFixtures.length === 0) {
       return null;
     }
-    return calculatePointsForClub(historicalFixtures, selectedClub, currentMatchweek);
-  }, [selectedClub, selectedSeason, historicalFixtures, currentMatchweek]);
+    return calculatePointsForClub(filteredHistoricalFixtures, selectedClub, currentMatchweek);
+  }, [selectedClub, selectedSeason, filteredHistoricalFixtures, currentMatchweek]);
 
   const handleScrapeSeason = async () => {
     if (!selectedSeason) return;
@@ -142,7 +148,7 @@ export function useCompareSeason() {
     isScraping,
     scrapingError,
     currentFixtures,
-    historicalFixtures,
+    historicalFixtures: filteredHistoricalFixtures,
     isLoadingCurrent,
     isLoadingHistorical,
     isLoading: isLoadingCurrent || isLoadingHistorical,

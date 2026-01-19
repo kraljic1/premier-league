@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { calculatePointsForClub, getCurrentMatchweekFromFixtures } from "../utils-comparison";
+import {
+  calculatePointsForClub,
+  getCurrentMatchweekFromFixtures,
+  filterPremierLeagueFixtures,
+} from "../utils-comparison";
 import {
   fetchCurrentSeasonFixtures,
   fetchHistoricalSeason,
@@ -62,8 +66,17 @@ export function useCompareTwoClubs() {
 
   // Filter for current season only
   const currentSeasonFixtures = useMemo(() => {
-    return filterCurrentSeasonFixtures(allCurrentFixtures);
+    const seasonFixtures = filterCurrentSeasonFixtures(allCurrentFixtures);
+    return filterPremierLeagueFixtures(seasonFixtures);
   }, [allCurrentFixtures]);
+
+  const historicalFixturesAFiltered = useMemo(() => {
+    return filterPremierLeagueFixtures(historicalFixturesA);
+  }, [historicalFixturesA]);
+
+  const historicalFixturesBFiltered = useMemo(() => {
+    return filterPremierLeagueFixtures(historicalFixturesB);
+  }, [historicalFixturesB]);
 
   // Fetch historical season fixtures for Club A
   const {
@@ -105,13 +118,13 @@ export function useCompareTwoClubs() {
 
   // Get fixtures for Club A based on selected season
   const fixturesA = useMemo(() => {
-    return isCurrentSeasonA ? currentSeasonFixtures : historicalFixturesA;
-  }, [isCurrentSeasonA, currentSeasonFixtures, historicalFixturesA]);
+    return isCurrentSeasonA ? currentSeasonFixtures : historicalFixturesAFiltered;
+  }, [isCurrentSeasonA, currentSeasonFixtures, historicalFixturesAFiltered]);
 
   // Get fixtures for Club B based on selected season
   const fixturesB = useMemo(() => {
-    return isCurrentSeasonB ? currentSeasonFixtures : historicalFixturesB;
-  }, [isCurrentSeasonB, currentSeasonFixtures, historicalFixturesB]);
+    return isCurrentSeasonB ? currentSeasonFixtures : historicalFixturesBFiltered;
+  }, [isCurrentSeasonB, currentSeasonFixtures, historicalFixturesBFiltered]);
 
   // Calculate current matchweek from the current season fixtures
   const currentMatchweek = useMemo(() => {
@@ -160,13 +173,13 @@ export function useCompareTwoClubs() {
     const seasonB = isCurrentSeasonB ? getCurrentSeasonFull() : selectedSeasonB;
     if (seasonA !== seasonB) return [];
     
-    const fixtures = isCurrentSeasonA ? currentSeasonFixtures : historicalFixturesA;
+    const fixtures = isCurrentSeasonA ? currentSeasonFixtures : historicalFixturesAFiltered;
     if (fixtures.length === 0) return [];
     
     const allH2H = getFinishedHeadToHeadMatches(fixtures, clubA, clubB);
     const effectiveMatchweek = isCurrentSeasonA ? effectiveMatchweekA : effectiveMatchweekB;
     return allH2H.filter((f) => f.matchweek <= effectiveMatchweek);
-  }, [clubA, clubB, isCurrentSeasonA, isCurrentSeasonB, selectedSeasonA, selectedSeasonB, currentSeasonFixtures, historicalFixturesA, effectiveMatchweekA, effectiveMatchweekB]);
+  }, [clubA, clubB, isCurrentSeasonA, isCurrentSeasonB, selectedSeasonA, selectedSeasonB, currentSeasonFixtures, historicalFixturesAFiltered, effectiveMatchweekA, effectiveMatchweekB]);
 
   const headToHeadSummary = useMemo(() => {
     if (!clubA || !clubB) return null;
@@ -175,13 +188,13 @@ export function useCompareTwoClubs() {
     const seasonB = isCurrentSeasonB ? getCurrentSeasonFull() : selectedSeasonB;
     if (seasonA !== seasonB) return null;
     
-    const fixtures = isCurrentSeasonA ? currentSeasonFixtures : historicalFixturesA;
+    const fixtures = isCurrentSeasonA ? currentSeasonFixtures : historicalFixturesAFiltered;
     if (fixtures.length === 0) return null;
     
     const effectiveMatchweek = isCurrentSeasonA ? effectiveMatchweekA : effectiveMatchweekB;
     const filteredFixtures = fixtures.filter((f) => f.matchweek <= effectiveMatchweek);
     return calculateHeadToHead(filteredFixtures, clubA, clubB);
-  }, [clubA, clubB, isCurrentSeasonA, isCurrentSeasonB, selectedSeasonA, selectedSeasonB, currentSeasonFixtures, historicalFixturesA, effectiveMatchweekA, effectiveMatchweekB]);
+  }, [clubA, clubB, isCurrentSeasonA, isCurrentSeasonB, selectedSeasonA, selectedSeasonB, currentSeasonFixtures, historicalFixturesAFiltered, effectiveMatchweekA, effectiveMatchweekB]);
 
   const handleSeasonChangeA = (season: string | null) => {
     if (season === getCurrentSeasonFull()) {

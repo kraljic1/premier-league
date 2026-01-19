@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
       .select("*")
       .eq("season", season)
       .eq("status", "finished")
+      .or("competition.is.null,competition.eq.Premier League")
       .order("matchweek", { ascending: true })
       .order("date", { ascending: true });
 
@@ -100,6 +101,8 @@ export async function GET(request: NextRequest) {
       status: f.status,
       isDerby: f.is_derby || false,
       season: f.season,
+      competition: f.competition,
+      competitionRound: f.competition_round,
     }));
 
     // Return with no-cache headers to prevent any caching
