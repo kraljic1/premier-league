@@ -4,7 +4,10 @@ let browserInstance: Browser | null = null;
 
 export async function getBrowser(): Promise<Browser> {
   if (!browserInstance) {
-    browserInstance = await puppeteer.launch({
+    // Check if we're running on Netlify (production)
+    const isNetlify = process.env.NETLIFY || process.env.NETLIFY_URL;
+
+    const launchOptions: any = {
       headless: true,
       args: [
         "--no-sandbox",
@@ -15,7 +18,23 @@ export async function getBrowser(): Promise<Browser> {
         "--disable-blink-features=AutomationControlled", // Hide automation
         "--disable-features=IsolateOrigins,site-per-process",
       ],
-    });
+    };
+
+    // Use system Chromium on Netlify, download on local development
+    if (isNetlify) {
+      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium-browser";
+      console.log(`[Browser] Using system Chromium: ${launchOptions.executablePath}`);
+    } else {
+      console.log(`[Browser] Using downloaded Chromium`);
+    }
+
+    try {
+      browserInstance = await puppeteer.launch(launchOptions);
+      console.log(`[Browser] Browser launched successfully`);
+    } catch (error) {
+      console.error(`[Browser] Failed to launch browser:`, error);
+      throw error;
+    }
   }
   return browserInstance;
 }

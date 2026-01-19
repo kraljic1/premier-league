@@ -154,7 +154,35 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
 
   try {
     console.log('[ScraperAPI] Fetching recent results from Rezultati.com...');
+
+    // Test browser launch first
+    try {
+      const browser = await getBrowser();
+      console.log('[ScraperAPI] Browser is ready');
+    } catch (browserError) {
+      console.error('[ScraperAPI] Browser launch failed:', browserError);
+      throw new Error(`Browser initialization failed: ${browserError.message}`);
+    }
+
+    console.log(`[ScraperAPI] Loading URL: ${REZULTATI_URL}`);
     page = await scrapePage(REZULTATI_URL, undefined, 30000);
+    console.log('[ScraperAPI] Page loaded successfully');
+
+    // Check if page loaded correctly
+    const pageStatus = await page.evaluate(() => {
+      return {
+        url: window.location.href,
+        title: document.title,
+        status: document.readyState,
+        hasContent: document.body.textContent?.length > 1000
+      };
+    });
+
+    console.log('[ScraperAPI] Page status:', pageStatus);
+
+    if (!pageStatus.hasContent) {
+      throw new Error(`Page did not load properly: ${pageStatus.title} (${pageStatus.status})`);
+    }
 
     // Set viewport for proper rendering
     await page.setViewport({ width: 1920, height: 1080 });
@@ -173,6 +201,23 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
         console.log('[ScraperAPI] Found elements with alternative selector');
       } catch (e2) {
         console.log('[ScraperAPI] Could not find match elements - website may have changed');
+
+        // Debug: Check what elements are actually on the page
+        const pageContent = await page.evaluate(() => {
+          const allDivs = Array.from(document.querySelectorAll('div')).slice(0, 10);
+          const classes = allDivs.map(div => div.className).filter(cls => cls.includes('event') || cls.includes('match')).slice(0, 5);
+
+          return {
+            title: document.title,
+            bodyClasses: document.body.className,
+            firstFewEventClasses: classes,
+            hasEventMatch: document.querySelectorAll('.event__match').length,
+            hasEventHomeParticipant: document.querySelectorAll('.event__homeParticipant').length,
+            totalDivs: document.querySelectorAll('div').length
+          };
+        });
+
+        console.log('[ScraperAPI] Page debug info:', pageContent);
       }
     }
 
