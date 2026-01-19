@@ -11,6 +11,36 @@ interface FixturesResultsMatchCardProps {
   clubs: ClubsMap;
 }
 
+function normalizeClubName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/\b(fc|afc|cf|sc)\b/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function findClubEntryByName(clubs: ClubsMap, name: string) {
+  const clubList = Object.values(clubs);
+  const directMatch = clubList.find((club: any) => club.name === name);
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const normalizedName = normalizeClubName(name);
+  if (!normalizedName) {
+    return undefined;
+  }
+
+  return clubList.find((club: any) => {
+    const normalizedClubName = normalizeClubName(club.name || "");
+    return (
+      normalizedClubName === normalizedName ||
+      normalizedClubName.includes(normalizedName) ||
+      normalizedName.includes(normalizedClubName)
+    );
+  });
+}
+
 export function FixturesResultsMatchCard({
   fixture,
   isResult,
@@ -22,12 +52,8 @@ export function FixturesResultsMatchCard({
   const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
 
   // Get logo URLs with proper fallback chain
-  const homeClubEntry = Object.values(clubs).find(
-    (club: any) => club.name === fixture.homeTeam
-  );
-  const awayClubEntry = Object.values(clubs).find(
-    (club: any) => club.name === fixture.awayTeam
-  );
+  const homeClubEntry = findClubEntryByName(clubs, fixture.homeTeam);
+  const awayClubEntry = findClubEntryByName(clubs, fixture.awayTeam);
   const homeHardcodedClub = getClubByName(fixture.homeTeam);
   const awayHardcodedClub = getClubByName(fixture.awayTeam);
 
