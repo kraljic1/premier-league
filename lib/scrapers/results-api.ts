@@ -211,11 +211,13 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
 
         if (!el.classList.contains('event__match')) continue;
 
-        // Try multiple selector patterns
-        var homeEl = el.querySelector('.event__participant--home') ||
+        // Try multiple selector patterns (updated for current Rezultati.com structure)
+        var homeEl = el.querySelector('.event__homeParticipant') ||
+                     el.querySelector('.event__participant--home') ||
                      el.querySelector('[class*="homeParticipant"]') ||
                      el.querySelector('[class*="participant--home"]');
-        var awayEl = el.querySelector('.event__participant--away') ||
+        var awayEl = el.querySelector('.event__awayParticipant') ||
+                     el.querySelector('.event__participant--away') ||
                      el.querySelector('[class*="awayParticipant"]') ||
                      el.querySelector('[class*="participant--away"]');
         var homeScoreEl = el.querySelector('.event__score--home') ||

@@ -133,11 +133,13 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
         var el = elements[i];
         var text = el.textContent || '';
         
-        // Extract basic info - try multiple selectors
-        var homeEl = el.querySelector('.event__participant--home') || 
+        // Extract basic info - try multiple selectors (updated for current structure)
+        var homeEl = el.querySelector('.event__homeParticipant') ||
+                     el.querySelector('.event__participant--home') ||
                      el.querySelector('[class*="participant--home"]') ||
                      el.querySelector('[class*="home"]');
-        var awayEl = el.querySelector('.event__participant--away') || 
+        var awayEl = el.querySelector('.event__awayParticipant') ||
+                     el.querySelector('.event__participant--away') ||
                      el.querySelector('[class*="participant--away"]') ||
                      el.querySelector('[class*="away"]');
         var homeScoreEl = el.querySelector('.event__score--home') ||

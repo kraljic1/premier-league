@@ -163,9 +163,9 @@ export async function scrapeResultsFromRezultati(): Promise<Fixture[]> {
           var homeTeam = '';
           var awayTeam = '';
           
-          // Try FlashScore/Rezultati specific selectors
-          var homeTeamEl = element.querySelector('.event__participant--home, [class*="home"]');
-          var awayTeamEl = element.querySelector('.event__participant--away, [class*="away"]');
+          // Try FlashScore/Rezultati specific selectors (updated for current structure)
+          var homeTeamEl = element.querySelector('.event__homeParticipant, .event__participant--home, [class*="home"]');
+          var awayTeamEl = element.querySelector('.event__awayParticipant, .event__participant--away, [class*="away"]');
           
           if (homeTeamEl && awayTeamEl) {
             homeTeam = (homeTeamEl.textContent || '').trim();
