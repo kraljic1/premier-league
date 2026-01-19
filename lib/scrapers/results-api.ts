@@ -1,6 +1,6 @@
 import { Fixture } from '../types';
 import { isDerby } from '../clubs';
-import { scrapePage, closeBrowser } from './browser';
+import { scrapePage, closeBrowser, getBrowser } from './browser';
 
 const REZULTATI_URL = 'https://www.rezultati.com/nogomet/engleska/premier-league/rezultati';
 
@@ -161,7 +161,8 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
       console.log('[ScraperAPI] Browser is ready');
     } catch (browserError) {
       console.error('[ScraperAPI] Browser launch failed:', browserError);
-      throw new Error(`Browser initialization failed: ${browserError.message}`);
+      const errorMessage = browserError instanceof Error ? browserError.message : String(browserError);
+      throw new Error(`Browser initialization failed: ${errorMessage}`);
     }
 
     console.log(`[ScraperAPI] Loading URL: ${REZULTATI_URL}`);
