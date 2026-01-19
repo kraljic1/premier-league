@@ -8,6 +8,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
 
 # Function configuration for API routes
 [functions]
@@ -93,9 +94,6 @@
 
 # Environment variables (set these in Netlify dashboard)
 # Required for Puppeteer on Netlify:
-# - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
+# - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false (set above)
 # - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-[build.environment]
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
 
