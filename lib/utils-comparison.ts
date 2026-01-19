@@ -1,4 +1,5 @@
 import { Fixture } from "./types";
+import { normalizeClubName } from "./utils/club-name-utils";
 
 const PREMIER_LEAGUE_COMPETITION = "Premier League";
 
@@ -63,9 +64,11 @@ export function calculatePointsForClubByMatchesPlayed(
 }
 
 export function getFinishedClubFixtures(fixtures: Fixture[], clubName: string): Fixture[] {
+  const normalizedClubName = normalizeClubName(clubName);
   return fixtures.filter(
     (f) =>
-      (f.homeTeam === clubName || f.awayTeam === clubName) &&
+      (normalizeClubName(f.homeTeam) === normalizedClubName ||
+        normalizeClubName(f.awayTeam) === normalizedClubName) &&
       f.status === "finished" &&
       f.homeScore !== null &&
       f.awayScore !== null

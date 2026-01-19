@@ -1,4 +1,5 @@
 import { Fixture } from "../types";
+import { normalizeClubName } from "./club-name-utils";
 
 export interface HeadToHeadSummary {
   clubAWins: number;
@@ -16,10 +17,14 @@ export function getHeadToHeadMatches(
   clubA: string,
   clubB: string
 ): Fixture[] {
+  const normalizedClubA = normalizeClubName(clubA);
+  const normalizedClubB = normalizeClubName(clubB);
   return fixtures.filter(
     (f) =>
-      (f.homeTeam === clubA && f.awayTeam === clubB) ||
-      (f.homeTeam === clubB && f.awayTeam === clubA)
+      (normalizeClubName(f.homeTeam) === normalizedClubA &&
+        normalizeClubName(f.awayTeam) === normalizedClubB) ||
+      (normalizeClubName(f.homeTeam) === normalizedClubB &&
+        normalizeClubName(f.awayTeam) === normalizedClubA)
   );
 }
 
