@@ -10,6 +10,7 @@
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "PUPPETEER_CACHE_DIR=.puppeteer-cache npx puppeteer browsers install chrome",
     "refresh": "node scripts/refresh-data.js",
     "setup-cron": "chmod +x scripts/setup-cron.sh && ./scripts/setup-cron.sh",
     "fetch-all-fixtures": "npx tsx scripts/fetch-all-remaining-fixtures.ts",

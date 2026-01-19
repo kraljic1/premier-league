@@ -24,15 +24,19 @@ export async function getBrowser(): Promise<Browser> {
       ],
     };
 
-    // Use system Chromium on Netlify, download on local development
+    // Use system Chromium only when explicitly configured
     const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH;
-    const fallbackPaths = ["/usr/bin/chromium", "/usr/bin/chromium-browser"];
 
     if (isNetlify) {
-      launchOptions.executablePath = configuredPath || fallbackPaths[0];
       console.log(`[Browser] Netlify environment detected`);
-      console.log(`[Browser] Using system Chromium: ${launchOptions.executablePath}`);
       console.log(`[Browser] PUPPETEER_EXECUTABLE_PATH env var: ${configuredPath || "not set"}`);
+
+      if (configuredPath) {
+        launchOptions.executablePath = configuredPath;
+        console.log(`[Browser] Using system Chromium: ${configuredPath}`);
+      } else {
+        console.log(`[Browser] Using bundled Chromium`);
+      }
 
       // Additional args for Netlify environment
       launchOptions.args = launchOptions.args || [];
@@ -46,29 +50,8 @@ export async function getBrowser(): Promise<Browser> {
       browserInstance = await puppeteer.launch(launchOptions);
       console.log(`[Browser] Browser launched successfully`);
     } catch (error) {
-      console.error(`[Browser] Failed to launch browser with path ${launchOptions.executablePath}:`, error);
-
-      if (!isNetlify) {
-        throw error;
-      }
-
-      // Try alternative paths on Netlify
-      for (const fallbackPath of fallbackPaths) {
-        if (fallbackPath === launchOptions.executablePath) {
-          continue;
-        }
-
-        console.log(`[Browser] Trying alternative path: ${fallbackPath}`);
-        launchOptions.executablePath = fallbackPath;
-        try {
-          browserInstance = await puppeteer.launch(launchOptions);
-          console.log(`[Browser] Browser launched successfully with alternative path`);
-          return browserInstance;
-        } catch (secondError) {
-          console.error(`[Browser] Failed with alternative path ${fallbackPath}:`, secondError);
-        }
-      }
-
+      const configuredInfo = configuredPath ? ` at ${configuredPath}` : '';
+      console.error(`[Browser] Failed to launch browser${configuredInfo}:`, error);
       throw error;
     }
   }
