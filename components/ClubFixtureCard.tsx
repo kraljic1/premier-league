@@ -87,9 +87,7 @@ function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
       <div className="match-item__header">
         <span className="match-item__date">{formatDate(fixture.date)}</span>
         <span className="match-item__meta">
-          {!isLeagueFixture && (
-            <span className="match-item__competition">{competition}</span>
-          )}
+          <span className="match-item__competition">{competition}</span>
           <span className="match-item__matchweek">
             {isLeagueFixture ? `MW ${fixture.matchweek}` : roundLabel}
           </span>

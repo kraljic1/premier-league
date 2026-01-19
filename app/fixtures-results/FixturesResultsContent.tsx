@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
@@ -33,6 +33,7 @@ async function fetchResults(): Promise<Fixture[]> {
 }
 
 type TabType = "fixtures" | "results";
+const PREMIER_LEAGUE_COMPETITION = "Premier League";
 
 export default function FixturesResultsContent() {
   const [activeTab, setActiveTab] = useState<TabType>("fixtures");
@@ -86,6 +87,24 @@ export default function FixturesResultsContent() {
   // Get upcoming fixtures (not finished)
   // Also exclude any fixture that appears in results (in case of cache mismatch)
   // Check by both ID and team+date combination to handle ID format differences
+  const premierLeagueFixtures = useMemo(
+    () =>
+      fixtures.filter(
+        (fixture) =>
+          (fixture.competition || PREMIER_LEAGUE_COMPETITION) === PREMIER_LEAGUE_COMPETITION
+      ),
+    [fixtures]
+  );
+
+  const premierLeagueResults = useMemo(
+    () =>
+      results.filter(
+        (result) =>
+          (result.competition || PREMIER_LEAGUE_COMPETITION) === PREMIER_LEAGUE_COMPETITION
+      ),
+    [results]
+  );
+
   const {
     upcomingFixtures,
     currentMatchweek,
@@ -93,8 +112,8 @@ export default function FixturesResultsContent() {
     filteredMatches,
     groupedByMatchweek,
   } = useFixturesResultsData({
-    fixtures,
-    results,
+    fixtures: premierLeagueFixtures,
+    results: premierLeagueResults,
     activeTab,
     selectedMatchweek,
     searchQuery,
@@ -119,7 +138,7 @@ export default function FixturesResultsContent() {
 
   const tabs = [
     { id: "fixtures" as TabType, label: "Upcoming Fixtures", count: upcomingFixtures.length },
-    { id: "results" as TabType, label: "Results", count: results.length },
+    { id: "results" as TabType, label: "Results", count: premierLeagueResults.length },
   ];
 
   return (
