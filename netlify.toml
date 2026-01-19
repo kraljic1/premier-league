@@ -9,7 +9,7 @@
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-  PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium-browser"
+  PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
 
 # Function configuration for API routes
 [functions]
