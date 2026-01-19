@@ -72,7 +72,7 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
             onSelect={handleSeasonChangeB}
             label="Club B Season"
           />
-          {(!isCurrentSeasonA || !isCurrentSeasonB) && sameSeason && currentMatchweek > 0 && (
+          {(!isCurrentSeasonA || !isCurrentSeasonB) && currentMatchweek > 0 && (
             <MatchweekToggle
               showFullSeason={showFullSeason}
               onToggle={setShowFullSeason}
