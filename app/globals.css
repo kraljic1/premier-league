@@ -91,6 +91,16 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Voice search optimization - speakable content */
+  .speakable-content {
+    /* Optimized for text-to-speech engines */
+    font-size: inherit;
+    line-height: 1.6;
+    /* Clear pronunciation hints */
+    hyphens: auto;
+    word-break: normal;
+  }
 }
 
 /* Mobile compact spacing for match grids */

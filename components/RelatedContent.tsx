@@ -137,35 +137,42 @@ export function RelatedContent() {
   }
 
   return (
-    <section className="mt-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <aside 
+      className="mt-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
+      aria-label="Related content"
+    >
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Related Content
       </h2>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {relatedLinks.map((link, index) => (
-          <Link
-            key={index}
-            href={link.href}
-            className="group block p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex items-start space-x-3">
-              {link.icon && (
-                <span className="text-2xl flex-shrink-0" role="img" aria-label={link.title}>
-                  {link.icon}
-                </span>
-              )}
-              <div>
-                <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {link.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {link.description}
-                </p>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
+      <nav aria-label="Related pages">
+        <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 list-none">
+          {relatedLinks.map((link, index) => (
+            <li key={index}>
+              <Link
+                href={link.href}
+                className="group block p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200"
+                aria-label={`Navigate to ${link.title}: ${link.description}`}
+              >
+                <div className="flex items-start space-x-3">
+                  {link.icon && (
+                    <span className="text-2xl flex-shrink-0" role="img" aria-hidden="true">
+                      {link.icon}
+                    </span>
+                  )}
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {link.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {link.description}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
   );
 }

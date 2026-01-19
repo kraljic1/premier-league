@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/_next/', '/sw.js'],
     },
-    sitemap: 'https://premierleaguefixures.com/sitemap.xml',
+    sitemap: 'https://premieleaguematches.com/sitemap.xml',
   };
 }

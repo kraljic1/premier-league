@@ -3,6 +3,16 @@
 import { usePathname } from "next/navigation";
 import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 import { getStadiumByClubName } from "@/lib/stadiums";
+import { CLUBS } from "@/lib/clubs";
+import {
+  generateSportsTeamSchema,
+  generateSportsOrganizationSchema,
+  generateLocalBusinessSchema,
+  generateSpeakableSchema,
+  generateFAQSchema,
+  generateItemListSchema,
+  generateEventAttendanceMode,
+} from "@/lib/seo/schema-generator";
 
 interface StructuredDataProps {
   type?: 'organization' | 'breadcrumb' | 'sports-event' | 'webpage';
@@ -18,7 +28,7 @@ export function StructuredData({ type = 'organization', data }: StructuredDataPr
   const currentSeason = getCurrentSeasonShort();
 
   const getStructuredData = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://premierleaguefixures.com';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://premieleaguematches.com';
 
     // Organization Schema (always included)
     const organizationSchema = {
@@ -173,26 +183,35 @@ export function StructuredData({ type = 'organization', data }: StructuredDataPr
             }
           })(),
           "organizer": {
-            "@type": "Organization",
+            "@type": "SportsOrganization",
             "name": "Premier League",
             "url": "https://www.premierleague.com",
-            "logo": "https://resources.premierleague.com/premierleague/badges/50/t2.png"
+            "logo": "https://resources.premierleague.com/premierleague/badges/50/t2.png",
+            "sport": "Soccer"
           },
           "competitor": [
             {
               "@type": "SportsTeam",
               "name": fixture.homeTeam,
-              "sport": "Soccer"
+              "sport": "Soccer",
+              "league": {
+                "@type": "SportsOrganization",
+                "name": "Premier League"
+              }
             },
             {
               "@type": "SportsTeam",
               "name": fixture.awayTeam,
-              "sport": "Soccer"
+              "sport": "Soccer",
+              "league": {
+                "@type": "SportsOrganization",
+                "name": "Premier League"
+              }
             }
           ],
           "offers": {
             "@type": "Offer",
-            "url": `https://premierleaguefixures.com/fixtures-results`,
+            "url": `https://premieleaguematches.com/fixtures-results`,
             "availability": "https://schema.org/InStock"
           }
         };
@@ -232,7 +251,64 @@ export function StructuredData({ type = 'organization', data }: StructuredDataPr
       };
     }
 
-    const schemas: any[] = [organizationSchema, websiteSchema, webpageSchema];
+    // SportsOrganization Schema for Premier League
+    const context = { baseUrl, currentSeason, pathname };
+    const sportsOrganizationSchema = generateSportsOrganizationSchema(context);
+
+    // SportsTeam schemas for all clubs (for better entity recognition)
+    const sportsTeamSchemas = Object.values(CLUBS).slice(0, 5).map(club => 
+      generateSportsTeamSchema(club, context)
+    );
+
+    // LocalBusiness schemas for stadiums (for local SEO)
+    const stadiumSchemas = Object.values(CLUBS)
+      .slice(0, 3)
+      .map(club => {
+        const stadium = getStadiumByClubName(club.name);
+        return stadium ? generateLocalBusinessSchema(stadium.name, club.name) : null;
+      })
+      .filter(Boolean);
+
+    // Speakable schema for voice search optimization
+    const speakableSchema = generateSpeakableSchema([
+      `Premier League ${currentSeason}`,
+      "fixtures and results",
+      "standings table",
+    ]);
+
+    // FAQ schema for voice search
+    const faqSchema = generateFAQSchema([
+      {
+        question: "What is the Premier League?",
+        answer: `The Premier League is the top level of the English football league system. The ${currentSeason} season features 20 teams competing for the championship.`
+      },
+      {
+        question: "How can I track Premier League fixtures?",
+        answer: "You can track Premier League fixtures, results, and standings on Premier League Tracker. View upcoming matches, check results, and compare team schedules."
+      },
+      {
+        question: "Where can I see Premier League standings?",
+        answer: `View the current Premier League standings table for the ${currentSeason} season, including points, goal difference, and league positions for all teams.`
+      }
+    ]);
+
+    // Enhanced SportsEvent with EventAttendanceMode
+    if (sportsEventSchemas.length > 0) {
+      sportsEventSchemas.forEach(event => {
+        event.eventAttendanceMode = generateEventAttendanceMode("OfflineEventAttendanceMode");
+      });
+    }
+
+    const schemas: any[] = [
+      organizationSchema, 
+      websiteSchema, 
+      webpageSchema,
+      sportsOrganizationSchema,
+      ...sportsTeamSchemas,
+      ...stadiumSchemas,
+      speakableSchema,
+      faqSchema,
+    ];
 
     if (breadcrumbSchema.itemListElement.length > 1) {
       schemas.push(breadcrumbSchema);

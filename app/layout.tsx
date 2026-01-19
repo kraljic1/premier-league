@@ -15,6 +15,7 @@ import { StructuredData } from "@/components/StructuredData";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { RelatedContent } from "@/components/RelatedContent";
 import { BackToTop } from "@/components/BackToTop";
+import { CoreWebVitals } from "@/components/performance/CoreWebVitals";
 import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
 // Optimize font loading with display swap for better performance and CLS prevention
@@ -43,20 +44,39 @@ export const metadata: Metadata = {
     shortcut: "/icon-192.png",
     apple: "/icon-192.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Premier League Tracker",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "format-detection": "telephone=no",
+  },
   openGraph: {
     type: "website",
     title: pageTitle,
     description: "Track Premier League fixtures, results, standings, and top scorers.",
     siteName: "Premier League Tracker",
-    url: "https://premierleaguefixures.com",
+    url: "https://premieleaguematches.com",
+    images: [
+      {
+        url: `/api/og?type=default&title=${encodeURIComponent(pageTitle)}&season=${encodeURIComponent(currentSeason)}`,
+        width: 1200,
+        height: 630,
+        alt: pageTitle,
+      },
+    ],
+    locale: "en_GB",
   },
   alternates: {
-    canonical: "https://premierleaguefixures.com",
+    canonical: "https://premieleaguematches.com",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: pageTitle,
     description: "Track Premier League fixtures, results, standings, and top scorers.",
+    images: [`/api/og?type=default&title=${encodeURIComponent(pageTitle)}&season=${encodeURIComponent(currentSeason)}`],
   },
   robots: {
     index: true,
@@ -76,8 +96,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#000000",
+  themeColor: "#37003c",
   colorScheme: "light dark",
+  viewportFit: "cover", // iOS notch support
 };
 
 export default function RootLayout({
@@ -106,6 +127,7 @@ export default function RootLayout({
             <GoogleAnalytics measurementId={process.env['NEXT_PUBLIC_GA_MEASUREMENT_ID']} />
           </Suspense>
         )}
+        <CoreWebVitals />
         <CookieConsent />
         <Providers>
           <ClubTheme />
