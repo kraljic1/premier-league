@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { CLUBS } from '@/lib/clubs';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env['NEXT_PUBLIC_SITE_URL'] || 'https://premieleaguematches.com';
+  const baseUrl = process.env['NEXT_PUBLIC_SITE_URL'] || 'https://premierleaguematches.com';
   
   // Define all static routes
   const routes = [

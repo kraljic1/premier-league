@@ -28,7 +28,7 @@ export function StructuredData({ type = 'organization', data }: StructuredDataPr
   const currentSeason = getCurrentSeasonShort();
 
   const getStructuredData = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://premieleaguematches.com';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://premierleaguematches.com';
 
     // Organization Schema (always included)
     const organizationSchema = {
@@ -211,7 +211,7 @@ export function StructuredData({ type = 'organization', data }: StructuredDataPr
           ],
           "offers": {
             "@type": "Offer",
-            "url": `https://premieleaguematches.com/fixtures-results`,
+            "url": `${baseUrl}/fixtures-results`,
             "availability": "https://schema.org/InStock"
           }
         };
@@ -265,7 +265,7 @@ export function StructuredData({ type = 'organization', data }: StructuredDataPr
       .slice(0, 3)
       .map(club => {
         const stadium = getStadiumByClubName(club.name);
-        return stadium ? generateLocalBusinessSchema(stadium.name, club.name) : null;
+        return stadium ? generateLocalBusinessSchema(stadium.name, club.name, baseUrl) : null;
       })
       .filter(Boolean);
 

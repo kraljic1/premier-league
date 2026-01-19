@@ -60,14 +60,14 @@ export function generateSportsTeamSchema(club: Club, context: SchemaContext) {
 /**
  * Generate LocalBusiness schema for stadiums
  */
-export function generateLocalBusinessSchema(stadiumName: string, clubName: string) {
+export function generateLocalBusinessSchema(stadiumName: string, clubName: string, baseUrl: string) {
   const stadium = getStadiumByClubName(clubName);
   if (!stadium) return null;
 
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "@id": `https://premieleaguematches.com/stadium/${stadiumName.toLowerCase().replace(/\s+/g, '-')}`,
+    "@id": `${baseUrl}/stadium/${stadiumName.toLowerCase().replace(/\s+/g, '-')}`,
     "name": stadium.name,
     "description": `Home stadium of ${clubName} in the Premier League`,
     "address": {
@@ -186,7 +186,7 @@ export function generateVideoObjectSchema(video: {
       "name": "Premier League Tracker",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://premieleaguematches.com/premier-league-trophy.png"
+        "url": `${baseUrl}/premier-league-trophy.png`
       }
     }
   };

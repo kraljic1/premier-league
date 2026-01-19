@@ -17,7 +17,7 @@ export interface OGImageConfig {
  * Generate dynamic Open Graph image URL
  */
 export function generateOGImageUrl(config: OGImageConfig = {}): string {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://premieleaguematches.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://premierleaguematches.com";
   const season = config.season || getCurrentSeasonShort();
   
   const params = new URLSearchParams({
@@ -40,7 +40,7 @@ export function generateMetadata(config: {
   ogImage?: OGImageConfig;
   keywords?: string[];
 }): Metadata {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://premieleaguematches.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://premierleaguematches.com";
   const url = config.path ? `${baseUrl}${config.path}` : baseUrl;
   const ogImage = generateOGImageUrl(config.ogImage || { type: "default", title: config.title });
 

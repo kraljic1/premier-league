@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: pageTitle,
     description: "Track Premier League fixtures, results, standings, and top scorers.",
     siteName: "Premier League Tracker",
-    url: "https://premieleaguematches.com",
+    url: "https://premierleaguematches.com",
     images: [
       {
         url: `/api/og?type=default&title=${encodeURIComponent(pageTitle)}&season=${encodeURIComponent(currentSeason)}`,
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     locale: "en_GB",
   },
   alternates: {
-    canonical: "https://premieleaguematches.com",
+    canonical: "https://premierleaguematches.com",
   },
   twitter: {
     card: "summary_large_image",

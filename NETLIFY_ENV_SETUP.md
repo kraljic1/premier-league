@@ -6,7 +6,15 @@
 
 Za Netlify produkciju, trebate dodati sljedeće environment varijable u Netlify dashboardu:
 
-### 1. Database Configuration
+### 1. Site Configuration
+
+#### NEXT_PUBLIC_SITE_URL (Required)
+- **Opis**: Production URL vašeg sajta (koristi se za sitemap, SEO metadata, structured data)
+- **Format**: `https://premierleaguematches.com`
+- **Security**: Public - safe to expose in client code
+- **Important**: Ovo je kritično za sitemap i SEO - mora biti točan URL
+
+### 2. Database Configuration
 
 #### NEXT_PUBLIC_SUPABASE_URL (Required)
 - **Opis**: URL vašeg Supabase projekta
@@ -26,7 +34,7 @@ Za Netlify produkciju, trebate dodati sljedeće environment varijable u Netlify 
 - **Gdje naći**: Supabase Dashboard → Settings → API → service_role key
 - **Security**: 🔴 SECRET - Never expose in client-side code!
 
-### 2. API Security Keys
+### 3. API Security Keys
 
 #### API_KEY_READ (Required)
 - **Opis**: API key za čitanje podataka (fixtures, results, standings)
@@ -64,6 +72,11 @@ Ova naredba će generirati tri sigurna API ključa i prikazati upute za upotrebu
 ### Korak 3: Dodajte Environment Variables
 1. Idite na **Site settings** → **Environment variables**
 2. Kliknite **Add a variable** za svaku varijablu:
+
+#### Obavezna Site Varijabla:
+```
+NEXT_PUBLIC_SITE_URL = https://premierleaguematches.com
+```
 
 #### Obavezne Database Varijable:
 ```
