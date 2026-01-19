@@ -12,8 +12,8 @@ declare global {
   interface Window {
     gtag?: (
       command: string,
-      targetId: string,
-      config?: Record<string, unknown>
+      targetId: string | Date,
+      config?: Record<string, any>
     ) => void;
   }
 }
