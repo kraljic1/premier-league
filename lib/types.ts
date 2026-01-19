@@ -24,6 +24,8 @@ export interface Fixture {
   competitionRound?: string | null;
 }
 
+export type ComparisonBasis = "matchweek" | "matches-played";
+
 export interface Standing {
   position: number;
   club: string;

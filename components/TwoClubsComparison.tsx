@@ -2,17 +2,14 @@
 
 import { ClubDropdown } from "./ClubDropdown";
 import { SeasonDropdown } from "./SeasonDropdown";
-import { SeasonStatsCompact } from "./SeasonStatsCompact";
-import { ClubMatchResults } from "./ClubMatchResults";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 import { EmptyState } from "./EmptyState";
 import { ErrorDisplay } from "./ErrorDisplay";
-import { ComparisonBar } from "./ComparisonBar";
-import { HeadToHeadSection } from "./HeadToHeadSection";
+import { ComparisonBasisToggle } from "./ComparisonBasisToggle";
+import { MatchweekToggle } from "./MatchweekToggle";
+import { TwoClubsComparisonContent } from "./TwoClubsComparisonContent";
+import { TwoClubsComparisonHeader } from "./TwoClubsComparisonHeader";
 import { useCompareTwoClubs } from "@/lib/hooks/useCompareTwoClubs";
-import { getClubByName } from "@/lib/clubs";
-import { Fixture } from "@/lib/types";
-import { useClubs } from "@/lib/hooks/useClubs";
 
 interface TwoClubsComparisonProps {
   onClose: () => void;
@@ -45,13 +42,17 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
     effectiveMatchweekB,
     showFullSeason,
     setShowFullSeason,
+    comparisonBasis,
+    setComparisonBasis,
+    maxMatchesPlayed,
   } = useCompareTwoClubs();
 
   const sameSeason = selectedSeasonA === selectedSeasonB;
+  const isMatchweekBasis = comparisonBasis === "matchweek";
 
   return (
     <div className="two-clubs-comparison">
-      <TwoClubsHeader onClose={onClose} />
+      <TwoClubsComparisonHeader onClose={onClose} />
 
       <div className="two-clubs-comparison__controls">
         <div className="two-clubs-comparison__clubs">
@@ -72,6 +73,12 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
             onSelect={handleSeasonChangeB}
             label="Club B Season"
           />
+          {currentMatchweek > 0 && (
+            <ComparisonBasisToggle
+              comparisonBasis={comparisonBasis}
+              onChange={setComparisonBasis}
+            />
+          )}
           {(!isCurrentSeasonA || !isCurrentSeasonB) && currentMatchweek > 0 && (
             <MatchweekToggle
               showFullSeason={showFullSeason}
@@ -86,19 +93,29 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
         <div className="two-clubs-comparison__matchweek-info">
           {sameSeason ? (
             <>
-              {isCurrentSeasonA ? (
-                <span>Showing stats through Matchweek {effectiveMatchweekA}</span>
+              {isMatchweekBasis ? (
+                <>
+                  {isCurrentSeasonA ? (
+                    <span>Showing stats through Matchweek {effectiveMatchweekA}</span>
+                  ) : (
+                    <span>
+                      {showFullSeason
+                        ? `Showing full season (38 matchweeks)`
+                        : `Showing stats through Matchweek ${effectiveMatchweekA} (same as current season progress)`}
+                    </span>
+                  )}
+                </>
               ) : (
                 <span>
                   {showFullSeason
-                    ? `Showing full season (38 matchweeks)`
-                    : `Showing stats through Matchweek ${effectiveMatchweekA} (same as current season progress)`}
+                    ? "Showing full season (38 matches played)"
+                    : `Showing stats after ${maxMatchesPlayed} matches played`}
                 </span>
               )}
             </>
           ) : (
             <span>
-              Comparing {clubA} ({selectedSeasonA}, MW {effectiveMatchweekA}) vs {clubB} ({selectedSeasonB}, MW {effectiveMatchweekB})
+              Comparing {clubA} ({selectedSeasonA}, {isMatchweekBasis ? `MW ${effectiveMatchweekA}` : `${maxMatchesPlayed} matches`}) vs {clubB} ({selectedSeasonB}, {isMatchweekBasis ? `MW ${effectiveMatchweekB}` : `${maxMatchesPlayed} matches`})
             </span>
           )}
           {clubAStats && clubBStats && clubAStats.played !== clubBStats.played && (
@@ -128,7 +145,7 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
       ) : error ? (
         <ErrorDisplay message="Failed to load data. Please try again." onRetry={refetch} />
       ) : (
-        <TwoClubsContent
+        <TwoClubsComparisonContent
           clubA={clubA}
           clubB={clubB}
           clubAStats={clubAStats}
@@ -139,175 +156,12 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
           fixturesB={fixturesB}
           effectiveMatchweekA={effectiveMatchweekA}
           effectiveMatchweekB={effectiveMatchweekB}
+          maxMatchesPlayed={maxMatchesPlayed}
+          comparisonBasis={comparisonBasis}
           headToHeadMatches={headToHeadMatches}
           headToHeadSummary={headToHeadSummary}
           sameSeason={sameSeason}
         />
-      )}
-    </div>
-  );
-}
-
-function TwoClubsHeader({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="two-clubs-comparison__header">
-      <h2 className="two-clubs-comparison__title">Compare Two Clubs</h2>
-      <button
-        onClick={onClose}
-        className="two-clubs-comparison__close"
-        aria-label="Close comparison"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-interface MatchweekToggleProps {
-  showFullSeason: boolean;
-  onToggle: (value: boolean) => void;
-  currentMatchweek: number;
-}
-
-function MatchweekToggle({ showFullSeason, onToggle, currentMatchweek }: MatchweekToggleProps) {
-  return (
-    <div className="matchweek-toggle">
-      <button
-        className={`matchweek-toggle__btn ${!showFullSeason ? 'matchweek-toggle__btn--active' : ''}`}
-        onClick={() => onToggle(false)}
-        type="button"
-      >
-        At MW {currentMatchweek}
-      </button>
-      <button
-        className={`matchweek-toggle__btn ${showFullSeason ? 'matchweek-toggle__btn--active' : ''}`}
-        onClick={() => onToggle(true)}
-        type="button"
-      >
-        Full Season
-      </button>
-    </div>
-  );
-}
-
-interface TwoClubsContentProps {
-  clubA: string;
-  clubB: string;
-  clubAStats: any;
-  clubBStats: any;
-  selectedSeasonA: string | null;
-  selectedSeasonB: string | null;
-  fixturesA: Fixture[];
-  fixturesB: Fixture[];
-  effectiveMatchweekA: number;
-  effectiveMatchweekB: number;
-  headToHeadMatches: any[];
-  headToHeadSummary: any;
-  sameSeason: boolean;
-}
-
-function TwoClubsContent({
-  clubA,
-  clubB,
-  clubAStats,
-  clubBStats,
-  selectedSeasonA,
-  selectedSeasonB,
-  fixturesA,
-  fixturesB,
-  effectiveMatchweekA,
-  effectiveMatchweekB,
-  headToHeadMatches,
-  headToHeadSummary,
-  sameSeason,
-}: TwoClubsContentProps) {
-  const clubAColor = getClubByName(clubA)?.primaryColor || "#37003c";
-  const clubBColor = getClubByName(clubB)?.primaryColor || "#37003c";
-
-  return (
-    <div className="two-clubs-comparison__content">
-      <div className="two-clubs-comparison__stats">
-        <ClubStatsCard clubName={clubA} stats={clubAStats} season={selectedSeasonA} />
-        <ClubStatsCard clubName={clubB} stats={clubBStats} season={selectedSeasonB} />
-      </div>
-
-      <div className="two-clubs-comparison__results">
-        <ClubMatchResults
-          fixtures={fixturesA}
-          clubName={clubA}
-          maxMatchweek={effectiveMatchweekA}
-          seasonLabel={`${clubA} Results (${selectedSeasonA})`}
-          clubColor={clubAColor}
-        />
-        <ClubMatchResults
-          fixtures={fixturesB}
-          clubName={clubB}
-          maxMatchweek={effectiveMatchweekB}
-          seasonLabel={`${clubB} Results (${selectedSeasonB})`}
-          clubColor={clubBColor}
-        />
-      </div>
-
-      {sameSeason && (
-        <HeadToHeadSection
-          clubA={clubA}
-          clubB={clubB}
-          matches={headToHeadMatches}
-          summary={headToHeadSummary}
-        />
-      )}
-      {!sameSeason && (
-        <div className="two-clubs-comparison__different-seasons-notice">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 16v-4M12 8h.01" />
-          </svg>
-          <span>Head-to-head comparison is only available when comparing clubs from the same season</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface ClubStatsCardProps {
-  clubName: string;
-  stats: any;
-  season: string | null;
-}
-
-function ClubStatsCard({ clubName, stats, season }: ClubStatsCardProps) {
-  const { clubs } = useClubs();
-  
-  // Get logo URL for club
-  const clubEntry = Object.values(clubs).find((c: any) => c.name === clubName);
-  const hardcodedClub = getClubByName(clubName);
-  const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
-
-  return (
-    <div className="two-clubs-comparison__club-stats">
-      <div className="two-clubs-comparison__club-header">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={`${clubName} logo`}
-            className="two-clubs-comparison__club-logo"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className="two-clubs-comparison__club-logo-placeholder">
-            {clubName.charAt(0)}
-          </div>
-        )}
-        <h3 className="two-clubs-comparison__club-name">{clubName}</h3>
-      </div>
-      {stats ? (
-        <SeasonStatsCompact stats={stats} title={`${season}`} />
-      ) : (
-        <div className="two-clubs-comparison__no-stats">No stats available</div>
       )}
     </div>
   );

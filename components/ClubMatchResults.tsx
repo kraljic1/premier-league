@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Fixture } from "@/lib/types";
+import { ComparisonBasis, Fixture } from "@/lib/types";
+import { getFinishedClubFixtures, sortFixturesByDate } from "@/lib/utils-comparison";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { getClubByName } from "@/lib/clubs";
 
@@ -9,6 +10,8 @@ interface ClubMatchResultsProps {
   fixtures: Fixture[];
   clubName: string;
   maxMatchweek: number;
+  maxMatchesPlayed?: number;
+  comparisonBasis?: ComparisonBasis;
   seasonLabel: string;
   clubColor?: string;
 }
@@ -17,22 +20,26 @@ export function ClubMatchResults({
   fixtures,
   clubName,
   maxMatchweek,
+  maxMatchesPlayed,
+  comparisonBasis = "matchweek",
   seasonLabel,
   clubColor = "#37003c",
 }: ClubMatchResultsProps) {
   const { clubs } = useClubs();
   
-  // Filter fixtures for this club up to maxMatchweek
-  const clubFixtures = fixtures
-    .filter(
-      (f) =>
-        (f.homeTeam === clubName || f.awayTeam === clubName) &&
-        f.matchweek <= maxMatchweek &&
-        f.status === "finished" &&
-        f.homeScore !== null &&
-        f.awayScore !== null
-    )
-    .sort((a, b) => a.matchweek - b.matchweek);
+  // Filter fixtures for this club based on the selected comparison basis
+  const clubFixtures = (() => {
+    const finishedFixtures = getFinishedClubFixtures(fixtures, clubName);
+
+    if (comparisonBasis === "matches-played") {
+      const limit = Math.max(maxMatchesPlayed ?? maxMatchweek, 0);
+      return sortFixturesByDate(finishedFixtures).slice(0, limit);
+    }
+
+    return finishedFixtures
+      .filter((fixture) => fixture.matchweek <= maxMatchweek)
+      .sort((a, b) => a.matchweek - b.matchweek);
+  })();
 
   // Helper function to get logo URL for a team
   const getTeamLogoUrl = (teamName: string) => {

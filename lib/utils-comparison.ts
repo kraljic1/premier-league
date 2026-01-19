@@ -36,16 +36,93 @@ export function calculatePointsForClub(
   goalsFor: number;
   goalsAgainst: number;
 } {
-  // Filter fixtures for this club up to maxMatchweek, only finished matches
-  const clubFixtures = fixtures.filter(
+  const clubFixtures = getFinishedClubFixtures(fixtures, clubName).filter(
+    (f) => f.matchweek <= maxMatchweek
+  );
+  return calculateStatsFromFixtures(clubFixtures, clubName);
+}
+
+export function calculatePointsForClubByMatchesPlayed(
+  fixtures: Fixture[],
+  clubName: string,
+  maxMatchesPlayed: number
+): {
+  points: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  played: number;
+  goalsFor: number;
+  goalsAgainst: number;
+} {
+  const clubFixtures = getFinishedClubFixturesSortedByDate(fixtures, clubName).slice(
+    0,
+    Math.max(maxMatchesPlayed, 0)
+  );
+  return calculateStatsFromFixtures(clubFixtures, clubName);
+}
+
+export function getFinishedClubFixtures(fixtures: Fixture[], clubName: string): Fixture[] {
+  return fixtures.filter(
     (f) =>
       (f.homeTeam === clubName || f.awayTeam === clubName) &&
-      f.matchweek <= maxMatchweek &&
       f.status === "finished" &&
       f.homeScore !== null &&
       f.awayScore !== null
   );
+}
 
+export function getFinishedClubFixturesSortedByDate(
+  fixtures: Fixture[],
+  clubName: string
+): Fixture[] {
+  return sortFixturesByDate(getFinishedClubFixtures(fixtures, clubName));
+}
+
+export function getCutoffDateForMatchesPlayed(
+  fixtures: Fixture[],
+  clubName: string,
+  maxMatchesPlayed: number
+): number | null {
+  if (maxMatchesPlayed <= 0) return null;
+
+  const sortedFixtures = getFinishedClubFixturesSortedByDate(fixtures, clubName);
+  if (sortedFixtures.length === 0) return null;
+
+  const cutoffIndex = Math.min(maxMatchesPlayed, sortedFixtures.length) - 1;
+  const cutoffDate = new Date(sortedFixtures[cutoffIndex].date).getTime();
+  return Number.isNaN(cutoffDate) ? null : cutoffDate;
+}
+
+export function sortFixturesByDate(fixtures: Fixture[]): Fixture[] {
+  return [...fixtures].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+
+    if (Number.isNaN(dateA) && Number.isNaN(dateB)) {
+      return a.matchweek - b.matchweek;
+    }
+
+    if (Number.isNaN(dateA)) return 1;
+    if (Number.isNaN(dateB)) return -1;
+
+    if (dateA !== dateB) return dateA - dateB;
+    return a.matchweek - b.matchweek;
+  });
+}
+
+function calculateStatsFromFixtures(
+  clubFixtures: Fixture[],
+  clubName: string
+): {
+  points: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  played: number;
+  goalsFor: number;
+  goalsAgainst: number;
+} {
   let points = 0;
   let wins = 0;
   let draws = 0;
