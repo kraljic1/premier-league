@@ -41,16 +41,19 @@ const SOURCES = [
     id: "champions-league",
     competition: "UEFA Champions League",
     url: "https://fixturedownload.com/download/champions-league-2025",
+    filePath: "results/champions-league-2025.csv",
   },
   {
     id: "europa-league",
     competition: "UEFA Europa League",
     url: "https://fixturedownload.com/download/europa-league-2025",
+    filePath: "results/europa-league-2025.csv",
   },
   {
     id: "conference-league",
     competition: "UEFA Conference League",
     url: "https://fixturedownload.com/download/conference-league-2025",
+    filePath: "results/conference-league-2025.csv",
   },
   {
     id: "fa-cup",
@@ -141,11 +144,20 @@ function findHeaderIndex(headers: string[], keys: string[]): number | null {
 }
 
 async function loadSourceContent(source: typeof SOURCES[number]): Promise<string | null> {
+  // Try URL first if available
   if (source.url) {
-    const response = await fetch(source.url);
-    if (!response.ok) return null;
-    return await response.text();
+    try {
+      const response = await fetch(source.url);
+      if (response.ok) {
+        return await response.text();
+      }
+      console.log(`⚠️  URL failed for ${source.competition}, trying local file...`);
+    } catch (error) {
+      console.log(`⚠️  URL error for ${source.competition}, trying local file...`);
+    }
   }
+
+  // Fall back to local file if available
   if (source.filePath && fs.existsSync(source.filePath)) {
     return fs.readFileSync(source.filePath, "utf-8");
   }

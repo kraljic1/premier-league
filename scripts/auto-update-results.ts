@@ -113,14 +113,113 @@ function parseDate(dateStr: string): Date | null {
 }
 
 /**
- * Normalize team name for comparison
+ * Team name mappings - maps various name variants to canonical database names
+ */
+const TEAM_NAME_MAPPINGS: Record<string, string> = {
+  // Arsenal
+  "arsenal": "Arsenal",
+  "arsenal fc": "Arsenal",
+  
+  // Aston Villa
+  "aston villa": "Aston Villa",
+  "aston villa fc": "Aston Villa",
+  
+  // Bournemouth
+  "bournemouth": "Bournemouth",
+  "afc bournemouth": "Bournemouth",
+  
+  // Brentford
+  "brentford": "Brentford",
+  "brentford fc": "Brentford",
+  
+  // Brighton
+  "brighton": "Brighton & Hove Albion",
+  "brighton & hove albion": "Brighton & Hove Albion",
+  "brighton and hove albion": "Brighton & Hove Albion",
+  "brighton hove albion": "Brighton & Hove Albion",
+  
+  // Chelsea
+  "chelsea": "Chelsea",
+  "chelsea fc": "Chelsea",
+  
+  // Crystal Palace
+  "crystal palace": "Crystal Palace",
+  "crystal palace fc": "Crystal Palace",
+  
+  // Everton
+  "everton": "Everton",
+  "everton fc": "Everton",
+  
+  // Fulham
+  "fulham": "Fulham",
+  "fulham fc": "Fulham",
+  
+  // Ipswich Town
+  "ipswich": "Ipswich Town",
+  "ipswich town": "Ipswich Town",
+  
+  // Leicester City
+  "leicester": "Leicester City",
+  "leicester city": "Leicester City",
+  
+  // Liverpool
+  "liverpool": "Liverpool",
+  "liverpool fc": "Liverpool",
+  
+  // Manchester City
+  "manchester city": "Manchester City",
+  "man city": "Manchester City",
+  "man. city": "Manchester City",
+  
+  // Manchester United
+  "manchester united": "Manchester United",
+  "manchester utd": "Manchester United",
+  "man united": "Manchester United",
+  "man utd": "Manchester United",
+  "man. utd": "Manchester United",
+  
+  // Newcastle United
+  "newcastle": "Newcastle United",
+  "newcastle united": "Newcastle United",
+  "newcastle utd": "Newcastle United",
+  
+  // Nottingham Forest
+  "nottingham forest": "Nottingham Forest",
+  "nott'm forest": "Nottingham Forest",
+  "nottingham": "Nottingham Forest",
+  "nottm forest": "Nottingham Forest",
+  
+  // Southampton
+  "southampton": "Southampton",
+  "southampton fc": "Southampton",
+  
+  // Tottenham
+  "tottenham": "Tottenham Hotspur",
+  "tottenham hotspur": "Tottenham Hotspur",
+  "spurs": "Tottenham Hotspur",
+  
+  // West Ham
+  "west ham": "West Ham United",
+  "west ham united": "West Ham United",
+  "west ham utd": "West Ham United",
+  
+  // Wolves
+  "wolves": "Wolverhampton Wanderers",
+  "wolverhampton": "Wolverhampton Wanderers",
+  "wolverhampton wanderers": "Wolverhampton Wanderers",
+};
+
+/**
+ * Normalize team name for comparison - maps aliases to canonical names
  */
 function normalizeTeamName(name: string): string {
-  return name
+  const cleaned = name
     .toLowerCase()
     .replace(/\s+/g, ' ')
     .replace(/\d+$/, '')
     .trim();
+  
+  return TEAM_NAME_MAPPINGS[cleaned] || name;
 }
 
 /**
@@ -245,8 +344,9 @@ async function scrapeRecentResults(): Promise<Fixture[]> {
       const parsedDate = parseDate(match.dateStr);
       if (!parsedDate) continue;
       
-      const homeTeam = match.homeTeam.trim().replace(/\s+/g, ' ');
-      const awayTeam = match.awayTeam.trim().replace(/\s+/g, ' ');
+      // Normalize team names to canonical database format
+      const homeTeam = normalizeTeamName(match.homeTeam);
+      const awayTeam = normalizeTeamName(match.awayTeam);
       
       if (homeTeam.length < 3 || awayTeam.length < 3) continue;
       
@@ -302,35 +402,79 @@ async function getScheduledMatches(): Promise<any[]> {
 
 /**
  * Update match results in the database
+ * Uses smart matching to find existing fixtures by date and team names
  */
 async function updateMatchResults(results: Fixture[]): Promise<number> {
   if (results.length === 0) return 0;
   
-  const dbResults = results.map(result => ({
-    id: result.id,
-    date: result.date,
-    home_team: result.homeTeam,
-    away_team: result.awayTeam,
-    home_score: result.homeScore,
-    away_score: result.awayScore,
-    matchweek: result.matchweek,
-    status: 'finished' as const,
-    is_derby: result.isDerby || false
-  }));
+  let updatedCount = 0;
   
-  const { error } = await supabase
-    .from('fixtures')
-    .upsert(dbResults, {
-      onConflict: 'home_team,away_team,date',
-      ignoreDuplicates: false
+  for (const result of results) {
+    const dateOnly = new Date(result.date).toISOString().split('T')[0];
+    const dateStart = `${dateOnly}T00:00:00.000Z`;
+    const dateEnd = `${dateOnly}T23:59:59.999Z`;
+    
+    // Find existing fixture by date and team names
+    const { data: existingFixtures, error: findError } = await supabase
+      .from('fixtures')
+      .select('id, home_team, away_team, date')
+      .gte('date', dateStart)
+      .lte('date', dateEnd);
+    
+    if (findError) {
+      log(`Error finding fixture: ${findError.message}`);
+      continue;
+    }
+    
+    // Match by normalized team names
+    const matchingFixture = existingFixtures?.find(f => {
+      const dbHome = normalizeTeamName(f.home_team);
+      const dbAway = normalizeTeamName(f.away_team);
+      return dbHome === result.homeTeam && dbAway === result.awayTeam;
     });
-  
-  if (error) {
-    log(`Error updating results: ${error.message}`);
-    throw error;
+    
+    if (matchingFixture) {
+      // Update existing fixture
+      const { error: updateError } = await supabase
+        .from('fixtures')
+        .update({
+          home_score: result.homeScore,
+          away_score: result.awayScore,
+          status: 'finished',
+        })
+        .eq('id', matchingFixture.id);
+      
+      if (updateError) {
+        log(`Error updating fixture ${matchingFixture.id}: ${updateError.message}`);
+      } else {
+        log(`Updated: ${result.homeTeam} ${result.homeScore}-${result.awayScore} ${result.awayTeam}`);
+        updatedCount++;
+      }
+    } else {
+      // No existing fixture - insert new one
+      const { error: insertError } = await supabase
+        .from('fixtures')
+        .upsert({
+          id: result.id,
+          date: result.date,
+          home_team: result.homeTeam,
+          away_team: result.awayTeam,
+          home_score: result.homeScore,
+          away_score: result.awayScore,
+          matchweek: result.matchweek,
+          status: 'finished',
+          is_derby: result.isDerby || false
+        }, { onConflict: 'id' });
+      
+      if (insertError) {
+        log(`Error inserting fixture: ${insertError.message}`);
+      } else {
+        updatedCount++;
+      }
+    }
   }
   
-  return results.length;
+  return updatedCount;
 }
 
 /**
@@ -416,18 +560,17 @@ async function main() {
     const matchesToUpdate: Fixture[] = [];
     
     for (const result of recentResults) {
-      const normalizedHome = normalizeTeamName(result.homeTeam);
-      const normalizedAway = normalizeTeamName(result.awayTeam);
+      // result.homeTeam and result.awayTeam are already normalized from scrapeRecentResults
+      const normalizedHome = result.homeTeam;
+      const normalizedAway = result.awayTeam;
       
       // Check if this match was scheduled and now has a result
       const matchingScheduled = scheduledMatches.find(scheduled => {
         const scheduledHome = normalizeTeamName(scheduled.home_team);
         const scheduledAway = normalizeTeamName(scheduled.away_team);
         
-        return (
-          (scheduledHome.includes(normalizedHome) || normalizedHome.includes(scheduledHome)) &&
-          (scheduledAway.includes(normalizedAway) || normalizedAway.includes(scheduledAway))
-        );
+        // Exact match after normalization
+        return scheduledHome === normalizedHome && scheduledAway === normalizedAway;
       });
       
       if (matchingScheduled) {

@@ -71,7 +71,11 @@ export function calculatePointsForClub(
 
 /**
  * Gets the current matchweek based on finished matches
- * Returns the highest matchweek that has finished matches
+ * Returns the highest matchweek that has at least one finished match
+ * 
+ * Note: We count ALL finished matches, even if the matchweek isn't complete.
+ * This ensures that if Arsenal played in MW22, their result is counted
+ * even if other MW22 matches haven't been played yet.
  */
 export function getCurrentMatchweekFromFixtures(fixtures: Fixture[]): number {
   const finishedMatches = fixtures.filter(
@@ -85,16 +89,9 @@ export function getCurrentMatchweekFromFixtures(fixtures: Fixture[]): number {
   const finishedMatchweeks = finishedMatches.map((f) => f.matchweek);
   const maxFinishedMatchweek = Math.max(...finishedMatchweeks);
 
-  // Check if this matchweek has enough matches (at least 8 out of 10)
-  const matchesInMaxWeek = finishedMatches.filter(
-    (f) => f.matchweek === maxFinishedMatchweek
-  ).length;
-
-  if (matchesInMaxWeek >= 8) {
-    return maxFinishedMatchweek;
-  } else {
-    return Math.max(0, maxFinishedMatchweek - 1);
-  }
+  // Return the highest matchweek that has any finished matches
+  // This ensures all finished matches are counted in comparisons
+  return maxFinishedMatchweek;
 }
 
 /**

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { RefreshButton } from "@/components/RefreshButton";
 import { SearchBar } from "@/components/SearchBar";
 import { MatchweekSelector } from "@/components/MatchweekSelector";
+import { HelpButton } from "@/components/HelpButton";
+import { getHelpContent } from "@/lib/help-content";
 
 type TabType = "fixtures" | "results";
 
@@ -52,7 +54,10 @@ export function FixturesResultsControls({
             .
           </p>
         </div>
-        <RefreshButton />
+        <div className="flex items-center gap-2">
+          <HelpButton {...getHelpContent('fixturesResults')} />
+          <RefreshButton />
+        </div>
       </div>
 
       {/* Tab Navigation */}

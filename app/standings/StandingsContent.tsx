@@ -12,6 +12,8 @@ import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
 import { buildStandingsFormMap } from "@/lib/utils/standings-form";
 import { StandingRow } from "@/components/StandingRow";
+import { HelpButton } from "@/components/HelpButton";
+import { getHelpContent } from "@/lib/help-content";
 
 async function fetchStandings(): Promise<Standing[]> {
   const res = await fetch("/api/standings", {
@@ -86,7 +88,10 @@ export default function StandingsContent() {
             .
           </p>
         </div>
-        <RefreshButton />
+        <div className="flex items-center gap-2">
+          <HelpButton {...getHelpContent('standings')} />
+          <RefreshButton />
+        </div>
       </div>
 
       {isLoading ? (

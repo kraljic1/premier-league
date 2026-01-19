@@ -5,8 +5,14 @@ import { Fixture } from "../types";
  */
 
 export async function fetchCurrentSeasonFixtures(): Promise<Fixture[]> {
-  const res = await fetch("/api/fixtures", {
-    next: { revalidate: 1800 },
+  // Add timestamp to bust cache and ensure fresh data for comparisons
+  const timestamp = Date.now();
+  const res = await fetch(`/api/fixtures?_t=${timestamp}`, {
+    cache: 'no-store',
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+    },
   });
   if (!res.ok) throw new Error("Failed to fetch current season fixtures");
   return res.json();

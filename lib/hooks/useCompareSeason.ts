@@ -51,6 +51,9 @@ export function useCompareSeason() {
   } = useQuery({
     queryKey: ["currentFixtures"],
     queryFn: fetchCurrentSeasonFixtures,
+    staleTime: 0, // Always consider data stale
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes max
+    refetchOnMount: "always", // Always refetch when component mounts
   });
 
   const currentFixtures = useMemo(() => {

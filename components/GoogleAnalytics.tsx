@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GoogleAnalytics as NextJsGoogleAnalytics } from "nextjs-google-analytics";
+import { GoogleAnalytics as NextGoogleAnalytics } from "@next/third-parties/google";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 interface GoogleAnalyticsProps {
   measurementId: string;
+}
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
 }
 
 export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
@@ -30,6 +38,20 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     };
   }, [measurementId]);
 
+  useEffect(() => {
+    if (consent !== "accepted" || typeof window === "undefined") {
+      return;
+    }
+
+    window.dataLayer = window.dataLayer || [];
+
+    if (!window.gtag) {
+      window.gtag = function gtag(...args: unknown[]) {
+        window.dataLayer?.push(args);
+      };
+    }
+  }, [consent]);
+
   // Only render GA if cookies are accepted
   if (consent !== "accepted") {
     console.info("[GA4] Consent not accepted - GA4 not loaded");
@@ -38,9 +60,9 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
 
   console.info("[GA4] Consent accepted - loading GA4");
   return (
-    <NextJsGoogleAnalytics
-      trackPageViews
-      gaMeasurementId={measurementId}
-    />
+    <>
+      <NextGoogleAnalytics gaId={measurementId} />
+      <PageViewTracker measurementId={measurementId} enabled />
+    </>
   );
 }

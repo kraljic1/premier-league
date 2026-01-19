@@ -15,6 +15,8 @@ import { formatDate, getCurrentMatchweek } from "@/lib/utils";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
 import { SafeImage } from "@/components/SafeImage";
+import { HelpButton } from "@/components/HelpButton";
+import { getHelpContent } from "@/lib/help-content";
 
 // Dynamically import heavy components for better code splitting
 // Using ssr: false to prevent hydration mismatches with browser-only code
@@ -133,7 +135,10 @@ export default function HomePage() {
       <main className="space-y-8">
         <header className="flex justify-between items-center pl-space-md">
           <h1 className="pl-heading-lg goal-underline">Home</h1>
-          <RefreshButton />
+          <div className="flex items-center gap-2">
+            <HelpButton {...getHelpContent('home')} />
+            <RefreshButton />
+          </div>
         </header>
 
         <div className="pl-space-lg">

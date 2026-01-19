@@ -12,10 +12,12 @@ import { EmptyState } from "@/components/EmptyState";
 import { FutureMatchesFilter } from "@/components/FutureMatchesFilter";
 import { CompetitionFilter, type CompetitionOption } from "@/components/CompetitionFilter";
 import { ClubFixtureCard } from "@/components/ClubFixtureCard";
+import { HelpButton } from "@/components/HelpButton";
 import { useAppStore } from "@/lib/store";
 import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture, Club } from "@/lib/types";
 import { getCurrentMatchweek } from "@/lib/utils";
+import { getHelpContent } from "@/lib/help-content";
 
 type ClubFixtureData = {
   club: string;
@@ -167,7 +169,10 @@ export default function ComparePage() {
     <div className="compare-page">
       <div className="compare-page__header">
         <h1 className="compare-page__title text-2xl sm:text-3xl">Compare Fixtures</h1>
-        <RefreshButton />
+        <div className="flex items-center gap-2">
+          <HelpButton {...getHelpContent('compareFixtures')} />
+          <RefreshButton />
+        </div>
       </div>
 
       {clubNames.length > 0 && !isLoading && !error && (

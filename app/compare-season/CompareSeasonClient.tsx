@@ -15,9 +15,11 @@ import { SeasonStatsCompact } from "@/components/SeasonStatsCompact";
 import { ClubMatchResults } from "@/components/ClubMatchResults";
 import { ComparisonSummary } from "@/components/ComparisonSummary";
 import { TwoClubsComparison } from "@/components/TwoClubsComparison";
+import { HelpButton } from "@/components/HelpButton";
 import { useCompareSeason } from "@/lib/hooks/useCompareSeason";
 import { getCurrentSeasonFull } from "@/lib/utils/season-utils";
 import { getClubByName } from "@/lib/clubs";
+import { getHelpContent } from "@/lib/help-content";
 
 type CompareMode = "single-club" | "two-clubs";
 
@@ -69,14 +71,17 @@ export function CompareSeasonClient() {
         <p className="compare-season-page__subtitle">
           Compare a club's current season performance with previous seasons
         </p>
-        <RefreshButton
-          onRefresh={() => {
-            refetchCurrent();
-            if (selectedSeason) refetchHistorical();
-          }}
-          isLoading={isLoading || isLoadingHistorical}
-          className="compare-season-page__refresh"
-        />
+        <div className="flex items-center gap-2">
+          <HelpButton {...getHelpContent('compareSeason')} />
+          <RefreshButton
+            onRefresh={() => {
+              refetchCurrent();
+              if (selectedSeason) refetchHistorical();
+            }}
+            isLoading={isLoading || isLoadingHistorical}
+            className="compare-season-page__refresh"
+          />
+        </div>
       </div>
 
       {compareMode === "two-clubs" ? (
