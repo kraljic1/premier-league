@@ -54,6 +54,36 @@ async function fetchFixtures(): Promise<Fixture[]> {
 
 const PREMIER_LEAGUE_COMPETITION = "Premier League";
 
+function normalizeClubName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/\b(fc|afc|cf|sc)\b/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function findClubEntryByName(clubs: Record<string, any>, name: string) {
+  const clubList = Object.values(clubs);
+  const directMatch = clubList.find((club: any) => club.name === name);
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const normalizedName = normalizeClubName(name);
+  if (!normalizedName) {
+    return undefined;
+  }
+
+  return clubList.find((club: any) => {
+    const normalizedClubName = normalizeClubName(club.name || "");
+    return (
+      normalizedClubName === normalizedName ||
+      normalizedClubName.includes(normalizedName) ||
+      normalizedName.includes(normalizedClubName)
+    );
+  });
+}
+
 function getNextMatch(fixtures: Fixture[], myClubs: string[]): Fixture | null {
   const now = new Date();
   const clubNames = myClubs
@@ -215,8 +245,8 @@ function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<strin
   const club = getClubByName(fixture.homeTeam);
 
   // Get logo URLs from clubs object
-  const homeClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
-  const awayClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
+  const homeClubEntry = findClubEntryByName(clubs, fixture.homeTeam);
+  const awayClubEntry = findClubEntryByName(clubs, fixture.awayTeam);
   const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
   const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
 
@@ -260,7 +290,7 @@ function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<strin
           <meta itemProp="name" content={fixture.homeTeam} />
           <div className="fixture-card__logo-wrapper">
             <SafeImage
-              src={homeLogoUrl || (Object.values(clubs).find((c: any) => c.name === fixture.homeTeam)?.logoUrl) || ''}
+              src={homeLogoUrl || homeClubEntry?.logoUrl || ''}
               alt={`${fixture.homeTeam} logo`}
               width={40}
               height={40}
@@ -276,7 +306,7 @@ function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<strin
           <meta itemProp="name" content={fixture.awayTeam} />
           <div className="fixture-card__logo-wrapper">
             <SafeImage
-              src={awayLogoUrl || (Object.values(clubs).find((c: any) => c.name === fixture.awayTeam)?.logoUrl) || ''}
+              src={awayLogoUrl || awayClubEntry?.logoUrl || ''}
               alt={`${fixture.awayTeam} logo`}
               width={40}
               height={40}
