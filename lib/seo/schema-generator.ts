@@ -171,7 +171,7 @@ export function generateVideoObjectSchema(video: {
   uploadDate: string;
   contentUrl: string;
   embedUrl?: string;
-}) {
+}, baseUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "VideoObject",
