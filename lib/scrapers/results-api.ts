@@ -226,6 +226,7 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Extract results (without clicking "show more" - just visible matches)
+    console.log('[ScraperAPI] Starting page evaluation...');
     const rawData = await page.evaluate(() => {
       var matches: any[] = [];
       var debug: string[] = [];
@@ -309,6 +310,20 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
     const matches = rawData.matches || [];
     console.log(`[ScraperAPI] Found ${matches.length} recent results`);
 
+    if (matches.length === 0) {
+      console.log('[ScraperAPI] No matches found - checking page content...');
+      const pageContent = await page.evaluate(() => ({
+        title: document.title,
+        bodyLength: document.body?.textContent?.length || 0,
+        eventMatches: document.querySelectorAll('.event__match').length,
+        homeParticipants: document.querySelectorAll('.event__homeParticipant').length,
+        awayParticipants: document.querySelectorAll('.event__awayParticipant').length,
+        scoreElements: document.querySelectorAll('.event__score--home').length,
+        allElements: document.querySelectorAll('*').length
+      }));
+      console.log('[ScraperAPI] Page content check:', pageContent);
+    }
+
     const results: Fixture[] = [];
     const seenIds = new Set<string>();
 
@@ -348,7 +363,21 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
     console.error(`[ScraperAPI] Error scraping results:`, error);
     throw error;
   } finally {
-    if (page) await page.close();
-    // Note: We don't close the browser here since it might be reused
+    if (page) {
+      try {
+        await page.close();
+        console.log('[ScraperAPI] Page closed successfully');
+      } catch (closeError) {
+        console.error('[ScraperAPI] Error closing page:', closeError);
+      }
+    }
+
+    // Close browser instance for Netlify functions to prevent resource leaks
+    try {
+      await closeBrowser();
+      console.log('[ScraperAPI] Browser closed successfully');
+    } catch (closeError) {
+      console.error('[ScraperAPI] Error closing browser:', closeError);
+    }
   }
 }

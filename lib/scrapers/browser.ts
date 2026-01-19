@@ -22,10 +22,13 @@ export async function getBrowser(): Promise<Browser> {
 
     // Use system Chromium on Netlify, download on local development
     if (isNetlify) {
-      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium-browser";
-      console.log(`[Browser] Using system Chromium: ${launchOptions.executablePath}`);
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium-browser";
+      launchOptions.executablePath = executablePath;
+      console.log(`[Browser] Netlify environment detected`);
+      console.log(`[Browser] Using system Chromium: ${executablePath}`);
+      console.log(`[Browser] PUPPETEER_EXECUTABLE_PATH env var: ${process.env.PUPPETEER_EXECUTABLE_PATH || 'not set'}`);
     } else {
-      console.log(`[Browser] Using downloaded Chromium`);
+      console.log(`[Browser] Local development - using downloaded Chromium`);
     }
 
     try {
