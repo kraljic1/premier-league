@@ -26,7 +26,7 @@ export function SeasonDropdown({
 
   return (
     <div className="season-dropdown-container">
-      <label id={labelId} className="block text-sm font-medium mb-1">{label}</label>
+      <p id={labelId} className="block text-sm font-medium mb-1">{label}</p>
       <button
         id={buttonId}
         type="button"

@@ -149,9 +149,9 @@ export function ClubSelector() {
 
       {safeMyClubs.length > 0 && (
         <div className="mt-4">
-          <label htmlFor="primary-club-button" className="block text-sm font-medium mb-1">
+          <p className="block text-sm font-medium mb-1">
             Set Primary Club:
-          </label>
+          </p>
           <PrimaryClubButton
             id="primary-club-button"
             clubs={clubs}
