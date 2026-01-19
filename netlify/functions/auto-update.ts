@@ -231,6 +231,8 @@ async function fetchResults(): Promise<MatchResult[]> {
     });
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      console.error(`[AutoUpdate] Scrape API error ${response.status} ${response.statusText}: ${errorText}`);
       throw new Error(`API call failed: ${response.status} ${response.statusText}`);
     }
 
@@ -393,6 +395,8 @@ async function scrapeStandings(): Promise<Standing[]> {
     });
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      console.error(`[AutoUpdate] Standings API error ${response.status} ${response.statusText}: ${errorText}`);
       throw new Error(`API call failed: ${response.status} ${response.statusText}`);
     }
 

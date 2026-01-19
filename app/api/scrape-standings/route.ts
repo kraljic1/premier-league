@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeStandings } from '../../../lib/scrapers/standings-api';
 
+export const runtime = 'nodejs';
 export const maxDuration = 60; // Allow up to 60 seconds for scraping
 
 export async function GET(request: NextRequest) {
