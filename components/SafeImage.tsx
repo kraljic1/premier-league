@@ -20,6 +20,10 @@ interface SafeImageProps {
   fallback?: React.ReactNode;
   /** Responsive sizes attribute for better Core Web Vitals */
   sizes?: string;
+  /** Number of retry attempts for transient failures */
+  maxRetries?: number;
+  /** Delay before retrying (ms) */
+  retryDelayMs?: number;
 }
 
 /**
@@ -44,9 +48,20 @@ export function SafeImage({
   onError,
   fallback,
   sizes,
+  maxRetries = 1,
+  retryDelayMs = 700,
 }: SafeImageProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [currentSrc, setCurrentSrc] = useState(src);
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setRetryAttempt(0);
+    setHasError(false);
+    setIsLoaded(false);
+  }, [src]);
 
   // Preload critical images for LCP optimization
   useEffect(() => {
@@ -64,14 +79,42 @@ export function SafeImage({
     return originalSrc;
   };
 
-  const optimizedSrc = getOptimizedSrc(src);
+  const optimizedSrc = getOptimizedSrc(currentSrc);
+
+  const withCacheBuster = (url: string, attempt: number) => {
+    if (url.startsWith("data:") || url.startsWith("blob:")) {
+      return url;
+    }
+    try {
+      const parsedUrl = new URL(url, window.location.origin);
+      parsedUrl.searchParams.set("retry", `${Date.now()}-${attempt}`);
+      return parsedUrl.toString();
+    } catch {
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}retry=${Date.now()}-${attempt}`;
+    }
+  };
 
   // Handle image load errors gracefully
   const handleError = () => {
+    if (retryAttempt < maxRetries) {
+      const nextAttempt = retryAttempt + 1;
+      setRetryAttempt(nextAttempt);
+      setIsLoaded(false);
+      if (typeof window !== "undefined") {
+        window.setTimeout(() => {
+          setCurrentSrc(withCacheBuster(src, nextAttempt));
+        }, retryDelayMs);
+      }
+      return;
+    }
     setHasError(true);
     // Silently handle expected failures from external servers
     // Only log if it's not a common external source
-    if (!src.includes('upload.wikimedia.org') && !src.includes('resources.premierleague.com')) {
+    if (
+      !src.includes("upload.wikimedia.org") &&
+      !src.includes("resources.premierleague.com")
+    ) {
       console.warn(`Failed to load image: ${src}`);
     }
     if (onError) {

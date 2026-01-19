@@ -168,7 +168,7 @@ function getRateLimitConfig(isSensitive: boolean) {
 
   // Standard limits for regular API calls
   return {
-    maxRequests: 100, // 100 requests
+    maxRequests: 300, // 300 requests
     windowMs: 15 * 60 * 1000 // per 15 minutes
   };
 }
