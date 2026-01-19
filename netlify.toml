@@ -8,13 +8,12 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
-  PUPPETEER_CACHE_DIR = ".puppeteer-cache"
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
 
 # Function configuration for API routes
 [functions]
   node_bundler = "esbuild"
-  included_files = ["lib/**", ".puppeteer-cache/**"]
+  included_files = ["lib/**"]
   directory = "netlify/functions"
 
 # Daily scheduler - analyzes fixtures and creates update schedule

@@ -1,4 +1,6 @@
 import puppeteer, { Browser, Page } from "puppeteer";
+import puppeteerCore from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 let browserInstance: Browser | null = null;
 
@@ -7,51 +9,42 @@ export async function getBrowser(): Promise<Browser> {
     // Check if we're running on Netlify (production)
     const isNetlify = Boolean(
       process.env.NETLIFY ||
-      process.env.NETLIFY_URL ||
-      process.env.PUPPETEER_EXECUTABLE_PATH
+      process.env.NETLIFY_URL
     );
 
-    const launchOptions: any = {
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-        "--disable-blink-features=AutomationControlled", // Hide automation
-        "--disable-features=IsolateOrigins,site-per-process",
-      ],
-    };
-
-    // Use system Chromium only when explicitly configured
-    const configuredPath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    let launchOptions: any;
+    const puppeteerLib = isNetlify ? puppeteerCore : puppeteer;
 
     if (isNetlify) {
       console.log(`[Browser] Netlify environment detected`);
-      console.log(`[Browser] PUPPETEER_EXECUTABLE_PATH env var: ${configuredPath || "not set"}`);
-
-      if (configuredPath) {
-        launchOptions.executablePath = configuredPath;
-        console.log(`[Browser] Using system Chromium: ${configuredPath}`);
-      } else {
-        console.log(`[Browser] Using bundled Chromium`);
-      }
-
-      // Additional args for Netlify environment
-      launchOptions.args = launchOptions.args || [];
-      launchOptions.args.push("--single-process");
-      launchOptions.args.push("--no-zygote");
+      const executablePath = await chromium.executablePath();
+      launchOptions = {
+        args: [...chromium.args, "--single-process", "--no-zygote"],
+        executablePath,
+        headless: chromium.headless,
+      };
+      console.log(`[Browser] Using bundled Chromium: ${executablePath}`);
     } else {
       console.log(`[Browser] Local development - using downloaded Chromium`);
+      launchOptions = {
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-accelerated-2d-canvas",
+          "--disable-gpu",
+          "--disable-blink-features=AutomationControlled", // Hide automation
+          "--disable-features=IsolateOrigins,site-per-process",
+        ],
+      };
     }
 
     try {
-      browserInstance = await puppeteer.launch(launchOptions);
+      browserInstance = await puppeteerLib.launch(launchOptions);
       console.log(`[Browser] Browser launched successfully`);
     } catch (error) {
-      const configuredInfo = configuredPath ? ` at ${configuredPath}` : '';
-      console.error(`[Browser] Failed to launch browser${configuredInfo}:`, error);
+      console.error(`[Browser] Failed to launch browser:`, error);
       throw error;
     }
   }
