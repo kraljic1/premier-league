@@ -62,10 +62,6 @@ export function useCompareSeason() {
     return filterPremierLeagueFixtures(seasonFixtures);
   }, [allFixtures]);
 
-  const filteredHistoricalFixtures = useMemo(() => {
-    return filterPremierLeagueFixtures(historicalFixtures);
-  }, [historicalFixtures]);
-
   const {
     data: historicalFixtures = [],
     isLoading: isLoadingHistorical,
@@ -84,6 +80,10 @@ export function useCompareSeason() {
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
+
+  const filteredHistoricalFixtures = useMemo(() => {
+    return filterPremierLeagueFixtures(historicalFixtures);
+  }, [historicalFixtures]);
 
   useEffect(() => {
     if (historicalFixtures.length > 0) {

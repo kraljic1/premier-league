@@ -70,14 +70,6 @@ export function useCompareTwoClubs() {
     return filterPremierLeagueFixtures(seasonFixtures);
   }, [allCurrentFixtures]);
 
-  const historicalFixturesAFiltered = useMemo(() => {
-    return filterPremierLeagueFixtures(historicalFixturesA);
-  }, [historicalFixturesA]);
-
-  const historicalFixturesBFiltered = useMemo(() => {
-    return filterPremierLeagueFixtures(historicalFixturesB);
-  }, [historicalFixturesB]);
-
   // Fetch historical season fixtures for Club A
   const {
     data: historicalFixturesA = [],
@@ -115,6 +107,14 @@ export function useCompareTwoClubs() {
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
+
+  const historicalFixturesAFiltered = useMemo(() => {
+    return filterPremierLeagueFixtures(historicalFixturesA);
+  }, [historicalFixturesA]);
+
+  const historicalFixturesBFiltered = useMemo(() => {
+    return filterPremierLeagueFixtures(historicalFixturesB);
+  }, [historicalFixturesB]);
 
   // Get fixtures for Club A based on selected season
   const fixturesA = useMemo(() => {
