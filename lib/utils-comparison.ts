@@ -38,7 +38,7 @@ export function calculatePointsForClub(
   goalsAgainst: number;
 } {
   const clubFixtures = getFinishedClubFixtures(fixtures, clubName).filter(
-    (f) => f.matchweek <= maxMatchweek
+    (fixture) => getComparisonMatchweek(fixture) <= maxMatchweek
   );
   return calculateStatsFromFixtures(clubFixtures, clubName);
 }
@@ -73,6 +73,10 @@ export function getFinishedClubFixtures(fixtures: Fixture[], clubName: string): 
       f.homeScore !== null &&
       f.awayScore !== null
   );
+}
+
+export function getComparisonMatchweek(fixture: Fixture): number {
+  return fixture.originalMatchweek ?? fixture.matchweek;
 }
 
 export function getFinishedClubFixturesSortedByDate(
@@ -180,7 +184,7 @@ export function getCurrentMatchweekFromFixtures(fixtures: Fixture[]): number {
     return 0;
   }
 
-  const finishedMatchweeks = finishedMatches.map((f) => f.matchweek);
+  const finishedMatchweeks = finishedMatches.map((fixture) => getComparisonMatchweek(fixture));
   const maxFinishedMatchweek = Math.max(...finishedMatchweeks);
 
   // Return the highest matchweek that has any finished matches

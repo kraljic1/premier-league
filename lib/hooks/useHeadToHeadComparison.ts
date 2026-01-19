@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { getCurrentSeasonFull } from "../utils/season-utils";
 import { calculateHeadToHead, getFinishedHeadToHeadMatches } from "../utils/head-to-head-utils";
+import { getComparisonMatchweek } from "../utils-comparison";
 import { ComparisonBasis, Fixture } from "../types";
 
 interface UseHeadToHeadComparisonParams {
@@ -53,7 +54,9 @@ export function useHeadToHeadComparison({
       });
     }
 
-    return allH2H.filter((fixture) => fixture.matchweek <= effectiveMatchweek);
+    return allH2H.filter(
+      (fixture) => getComparisonMatchweek(fixture) <= effectiveMatchweek
+    );
   }, [
     clubA,
     clubB,
@@ -85,7 +88,9 @@ export function useHeadToHeadComparison({
             const fixtureDate = new Date(fixture.date).getTime();
             return !Number.isNaN(fixtureDate) && fixtureDate <= comparisonCutoffDate;
           })
-        : fixtures.filter((fixture) => fixture.matchweek <= effectiveMatchweek);
+        : fixtures.filter(
+            (fixture) => getComparisonMatchweek(fixture) <= effectiveMatchweek
+          );
 
     return calculateHeadToHead(filteredFixtures, clubA, clubB);
   }, [

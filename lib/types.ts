@@ -17,6 +17,7 @@ export interface Fixture {
   homeScore: number | null;
   awayScore: number | null;
   matchweek: number;
+  originalMatchweek?: number;
   status: "scheduled" | "live" | "finished";
   isDerby?: boolean;
   season?: string; // e.g., "2024/2025", "2025/2026"

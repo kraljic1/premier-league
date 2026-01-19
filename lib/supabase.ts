@@ -49,6 +49,7 @@ export type Database = {
           home_score: number | null
           away_score: number | null
           matchweek: number
+          original_matchweek: number | null
           status: 'scheduled' | 'live' | 'finished'
           is_derby: boolean
           season: string | null
@@ -65,6 +66,7 @@ export type Database = {
           home_score?: number | null
           away_score?: number | null
           matchweek: number
+          original_matchweek?: number | null
           status: 'scheduled' | 'live' | 'finished'
           is_derby?: boolean
           season?: string | null
@@ -81,6 +83,7 @@ export type Database = {
           home_score?: number | null
           away_score?: number | null
           matchweek?: number
+          original_matchweek?: number | null
           status?: 'scheduled' | 'live' | 'finished'
           is_derby?: boolean
           season?: string | null

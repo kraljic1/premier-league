@@ -1,5 +1,3 @@
-"use client";
-
 const CLUB_NAME_ALIASES: Record<string, string> = {
   "Nott'm Forest": "Nottingham Forest",
 };

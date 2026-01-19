@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { securityMonitor } from './security-monitor';
+import { apiKeyManager } from './api-key-manager';
 import type { SecurityEvent } from './security-monitor';
 
 // Rate limiting store (in production, use Redis)
 interface RateLimitEntry {
   count: number;
   resetTime: number;
+  burstTokens: number; // Burst allowance tokens
+  lastRequest: number; // Timestamp of last request
 }
 
 const rateLimitStore = new Map<string, RateLimitEntry>();
@@ -54,27 +57,29 @@ export function authenticateRequest(
     return { success: false, error: 'Missing API key' };
   }
 
-  // Check if the API key matches any level
-  const levels: AccessLevel[] = ['read', 'write', 'admin'];
-  const userLevelIndex = levels.findIndex(level => API_KEYS[level] === apiKey);
+  // Validate API key using the key manager
+  const keyValidation = apiKeyManager.validateKey(apiKey);
 
-  if (userLevelIndex === -1) {
+  if (!keyValidation.valid) {
     // Log authentication failure
     securityMonitor.logEvent({
       type: 'auth_failure',
       severity: 'medium',
       clientId,
       endpoint: request.nextUrl.pathname,
-      details: { reason: 'invalid_api_key' },
+      details: { reason: keyValidation.error.toLowerCase().replace(/\s+/g, '_') },
       ip: request.headers.get('x-forwarded-for') || request.ip || undefined,
       userAgent: request.headers.get('user-agent') || undefined
     });
 
-    return { success: false, error: 'Invalid API key' };
+    return { success: false, error: keyValidation.error };
   }
 
   // Check if user has sufficient access level
+  const levels: AccessLevel[] = ['read', 'write', 'admin'];
+  const userLevelIndex = levels.indexOf(keyValidation.level);
   const requiredLevelIndex = levels.indexOf(requiredLevel);
+
   if (userLevelIndex < requiredLevelIndex) {
     // Log authorization failure
     securityMonitor.logEvent({
@@ -84,7 +89,7 @@ export function authenticateRequest(
       endpoint: request.nextUrl.pathname,
       details: {
         reason: 'insufficient_access_level',
-        userLevel: levels[userLevelIndex],
+        userLevel: keyValidation.level,
         requiredLevel
       },
       ip: request.headers.get('x-forwarded-for') || request.ip || undefined,
@@ -98,27 +103,39 @@ export function authenticateRequest(
 }
 
 /**
- * Check rate limiting for requests
+ * Check rate limiting for requests with burst protection and sliding window
  */
 export function checkRateLimit(
   request: NextRequest,
   maxRequests: number = 100,
-  windowMs: number = 15 * 60 * 1000 // 15 minutes
+  windowMs: number = 15 * 60 * 1000, // 15 minutes
+  burstAllowance: number = 10 // Additional burst tokens
 ): { allowed: true } | { allowed: false; resetTime: number } {
   const identifier = getClientIdentifier(request);
   const now = Date.now();
   const windowData = rateLimitStore.get(identifier);
 
+  // Initialize new window data if none exists or window has expired
   if (!windowData || now > windowData.resetTime) {
-    // New window or expired window
-    rateLimitStore.set(identifier, {
+    const newEntry: RateLimitEntry = {
       count: 1,
-      resetTime: now + windowMs
-    });
+      resetTime: now + windowMs,
+      burstTokens: burstAllowance,
+      lastRequest: now
+    };
+    rateLimitStore.set(identifier, newEntry);
     return { allowed: true };
   }
 
-  if (windowData.count >= maxRequests) {
+  // Calculate tokens to replenish based on time passed (sliding window)
+  const timeSinceLastRequest = now - windowData.lastRequest;
+  const tokensToReplenish = Math.floor((timeSinceLastRequest / windowMs) * maxRequests);
+  windowData.burstTokens = Math.min(burstAllowance, windowData.burstTokens + tokensToReplenish);
+
+  // Check if request is allowed (regular limit + burst tokens)
+  const totalAllowance = maxRequests + windowData.burstTokens;
+
+  if (windowData.count >= totalAllowance) {
     // Log rate limit violation
     securityMonitor.logEvent({
       type: 'rate_limit',
@@ -128,6 +145,8 @@ export function checkRateLimit(
         details: {
           attempts: windowData.count,
           limit: maxRequests,
+          burstUsed: windowData.burstTokens,
+          totalAllowance,
           resetTime: new Date(windowData.resetTime).toISOString()
         },
         ip: request.headers.get('x-forwarded-for') || request.ip || undefined,
@@ -137,7 +156,11 @@ export function checkRateLimit(
     return { allowed: false, resetTime: windowData.resetTime };
   }
 
+  // Allow request and update counters
   windowData.count++;
+  windowData.burstTokens = Math.max(0, windowData.burstTokens - 1); // Consume burst token
+  windowData.lastRequest = now;
+
   return { allowed: true };
 }
 

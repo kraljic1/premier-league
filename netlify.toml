@@ -94,5 +94,8 @@
 # Environment variables (set these in Netlify dashboard)
 # Required for Puppeteer on Netlify:
 # - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
-# - PUPPETEER_EXECUTABLE_PATH=/opt/homebrew/bin/chromium (or similar)
+# - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+[build.environment]
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "false"
 

@@ -207,73 +207,59 @@ function isDerby(home: string, away: string): boolean {
 }
 
 /**
- * Fetch and parse results from Rezultati.com
+ * Fetch results from our custom scraping API
+ * Uses Next.js API route that handles Puppeteer scraping
  */
 async function fetchResults(): Promise<MatchResult[]> {
-  console.log("[AutoUpdate] Fetching results from Rezultati.com...");
-  
-  const response = await fetch(REZULTATI_URL, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.5",
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch: ${response.status}`);
+  console.log("[AutoUpdate] Fetching results from scraping API...");
+
+  try {
+    // Get the base URL for the API call
+    const baseUrl = process.env.URL || process.env.NETLIFY_URL || 'http://localhost:3000';
+    const apiUrl = `${baseUrl}/api/scrape-results`;
+
+    console.log(`[AutoUpdate] Calling scraping API: ${apiUrl}`);
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Netlify-AutoUpdate/1.0',
+      },
+      // Add timeout for the API call
+      signal: AbortSignal.timeout(60000), // 60 seconds
+    });
+
+    if (!response.ok) {
+      throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(`API returned error: ${data.error}`);
+    }
+
+    const results = data.results || [];
+    console.log(`[AutoUpdate] API returned ${results.length} results`);
+
+    // Convert API results to MatchResult format
+    const matchResults: MatchResult[] = results.map((result: any) => ({
+      homeTeam: result.homeTeam,
+      awayTeam: result.awayTeam,
+      homeScore: result.homeScore,
+      awayScore: result.awayScore,
+      date: result.date,
+      matchweek: result.matchweek,
+    }));
+
+    console.log(`[AutoUpdate] Converted to ${matchResults.length} MatchResult objects`);
+    return matchResults;
+
+  } catch (error) {
+    console.error(`[AutoUpdate] Error fetching results from API:`, error);
+    return [];
   }
-  
-  const html = await response.text();
-  const $ = cheerio.load(html);
-  
-  const results: MatchResult[] = [];
-  let currentMatchweek = 0;
-  
-  $(".event__round, .event__match").each((_, el) => {
-    const $el = $(el);
-    
-    if ($el.hasClass("event__round")) {
-      const roundText = $el.text();
-      const roundMatch = roundText.match(/(\d+)\.\s*kolo/i);
-      if (roundMatch) {
-        currentMatchweek = parseInt(roundMatch[1]);
-      }
-      return;
-    }
-    
-    if (!$el.hasClass("event__match")) return;
-    
-    const homeTeam = $el.find(".event__participant--home").text().trim().replace(/\d+$/, "").trim();
-    const awayTeam = $el.find(".event__participant--away").text().trim().replace(/\d+$/, "").trim();
-    const homeScoreText = $el.find(".event__score--home").text().trim();
-    const awayScoreText = $el.find(".event__score--away").text().trim();
-    const dateStr = $el.find(".event__time").text().trim();
-    
-    const homeScore = parseInt(homeScoreText);
-    const awayScore = parseInt(awayScoreText);
-    
-    if (homeTeam && awayTeam && !isNaN(homeScore) && !isNaN(awayScore) && currentMatchweek > 0) {
-      const parsedDate = parseDate(dateStr);
-      if (parsedDate) {
-        // Normalize team names immediately when scraping
-        const normalizedHome = normalizeTeamName(homeTeam);
-        const normalizedAway = normalizeTeamName(awayTeam);
-        
-        results.push({
-          homeTeam: normalizedHome,
-          awayTeam: normalizedAway,
-          homeScore,
-          awayScore,
-          date: parsedDate.toISOString(),
-          matchweek: currentMatchweek,
-        });
-      }
-    }
-  });
-  
-  console.log(`[AutoUpdate] Found ${results.length} results from scraper`);
-  return results;
 }
 
 /**
@@ -383,80 +369,49 @@ function normalizeTeamName(name: string): string {
 }
 
 /**
- * Scrape standings from Rezultati.com
+ * Fetch standings from our custom scraping API
+ * Uses Next.js API route that handles Puppeteer scraping
  */
 async function scrapeStandings(): Promise<Standing[]> {
-  console.log("[AutoUpdate] Fetching standings from Rezultati.com...");
+  console.log("[AutoUpdate] Fetching standings from scraping API...");
 
-  const response = await fetch(REZULTATI_STANDINGS_URL, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    },
-  });
+  try {
+    // Get the base URL for the API call
+    const baseUrl = process.env.URL || process.env.NETLIFY_URL || 'http://localhost:3000';
+    const apiUrl = `${baseUrl}/api/scrape-standings`;
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch standings: ${response.status}`);
-  }
+    console.log(`[AutoUpdate] Calling standings API: ${apiUrl}`);
 
-  const html = await response.text();
-  const $ = cheerio.load(html);
-  const standings: Standing[] = [];
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Netlify-AutoUpdate/1.0',
+      },
+      // Add timeout for the API call
+      signal: AbortSignal.timeout(60000), // 60 seconds
+    });
 
-  // Try multiple table selectors
-  $("table tbody tr, .table__row, .standings-table tbody tr").each((index, row) => {
-    const $row = $(row);
-    if ($row.find("th").length > 0) return;
-
-    const cells = $row.find("td, .table__cell");
-    if (cells.length < 8) return;
-
-    const position = parseInt($(cells[0]).text().trim()) || index + 1;
-    const rawClub = $(cells[1]).text().trim().replace(/\d+$/, "").trim();
-    const club = normalizeTeamName(rawClub);
-
-    if (!club || club.length < 3) return;
-
-    const played = parseInt($(cells[2]).text().trim()) || 0;
-    const won = parseInt($(cells[3]).text().trim()) || 0;
-    const drawn = parseInt($(cells[4]).text().trim()) || 0;
-    const lost = parseInt($(cells[5]).text().trim()) || 0;
-    const goalsFor = parseInt($(cells[6]).text().trim()) || 0;
-    const goalsAgainst = parseInt($(cells[7]).text().trim()) || 0;
-    const goalDifference = parseInt($(cells[8]).text().trim()) || goalsFor - goalsAgainst;
-    const points = parseInt($(cells[cells.length - 1]).text().trim()) || 0;
-
-    // Extract form
-    const formCell = $row.find("[class*='form'], [class*='last']");
-    let form = "";
-    if (formCell.length > 0) {
-      formCell.find("span, div").each((_, el) => {
-        const className = $(el).attr("class") || "";
-        const text = $(el).text().trim().toUpperCase();
-        if (className.includes("win") || text === "W") form += "W";
-        else if (className.includes("draw") || text === "D") form += "D";
-        else if (className.includes("loss") || text === "L") form += "L";
-      });
-      form = form.slice(0, 6);
+    if (!response.ok) {
+      throw new Error(`API call failed: ${response.status} ${response.statusText}`);
     }
 
-    standings.push({
-      position,
-      club,
-      played,
-      won,
-      drawn,
-      lost,
-      goalsFor,
-      goalsAgainst,
-      goalDifference,
-      points,
-      form,
-    });
-  });
+    const data = await response.json();
 
-  console.log(`[AutoUpdate] Scraped ${standings.length} standings`);
-  return standings.slice(0, 20); // Ensure max 20 teams
+    if (!data.success) {
+      throw new Error(`API returned error: ${data.error}`);
+    }
+
+    const standings = data.standings || [];
+    console.log(`[AutoUpdate] API returned ${standings.length} standings`);
+
+    console.log(`[AutoUpdate] Returning ${standings.length} Standing objects`);
+    return standings;
+
+  } catch (error) {
+    console.error(`[AutoUpdate] Error fetching standings from API:`, error);
+    return [];
+  }
 }
 
 /**

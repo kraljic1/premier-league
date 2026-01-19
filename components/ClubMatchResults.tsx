@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { ComparisonBasis, Fixture } from "@/lib/types";
-import { getFinishedClubFixtures, sortFixturesByDate } from "@/lib/utils-comparison";
+import {
+  getComparisonMatchweek,
+  getFinishedClubFixtures,
+  sortFixturesByDate,
+} from "@/lib/utils-comparison";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { getClubByName } from "@/lib/clubs";
 
@@ -37,8 +41,8 @@ export function ClubMatchResults({
     }
 
     return finishedFixtures
-      .filter((fixture) => fixture.matchweek <= maxMatchweek)
-      .sort((a, b) => a.matchweek - b.matchweek);
+      .filter((fixture) => getComparisonMatchweek(fixture) <= maxMatchweek)
+      .sort((a, b) => getComparisonMatchweek(a) - getComparisonMatchweek(b));
   })();
 
   // Helper function to get logo URL for a team
@@ -96,9 +100,14 @@ export function ClubMatchResults({
               const homeLogoUrl = getTeamLogoUrl(fixture.homeTeam);
               const awayLogoUrl = getTeamLogoUrl(fixture.awayTeam);
 
+              const displayMatchweek =
+                comparisonBasis === "matchweek"
+                  ? getComparisonMatchweek(fixture)
+                  : fixture.matchweek;
+
               return (
                 <tr key={fixture.id} className={isHome ? "" : "club-match-results__row--away"}>
-                  <td className="club-match-results__matchweek">{fixture.matchweek}</td>
+                  <td className="club-match-results__matchweek">{displayMatchweek}</td>
                   <td className={`club-match-results__team ${isHome ? "club-match-results__team--highlight" : ""}`}>
                     <div className="club-match-results__team-cell">
                       {homeLogoUrl ? (

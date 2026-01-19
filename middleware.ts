@@ -11,10 +11,24 @@ const ALLOWED_ORIGINS = [
   process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : null,
 ].filter(Boolean) as string[];
 
-// API endpoints that require authentication
+// API endpoints that require authentication (admin/system operations only)
 const PROTECTED_ENDPOINTS = [
   '/api/refresh',
-  '/api/keep-alive'
+  '/api/keep-alive',
+  '/api/keys'
+];
+
+// Public API endpoints (accessible from frontend without authentication)
+const PUBLIC_ENDPOINTS = [
+  '/api/fixtures',
+  '/api/results',
+  '/api/standings',
+  '/api/clubs',
+  '/api/historical-season',
+  '/api/force-update',
+  '/api/secure-data',
+  '/api/og',
+  '/api/test-scraper'
 ];
 
 // API endpoints with stricter rate limits
@@ -27,6 +41,8 @@ export function middleware(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api/');
   const isProtectedEndpoint = PROTECTED_ENDPOINTS.some(endpoint => pathname.startsWith(endpoint));
   const isSensitiveEndpoint = SENSITIVE_ENDPOINTS.some(endpoint => pathname.startsWith(endpoint));
+
+  console.log(`[MIDDLEWARE] ${request.method} ${pathname}, isApiRoute: ${isApiRoute}, isProtected: ${isProtectedEndpoint}`);
 
   // Handle CORS preflight requests
   if (request.method === 'OPTIONS') {
@@ -47,10 +63,15 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Apply rate limiting for API routes
+  // Apply rate limiting for API routes with burst protection
   if (isApiRoute) {
     const rateLimitConfig = getRateLimitConfig(isSensitiveEndpoint);
-    const rateLimitResult = checkRateLimit(request, rateLimitConfig.maxRequests, rateLimitConfig.windowMs);
+    const rateLimitResult = checkRateLimit(
+      request,
+      rateLimitConfig.maxRequests,
+      rateLimitConfig.windowMs,
+      rateLimitConfig.burstAllowance
+    );
 
     if (!rateLimitResult.allowed) {
       const resetTime = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
@@ -71,13 +92,29 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // For protected endpoints, basic API key check (full validation happens in route handlers)
+  // For protected endpoints (admin/system), require API key authentication
   if (isProtectedEndpoint) {
     const apiKey = request.headers.get('x-api-key');
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API key required' },
+        { error: 'API key required for admin operations' },
         { status: 401 }
+      );
+    }
+  }
+
+  // For public API endpoints, allow access but apply rate limiting and CORS
+  const isPublicEndpoint = PUBLIC_ENDPOINTS.some(endpoint => pathname.startsWith(endpoint));
+  if (isPublicEndpoint) {
+    // Validate CORS for public API requests
+    const corsValidation = validateCors(request);
+    if (!corsValidation.allowed) {
+      return NextResponse.json(
+        { error: 'CORS policy violation' },
+        {
+          status: 403,
+          headers: corsValidation.headers
+        }
       );
     }
   }
@@ -91,6 +128,12 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+
+  // Additional security headers for enhanced protection
+  response.headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  response.headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), magnetometer=(), gyroscope=(), speaker=(), fullscreen=(self), payment=()');
 
   // CSP for API routes
   if (isApiRoute) {
@@ -159,17 +202,19 @@ function validateCors(request: NextRequest): { allowed: boolean; headers: Record
  */
 function getRateLimitConfig(isSensitive: boolean) {
   if (isSensitive) {
-    // Stricter limits for sensitive operations
+    // Stricter limits for sensitive operations with minimal burst
     return {
       maxRequests: 5, // 5 requests
-      windowMs: 15 * 60 * 1000 // per 15 minutes
+      windowMs: 15 * 60 * 1000, // per 15 minutes
+      burstAllowance: 2 // Additional burst tokens
     };
   }
 
-  // Standard limits for regular API calls
+  // Standard limits for regular API calls with burst protection
   return {
     maxRequests: 300, // 300 requests
-    windowMs: 15 * 60 * 1000 // per 15 minutes
+    windowMs: 15 * 60 * 1000, // per 15 minutes
+    burstAllowance: 50 // Additional burst tokens for legitimate traffic spikes
   };
 }
 
