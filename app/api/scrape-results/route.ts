@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scrapeRecentResults } from '../../../lib/scrapers/results-api';
 
-export const maxDuration = 60; // Allow up to 60 seconds for scraping
+export const maxDuration = 45; // Reduced to 45 seconds for Netlify limits
 
 export async function GET(request: NextRequest) {
   try {

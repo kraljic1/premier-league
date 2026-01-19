@@ -165,7 +165,7 @@ export async function scrapeRecentResults(): Promise<Fixture[]> {
     }
 
     console.log(`[ScraperAPI] Loading URL: ${REZULTATI_URL}`);
-    page = await scrapePage(REZULTATI_URL, undefined, 30000);
+    page = await scrapePage(REZULTATI_URL, undefined, 20000); // Reduced timeout for Netlify
     console.log('[ScraperAPI] Page loaded successfully');
 
     // Check if page loaded correctly
