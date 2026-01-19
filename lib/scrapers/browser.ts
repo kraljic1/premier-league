@@ -27,6 +27,11 @@ export async function getBrowser(): Promise<Browser> {
       console.log(`[Browser] Netlify environment detected`);
       console.log(`[Browser] Using system Chromium: ${executablePath}`);
       console.log(`[Browser] PUPPETEER_EXECUTABLE_PATH env var: ${process.env.PUPPETEER_EXECUTABLE_PATH || 'not set'}`);
+
+      // Additional args for Netlify environment
+      launchOptions.args = launchOptions.args || [];
+      launchOptions.args.push('--single-process');
+      launchOptions.args.push('--no-zygote');
     } else {
       console.log(`[Browser] Local development - using downloaded Chromium`);
     }
@@ -35,8 +40,22 @@ export async function getBrowser(): Promise<Browser> {
       browserInstance = await puppeteer.launch(launchOptions);
       console.log(`[Browser] Browser launched successfully`);
     } catch (error) {
-      console.error(`[Browser] Failed to launch browser:`, error);
-      throw error;
+      console.error(`[Browser] Failed to launch browser with path ${launchOptions.executablePath}:`, error);
+
+      // Try alternative path if the first one fails
+      if (isNetlify && launchOptions.executablePath === "/usr/bin/chromium-browser") {
+        console.log(`[Browser] Trying alternative path: /usr/bin/chromium`);
+        launchOptions.executablePath = "/usr/bin/chromium";
+        try {
+          browserInstance = await puppeteer.launch(launchOptions);
+          console.log(`[Browser] Browser launched successfully with alternative path`);
+        } catch (secondError) {
+          console.error(`[Browser] Failed with alternative path too:`, secondError);
+          throw secondError;
+        }
+      } else {
+        throw error;
+      }
     }
   }
   return browserInstance;
