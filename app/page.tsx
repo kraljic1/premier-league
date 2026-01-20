@@ -9,12 +9,11 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAppStore } from "@/lib/store";
-import { CLUBS, getClubByName } from "@/lib/clubs";
 import { Fixture } from "@/lib/types";
-import { formatDate, getCurrentMatchweek } from "@/lib/utils";
+import { getHomepageMatchweek, getMatchweekFixtures, getNextMatch, getNextMatchweekFixtures } from "@/lib/homepage-utils";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
-import { SafeImage } from "@/components/SafeImage";
+import { MatchweekSection } from "@/components/MatchweekSection";
 import { HelpButton } from "@/components/HelpButton";
 import { getHelpContent } from "@/lib/help-content";
 
@@ -36,14 +35,6 @@ const ClubSelector = dynamic(
   }
 );
 
-const ClubLogo = dynamic(
-  () => import("@/components/ClubLogo").then(mod => ({ default: mod.ClubLogo })),
-  {
-    ssr: false,
-    loading: () => <div className="w-5 h-5 bg-gray-200 dark:bg-gray-700 rounded"></div>
-  }
-);
-
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
     cache: "no-store", // Client-side fetch, don't cache
@@ -53,76 +44,6 @@ async function fetchFixtures(): Promise<Fixture[]> {
 }
 
 const PREMIER_LEAGUE_COMPETITION = "Premier League";
-
-function normalizeClubName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/\b(fc|afc|cf|sc)\b/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function findClubEntryByName(clubs: Record<string, any>, name: string) {
-  const clubList = Object.values(clubs);
-  const directMatch = clubList.find((club: any) => club.name === name);
-  if (directMatch) {
-    return directMatch;
-  }
-
-  const normalizedName = normalizeClubName(name);
-  if (!normalizedName) {
-    return undefined;
-  }
-
-  return clubList.find((club: any) => {
-    const normalizedClubName = normalizeClubName(club.name || "");
-    return (
-      normalizedClubName === normalizedName ||
-      normalizedClubName.includes(normalizedName) ||
-      normalizedName.includes(normalizedClubName)
-    );
-  });
-}
-
-function getNextMatch(fixtures: Fixture[], myClubs: string[]): Fixture | null {
-  const now = new Date();
-  const clubNames = myClubs
-    .map((id) => CLUBS[id]?.name)
-    .filter(Boolean) as string[];
-
-  return (
-    fixtures.find((f) => {
-      const matchDate = new Date(f.date);
-      const isMyClub =
-        clubNames.includes(f.homeTeam) || clubNames.includes(f.awayTeam);
-      return matchDate > now && isMyClub;
-    }) || null
-  );
-}
-
-/**
- * Gets fixtures from the current matchweek.
- * Current matchweek is determined by the highest matchweek with finished matches.
- */
-function getCurrentMatchweekFixtures(fixtures: Fixture[], currentMatchweek: number): Fixture[] {
-  if (currentMatchweek === 0) {
-    // No matches finished yet, show matchweek 1
-    return fixtures.filter((f) => f.matchweek === 1);
-  }
-  return fixtures.filter((f) => f.matchweek === currentMatchweek);
-}
-
-/**
- * Gets fixtures from the next matchweek.
- */
-function getNextMatchweekFixtures(fixtures: Fixture[], currentMatchweek: number): Fixture[] {
-  const nextMatchweek = currentMatchweek === 0 ? 2 : currentMatchweek + 1;
-  // Cap at 38 (max matchweeks in a season)
-  if (nextMatchweek > 38) {
-    return [];
-  }
-  return fixtures.filter((f) => f.matchweek === nextMatchweek);
-}
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false);
@@ -165,14 +86,18 @@ export default function HomePage() {
   );
 
   const nextMatch = getNextMatch(premierLeagueFixtures, safeMyClubs);
-
-  // Calculate current matchweek
-  const currentMatchweek = getCurrentMatchweek(premierLeagueFixtures);
-  const currentMatchweekFixtures = getCurrentMatchweekFixtures(
-    premierLeagueFixtures,
-    currentMatchweek
+  const homepageMatchweek = useMemo(
+    () => getHomepageMatchweek(premierLeagueFixtures),
+    [premierLeagueFixtures]
   );
-  const nextMatchweekFixtures = getNextMatchweekFixtures(premierLeagueFixtures, currentMatchweek);
+  const homepageMatchweekFixtures = useMemo(
+    () => getMatchweekFixtures(premierLeagueFixtures, homepageMatchweek),
+    [premierLeagueFixtures, homepageMatchweek]
+  );
+  const nextMatchweekFixtures = useMemo(
+    () => getNextMatchweekFixtures(premierLeagueFixtures, homepageMatchweek),
+    [premierLeagueFixtures, homepageMatchweek]
+  );
 
   return (
     <ErrorBoundary>
@@ -211,132 +136,21 @@ export default function HomePage() {
               </div>
             )}
 
-            {currentMatchweekFixtures.length > 0 && (
-              <div className="pl-space-lg">
-                <h2 className="pl-heading-md mb-4 goal-underline">
-                  Match week {currentMatchweek === 0 ? 1 : currentMatchweek}
-                </h2>
-                <div className="formation-4-3-3">
-                  {currentMatchweekFixtures.map((fixture) => (
-                    <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
-                  ))}
-                </div>
-              </div>
-            )}
+            <MatchweekSection
+              title={`Match week ${homepageMatchweek}`}
+              fixtures={homepageMatchweekFixtures}
+              clubs={clubs}
+            />
 
-            {nextMatchweekFixtures.length > 0 && (
-              <div className="pl-space-lg">
-                <h2 className="pl-heading-md mb-4 goal-underline">Next match week</h2>
-                <div className="formation-4-3-3">
-                  {nextMatchweekFixtures.map((fixture) => (
-                    <FixtureCard key={fixture.id} fixture={fixture} clubs={clubs} />
-                  ))}
-                </div>
-              </div>
-            )}
+            <MatchweekSection
+              title="Next match week"
+              fixtures={nextMatchweekFixtures}
+              clubs={clubs}
+            />
           </>
         )}
       </main>
     </ErrorBoundary>
-  );
-}
-
-function FixtureCard({ fixture, clubs }: { fixture: Fixture; clubs: Record<string, any> }) {
-  const club = getClubByName(fixture.homeTeam);
-
-  // Get logo URLs from clubs object
-  const homeClubEntry = findClubEntryByName(clubs, fixture.homeTeam);
-  const awayClubEntry = findClubEntryByName(clubs, fixture.awayTeam);
-  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
-  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
-
-  // Determine match status
-  const now = new Date();
-  const matchDate = new Date(fixture.date);
-  const hasScore = fixture.homeScore !== null && fixture.awayScore !== null;
-
-  let statusClass = 'status-scheduled';
-  if (hasScore) {
-    statusClass = 'status-finished';
-  } else if (matchDate <= now) {
-    statusClass = 'status-live';
-  }
-
-  return (
-    <article
-      className={`match-card p-4 ${
-        fixture.isDerby
-          ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-          : ""
-      }`}
-      itemScope
-      itemType="https://schema.org/SportsEvent"
-    >
-      <div className="flex justify-between items-start mb-2">
-        <time
-          className="pl-caption"
-          dateTime={fixture.date}
-          itemProp="startDate"
-        >
-          {formatDate(fixture.date)}
-        </time>
-        <span className={`status-badge ${statusClass}`}>
-          {hasScore ? 'FT' : matchDate <= now ? 'LIVE' : 'SCHEDULED'}
-        </span>
-      </div>
-
-      <div className="fixture-card__teams">
-        <div className="fixture-card__team" itemProp="homeTeam" itemScope itemType="https://schema.org/SportsTeam">
-          <meta itemProp="name" content={fixture.homeTeam} />
-          <div className="fixture-card__logo-wrapper">
-            <SafeImage
-              src={homeLogoUrl || homeClubEntry?.logoUrl || ''}
-              alt={`${fixture.homeTeam} logo`}
-              width={40}
-              height={40}
-              className="fixture-card__logo"
-              loading="lazy"
-              unoptimized={Boolean(homeLogoUrl?.endsWith('.svg'))}
-            />
-          </div>
-          <div className="fixture-card__team-name">{fixture.homeTeam}</div>
-        </div>
-        <span className="fixture-card__vs">vs</span>
-        <div className="fixture-card__team" itemProp="awayTeam" itemScope itemType="https://schema.org/SportsTeam">
-          <meta itemProp="name" content={fixture.awayTeam} />
-          <div className="fixture-card__logo-wrapper">
-            <SafeImage
-              src={awayLogoUrl || awayClubEntry?.logoUrl || ''}
-              alt={`${fixture.awayTeam} logo`}
-              width={40}
-              height={40}
-              className="fixture-card__logo"
-              loading="lazy"
-              unoptimized={Boolean(awayLogoUrl?.endsWith('.svg'))}
-            />
-          </div>
-          <div className="fixture-card__team-name">{fixture.awayTeam}</div>
-        </div>
-      </div>
-
-      <div className="fixture-card__footer">
-        {fixture.homeScore !== null && fixture.awayScore !== null ? (
-          <div className="match-score text-xl font-bold text-center" itemProp="result">
-            <span itemProp="homeTeamScore" className="mr-2">{fixture.homeScore}</span>
-            <span className="text-gray-400">-</span>
-            <span itemProp="awayTeamScore" className="ml-2">{fixture.awayScore}</span>
-          </div>
-        ) : (
-          <div className="pl-body-sm text-gray-500 text-center">Scheduled</div>
-        )}
-
-        {fixture.isDerby && (
-          <div className="text-xs text-red-600 dark:text-red-400 mt-2 text-center font-semibold">
-            🏆 DERBY MATCH
-          </div>
-        )}
-      </div>
-    </article>
   );
 }
 
