@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 import { resolve } from "path";
 import { createClient } from "@supabase/supabase-js";
+import { normalizeClubName } from "../lib/utils/club-name-utils";
 
 // Load environment variables
 config({ path: resolve(__dirname, "../.env.local") });
@@ -10,105 +11,9 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-/**
- * Mapping of various team name variations to canonical names
- * The canonical names match those in lib/clubs.ts
- */
-const TEAM_NAME_MAPPING: Record<string, string> = {
-  // Arsenal - no variations needed
-  "Arsenal": "Arsenal",
-  
-  // Aston Villa
-  "Aston Villa": "Aston Villa",
-  
-  // Bournemouth
-  "Bournemouth": "Bournemouth",
-  "AFC Bournemouth": "Bournemouth",
-  
-  // Brentford
-  "Brentford": "Brentford",
-  
-  // Brighton
-  "Brighton": "Brighton & Hove Albion",
-  "Brighton & Hove Albion": "Brighton & Hove Albion",
-  "Brighton Hove Albion": "Brighton & Hove Albion",
-  
-  // Chelsea
-  "Chelsea": "Chelsea",
-  "Chelsea FC": "Chelsea",
-  
-  // Crystal Palace
-  "Crystal Palace": "Crystal Palace",
-  
-  // Everton
-  "Everton": "Everton",
-  "Everton FC": "Everton",
-  
-  // Fulham
-  "Fulham": "Fulham",
-  "Fulham FC": "Fulham",
-  
-  // Ipswich
-  "Ipswich": "Ipswich Town",
-  "Ipswich Town": "Ipswich Town",
-  
-  // Leicester
-  "Leicester": "Leicester City",
-  "Leicester City": "Leicester City",
-  
-  // Liverpool
-  "Liverpool": "Liverpool",
-  "Liverpool FC": "Liverpool",
-  "Liverpool F.C.": "Liverpool",
-  
-  // Manchester City
-  "Manchester City": "Manchester City",
-  "Man City": "Manchester City",
-  "Man. City": "Manchester City",
-  
-  // Manchester United
-  "Manchester United": "Manchester United",
-  "Manchester Utd": "Manchester United",
-  "Man United": "Manchester United",
-  "Man Utd": "Manchester United",
-  "Man. United": "Manchester United",
-  
-  // Newcastle
-  "Newcastle": "Newcastle United",
-  "Newcastle United": "Newcastle United",
-  "Newcastle Utd": "Newcastle United",
-  
-  // Nottingham Forest
-  "Nottingham Forest": "Nottingham Forest",
-  "Nottingham": "Nottingham Forest",
-  "Nott'm Forest": "Nottingham Forest",
-  
-  // Southampton
-  "Southampton": "Southampton",
-  "Southampton FC": "Southampton",
-  
-  // Tottenham
-  "Tottenham": "Tottenham Hotspur",
-  "Tottenham Hotspur": "Tottenham Hotspur",
-  "Spurs": "Tottenham Hotspur",
-  
-  // West Ham
-  "West Ham": "West Ham United",
-  "West Ham United": "West Ham United",
-  "West Ham Utd": "West Ham United",
-  
-  // Wolves
-  "Wolves": "Wolverhampton Wanderers",
-  "Wolverhampton": "Wolverhampton Wanderers",
-  "Wolverhampton Wanderers": "Wolverhampton Wanderers",
-  "Wolverhampton W.": "Wolverhampton Wanderers",
-  
-  // Teams not in current Premier League (keep as-is or map to known names)
-  "Burnley": "Burnley",
-  "Leeds": "Leeds United",
-  "Leeds United": "Leeds United",
-  "Sunderland": "Sunderland",
-};
+function normalizeTeamName(name: string): string {
+  return normalizeClubName(name);
+}
 
 async function normalizeTeamNames() {
   console.log("Starting team name normalization...\n");
@@ -133,8 +38,8 @@ async function normalizeTeamNames() {
     const originalHome = fixture.home_team;
     const originalAway = fixture.away_team;
     
-    const normalizedHome = TEAM_NAME_MAPPING[originalHome] || originalHome;
-    const normalizedAway = TEAM_NAME_MAPPING[originalAway] || originalAway;
+    const normalizedHome = normalizeTeamName(originalHome);
+    const normalizedAway = normalizeTeamName(originalAway);
     
     // Check if normalization is needed
     if (normalizedHome !== originalHome || normalizedAway !== originalAway) {

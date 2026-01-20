@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { normalizeClubName } from "../lib/utils/club-name-utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -14,39 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  * Normalize team names to handle variations
  */
 function normalizeTeamName(name: string): string {
-  let normalized = name
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-  
-  // Team-specific normalizations
-  const teamMappings: Record<string, string> = {
-    "manchester united": "man utd",
-    "manchester utd": "man utd",
-    "man utd": "man utd",
-    "manchester city": "man city",
-    "man city": "man city",
-    "liverpool fc": "liverpool",
-    "liverpool": "liverpool",
-    "tottenham hotspur": "tottenham",
-    "tottenham": "tottenham",
-    "west ham united": "west ham",
-    "west ham": "west ham",
-    "wolverhampton wanderers": "wolves",
-    "wolves": "wolves",
-    "newcastle united": "newcastle",
-    "newcastle": "newcastle",
-    "leeds united": "leeds",
-    "leeds": "leeds",
-    "brighton & hove albion": "brighton",
-    "brighton": "brighton",
-    "afc bournemouth": "bournemouth",
-    "bournemouth": "bournemouth",
-    "nottingham forest": "nottingham",
-    "crystal palace": "palace",
-  };
-  
-  return teamMappings[normalized] || normalized;
+  return normalizeClubName(name);
 }
 
 async function cleanupDuplicates() {

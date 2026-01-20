@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { createClient } from "@supabase/supabase-js";
 import { seasonYearToShortFormat } from "../lib/utils/season-utils";
+import { normalizeClubName } from "../lib/utils/club-name-utils";
 
 config({ path: resolve(__dirname, "../.env.local") });
 
@@ -25,30 +26,8 @@ const SEASON_FILES: Record<string, string> = {
   "2023/24": "epl-2023-GMTStandardTime.csv",
 };
 
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  "Man United": "Manchester United",
-  "Man Utd": "Manchester United",
-  "Man City": "Manchester City",
-  Tottenham: "Tottenham Hotspur",
-  Spurs: "Tottenham Hotspur",
-  Brighton: "Brighton & Hove Albion",
-  Wolves: "Wolverhampton Wanderers",
-  "West Ham": "West Ham United",
-  Newcastle: "Newcastle United",
-  Leeds: "Leeds United",
-  Forest: "Nottingham Forest",
-  Nottingham: "Nottingham Forest",
-  "Sheffield Utd": "Sheffield United",
-  "Sheff Utd": "Sheffield United",
-  Leicester: "Leicester City",
-  Norwich: "Norwich City",
-  Luton: "Luton Town",
-  Ipswich: "Ipswich Town",
-};
-
 function normalizeTeamName(name: string): string {
-  const trimmed = name.trim();
-  return TEAM_NAME_MAPPINGS[trimmed] || trimmed;
+  return normalizeClubName(name);
 }
 
 function parseCsvLine(line: string): string[] {

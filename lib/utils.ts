@@ -45,7 +45,12 @@ export function getTimeUntil(date: string | Date): {
  * If no matches are finished, returns 0.
  */
 export function getCurrentMatchweek(
-  fixtures: Array<{ matchweek: number; status: string; competition?: string | null }>
+  fixtures: Array<{
+    matchweek: number;
+    originalMatchweek?: number;
+    status: string;
+    competition?: string | null;
+  }>
 ): number {
   const finishedMatches = fixtures.filter(
     (fixture) =>
@@ -59,7 +64,9 @@ export function getCurrentMatchweek(
 
   // Find the highest matchweek with finished matches - this is the current matchweek
   // Once any match in a matchweek is finished, that matchweek is considered "current"
-  const finishedMatchweeks = finishedMatches.map(f => f.matchweek);
+  const finishedMatchweeks = finishedMatches.map(
+    (fixture) => fixture.originalMatchweek ?? fixture.matchweek
+  );
   const maxFinishedMatchweek = Math.max(...finishedMatchweeks);
 
   return maxFinishedMatchweek;

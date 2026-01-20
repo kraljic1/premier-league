@@ -1,6 +1,7 @@
 import { Handler } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
+import { normalizeClubName } from "../../lib/utils/club-name-utils";
 
 /**
  * Netlify Function - Update Standings
@@ -34,19 +35,7 @@ interface Standing {
  * Normalize team name to match database format
  */
 function normalizeTeamName(name: string): string {
-  const mappings: Record<string, string> = {
-    "manchester city": "Man City",
-    "manchester united": "Man Utd",
-    "tottenham hotspur": "Tottenham",
-    "brighton & hove albion": "Brighton",
-    "west ham united": "West Ham",
-    "wolverhampton wanderers": "Wolves",
-    "nottingham forest": "Nott'm Forest",
-    "afc bournemouth": "Bournemouth",
-  };
-
-  const normalized = name.toLowerCase().trim();
-  return mappings[normalized] || name;
+  return normalizeClubName(name);
 }
 
 /**

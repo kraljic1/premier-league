@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
+import { normalizeClubName } from "@/lib/utils/club-name-utils";
 
 const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'] || "";
 const supabaseServiceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || "";
@@ -29,18 +30,7 @@ interface Standing {
 }
 
 function normalizeTeamName(name: string): string {
-  const mappings: Record<string, string> = {
-    "manchester city": "Man City",
-    "manchester united": "Man Utd",
-    "tottenham hotspur": "Tottenham",
-    "brighton & hove albion": "Brighton",
-    "west ham united": "West Ham",
-    "wolverhampton wanderers": "Wolves",
-    "nottingham forest": "Nott'm Forest",
-    "afc bournemouth": "Bournemouth",
-  };
-  const normalized = name.toLowerCase().trim();
-  return mappings[normalized] || name;
+  return normalizeClubName(name);
 }
 
 async function scrapeStandingsFromRezultati(): Promise<Standing[]> {

@@ -11,6 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../lib/supabase";
 import { CLUBS } from "../lib/clubs";
 import { getCurrentSeasonFull } from "../lib/utils/season-utils";
+import { normalizeClubName } from "../lib/utils/club-name-utils";
 
 config({ path: resolve(__dirname, "../.env.local") });
 
@@ -21,20 +22,6 @@ const supabaseKey =
 const supabaseServer = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
-
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  "Man United": "Manchester United",
-  "Man Utd": "Manchester United",
-  "Man City": "Manchester City",
-  Tottenham: "Tottenham Hotspur",
-  Spurs: "Tottenham Hotspur",
-  Brighton: "Brighton & Hove Albion",
-  Wolves: "Wolverhampton Wanderers",
-  "West Ham": "West Ham United",
-  Newcastle: "Newcastle United",
-  Forest: "Nottingham Forest",
-  "Nott'm Forest": "Nottingham Forest",
-};
 
 const SOURCES = [
   {
@@ -77,8 +64,7 @@ type ParsedFixture = {
 };
 
 function normalizeTeamName(name: string): string {
-  const trimmed = name.trim();
-  return TEAM_NAME_MAPPINGS[trimmed] || trimmed;
+  return normalizeClubName(name);
 }
 
 function parseDate(dateStr: string): Date | null {

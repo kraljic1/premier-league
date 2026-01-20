@@ -1,6 +1,7 @@
 import { schedule } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
+import { normalizeClubName } from "../../lib/utils/club-name-utils";
 const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"] || "";
 const supabaseKey =
   process.env["SUPABASE_SERVICE_ROLE_KEY"] ||
@@ -27,16 +28,14 @@ interface MatchResult {
   awayScore: number;
   date: Date;
 }
-const TEAM_ALIAS_MAP: Record<string, string> = { "man city": "manchester city", "manchester city": "manchester city", "man utd": "manchester united", "manchester utd": "manchester united", "man united": "manchester united", "tottenham": "tottenham hotspur", "spurs": "tottenham hotspur", "wolves": "wolverhampton wanderers", "wolverhampton": "wolverhampton wanderers", "west ham": "west ham united", "brighton": "brighton & hove albion", "brighton and hove albion": "brighton & hove albion", "nottingham": "nottingham forest", "nottm forest": "nottingham forest", "leeds": "leeds united" };
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function normalizeTeamName(name: string): string {
   const cleaned = name
-    .toLowerCase()
     .replace(/\d+$/, "")
     .replace(/[.\-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  return TEAM_ALIAS_MAP[cleaned] || cleaned;
+  return normalizeClubName(cleaned);
 }
 function parseDate(dateStr: string): Date | null {
   if (!dateStr) return null;

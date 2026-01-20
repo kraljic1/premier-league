@@ -1,111 +1,14 @@
 import { Standing } from '../types';
 import { scrapePage, closeBrowser } from './browser';
+import { normalizeClubName } from '../utils/club-name-utils';
 
 const REZULTATI_STANDINGS_URL = 'https://www.rezultati.com/nogomet/engleska/premier-league/tablica';
-
-/**
- * Team name mappings - maps various name variants to canonical database names
- */
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  // Arsenal
-  "arsenal": "Arsenal",
-  "arsenal fc": "Arsenal",
-
-  // Aston Villa
-  "aston villa": "Aston Villa",
-  "aston villa fc": "Aston Villa",
-
-  // Bournemouth
-  "bournemouth": "Bournemouth",
-  "afc bournemouth": "Bournemouth",
-
-  // Brentford
-  "brentford": "Brentford",
-  "brentford fc": "Brentford",
-
-  // Brighton
-  "brighton": "Brighton & Hove Albion",
-  "brighton & hove albion": "Brighton & Hove Albion",
-  "brighton and hove albion": "Brighton & Hove Albion",
-  "brighton hove albion": "Brighton & Hove Albion",
-
-  // Chelsea
-  "chelsea": "Chelsea",
-  "chelsea fc": "Chelsea",
-
-  // Crystal Palace
-  "crystal palace": "Crystal Palace",
-  "crystal palace fc": "Crystal Palace",
-
-  // Everton
-  "everton": "Everton",
-  "everton fc": "Everton",
-
-  // Fulham
-  "fulham": "Fulham",
-  "fulham fc": "Fulham",
-
-  // Ipswich Town
-  "ipswich": "Ipswich Town",
-  "ipswich town": "Ipswich Town",
-
-  // Leicester City
-  "leicester": "Leicester City",
-  "leicester city": "Leicester City",
-
-  // Liverpool
-  "liverpool": "Liverpool",
-  "liverpool fc": "Liverpool",
-
-  // Manchester City
-  "manchester city": "Manchester City",
-  "man city": "Manchester City",
-  "man. city": "Manchester City",
-
-  // Manchester United
-  "manchester united": "Manchester United",
-  "manchester utd": "Manchester United",
-  "man united": "Manchester United",
-  "man utd": "Manchester United",
-  "man. utd": "Manchester United",
-
-  // Newcastle United
-  "newcastle": "Newcastle United",
-  "newcastle united": "Newcastle United",
-  "newcastle utd": "Newcastle United",
-
-  // Nottingham Forest
-  "nottingham forest": "Nottingham Forest",
-  "nott'm forest": "Nottingham Forest",
-  "nottingham": "Nottingham Forest",
-  "nottm forest": "Nottingham Forest",
-
-  // Southampton
-  "southampton": "Southampton",
-  "southampton fc": "Southampton",
-
-  // Tottenham
-  "tottenham": "Tottenham Hotspur",
-  "tottenham hotspur": "Tottenham Hotspur",
-  "spurs": "Tottenham Hotspur",
-
-  // West Ham
-  "west ham": "West Ham United",
-  "west ham united": "West Ham United",
-  "west ham utd": "West Ham United",
-
-  // Wolves
-  "wolves": "Wolverhampton Wanderers",
-  "wolverhampton": "Wolverhampton Wanderers",
-  "wolverhampton wanderers": "Wolverhampton Wanderers",
-};
 
 /**
  * Normalize team name to canonical database format
  */
 function normalizeTeamName(name: string): string {
-  const normalized = name.toLowerCase().trim();
-  return TEAM_NAME_MAPPINGS[normalized] || name;
+  return normalizeClubName(name);
 }
 
 /**

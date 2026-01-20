@@ -22,6 +22,7 @@ config({ path: resolve(__dirname, '../.env.local') });
 import { createClient } from '@supabase/supabase-js';
 import { Fixture } from '../lib/types';
 import type { Database } from '../lib/supabase';
+import { normalizeClubName } from '../lib/utils/club-name-utils';
 
 // Create Supabase client directly with loaded env vars
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -38,37 +39,8 @@ const supabaseServer = createClient<Database>(
   }
 );
 
-// Team name mappings from CSV to our standard format
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  'Man United': 'Manchester United',
-  'Man Utd': 'Manchester United',
-  'Man City': 'Manchester City',
-  'Tottenham': 'Tottenham Hotspur',
-  'Spurs': 'Tottenham Hotspur',
-  'Brighton': 'Brighton & Hove Albion',
-  'Wolves': 'Wolverhampton Wanderers',
-  'West Ham': 'West Ham United',
-  'Newcastle': 'Newcastle United',
-  'Leeds': 'Leeds United',
-  'Forest': 'Nottingham Forest',
-  'Nottingham': 'Nottingham Forest',
-  'Sheffield Utd': 'Sheffield United',
-  'Sheff Utd': 'Sheffield United',
-  'Leicester': 'Leicester City',
-  'Norwich': 'Norwich City',
-  'Watford': 'Watford',
-  'Southampton': 'Southampton',
-  'Burnley': 'Burnley',
-  'Fulham': 'Fulham',
-  'Bournemouth': 'Bournemouth',
-  'Brentford': 'Brentford',
-  'Luton': 'Luton Town',
-  'Ipswich': 'Ipswich Town',
-};
-
 function normalizeTeamName(name: string): string {
-  const trimmed = name.trim();
-  return TEAM_NAME_MAPPINGS[trimmed] || trimmed;
+  return normalizeClubName(name);
 }
 
 function parseDate(dateStr: string, seasonYear: number): Date {

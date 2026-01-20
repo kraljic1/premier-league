@@ -1,6 +1,7 @@
 import { Fixture } from "../types";
 import { isDerby } from "../clubs";
 import { scrapePage } from "./browser";
+import { normalizeClubName } from "../utils/club-name-utils";
 
 export type CompetitionSource = {
   id: string;
@@ -8,23 +9,9 @@ export type CompetitionSource = {
   url: string;
 };
 
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  "Man United": "Manchester United",
-  "Man Utd": "Manchester United",
-  "Man City": "Manchester City",
-  Tottenham: "Tottenham Hotspur",
-  Spurs: "Tottenham Hotspur",
-  Brighton: "Brighton & Hove Albion",
-  Wolves: "Wolverhampton Wanderers",
-  "West Ham": "West Ham United",
-  Newcastle: "Newcastle United",
-  Forest: "Nottingham Forest",
-  "Nott'm Forest": "Nottingham Forest",
-};
-
 function normalizeTeamName(name: string): string {
   const cleaned = name.trim().replace(/\d+$/, "").replace(/\s+/g, " ");
-  return TEAM_NAME_MAPPINGS[cleaned] || cleaned;
+  return normalizeClubName(cleaned);
 }
 
 function parseDate(dateStr: string): Date | null {

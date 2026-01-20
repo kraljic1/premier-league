@@ -15,6 +15,7 @@ import {
   getCurrentSeasonStartDate,
   getCurrentSeasonEndDate,
 } from "../lib/utils/season-utils";
+import { normalizeClubName } from "../lib/utils/club-name-utils";
 
 config({ path: resolve(__dirname, "../.env.local") });
 
@@ -32,29 +33,12 @@ const PREMIER_LEAGUE = "Premier League";
 const UPDATE_BATCH_SIZE = 50;
 const DELETE_BATCH_SIZE = 200;
 
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  "Man United": "Manchester United",
-  "Man Utd": "Manchester United",
-  "Manchester Utd": "Manchester United",
-  "Man City": "Manchester City",
-  "Tottenham": "Tottenham Hotspur",
-  "Spurs": "Tottenham Hotspur",
-  "Brighton": "Brighton & Hove Albion",
-  "Wolves": "Wolverhampton Wanderers",
-  "West Ham": "West Ham United",
-  "Newcastle": "Newcastle United",
-  "Nottingham": "Nottingham Forest",
-  "Forest": "Nottingham Forest",
-  "Leeds": "Leeds United",
-};
-
 function normalizeCompetition(competition: string | null) {
   return competition || PREMIER_LEAGUE;
 }
 
 function normalizeTeamName(name: string) {
-  const trimmed = name.trim().replace(/\s+/g, " ");
-  return TEAM_NAME_MAPPINGS[trimmed] || trimmed;
+  return normalizeClubName(name);
 }
 
 function getDateOnly(date: string) {
@@ -97,10 +81,20 @@ async function updateNameBatch(batch: Array<{ id: string; home_team: string; awa
   );
 }
 
-async function updateMatchweekBatch(batch: Array<{ id: string; matchweek: number }>) {
+async function updateMatchweekBatch(
+  batch: Array<{ id: string; matchweek: number; original_matchweek?: number | null }>
+) {
   await Promise.all(
     batch.map((item) =>
-      supabaseServer.from("fixtures").update({ matchweek: item.matchweek }).eq("id", item.id)
+      supabaseServer
+        .from("fixtures")
+        .update({
+          matchweek: item.matchweek,
+          ...(item.original_matchweek !== undefined
+            ? { original_matchweek: item.original_matchweek }
+            : {}),
+        })
+        .eq("id", item.id)
     )
   );
 }
@@ -214,11 +208,17 @@ async function main() {
     );
   }
 
-  const matchweekUpdates: Array<{ id: string; matchweek: number }> = [];
+  const matchweekUpdates: Array<{ id: string; matchweek: number; original_matchweek?: number | null }> = [];
   dedupedFixtures.forEach((row, index) => {
     const newMatchweek = Math.min(38, Math.floor(index / 10) + 1);
-    if (newMatchweek !== row.matchweek) {
-      matchweekUpdates.push({ id: row.id, matchweek: newMatchweek });
+    if (newMatchweek !== row.matchweek || row.original_matchweek === null) {
+      const shouldUpdateOriginal =
+        row.original_matchweek === null || row.original_matchweek === row.matchweek;
+      matchweekUpdates.push({
+        id: row.id,
+        matchweek: newMatchweek,
+        original_matchweek: shouldUpdateOriginal ? newMatchweek : row.original_matchweek,
+      });
     }
   });
 

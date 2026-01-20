@@ -1,6 +1,7 @@
 import { Handler, schedule } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
+import { normalizeClubName } from "../../lib/utils/club-name-utils";
 
 /**
  * Netlify Scheduled Function - Scheduled Auto Update
@@ -265,109 +266,10 @@ async function fetchResults(): Promise<MatchResult[]> {
 }
 
 /**
- * Canonical team names used in the database (from lib/clubs.ts)
- * Maps various name variants to the canonical name
- */
-const TEAM_NAME_MAPPINGS: Record<string, string> = {
-  // Arsenal
-  "arsenal": "Arsenal",
-  "arsenal fc": "Arsenal",
-  
-  // Aston Villa
-  "aston villa": "Aston Villa",
-  "aston villa fc": "Aston Villa",
-  
-  // Bournemouth
-  "bournemouth": "Bournemouth",
-  "afc bournemouth": "Bournemouth",
-  
-  // Brentford
-  "brentford": "Brentford",
-  "brentford fc": "Brentford",
-  
-  // Brighton
-  "brighton": "Brighton & Hove Albion",
-  "brighton & hove albion": "Brighton & Hove Albion",
-  "brighton and hove albion": "Brighton & Hove Albion",
-  "brighton hove albion": "Brighton & Hove Albion",
-  
-  // Burnley
-  "burnley": "Burnley",
-  "burnley fc": "Burnley",
-  
-  // Chelsea
-  "chelsea": "Chelsea",
-  "chelsea fc": "Chelsea",
-  
-  // Crystal Palace
-  "crystal palace": "Crystal Palace",
-  "crystal palace fc": "Crystal Palace",
-  
-  // Everton
-  "everton": "Everton",
-  "everton fc": "Everton",
-  
-  // Fulham
-  "fulham": "Fulham",
-  "fulham fc": "Fulham",
-  
-  // Leeds United
-  "leeds": "Leeds United",
-  "leeds united": "Leeds United",
-  "leeds utd": "Leeds United",
-  
-  // Liverpool
-  "liverpool": "Liverpool",
-  "liverpool fc": "Liverpool",
-  
-  // Manchester City
-  "manchester city": "Manchester City",
-  "man city": "Manchester City",
-  "man. city": "Manchester City",
-  
-  // Manchester United
-  "manchester united": "Manchester United",
-  "manchester utd": "Manchester United",
-  "man united": "Manchester United",
-  "man utd": "Manchester United",
-  "man. utd": "Manchester United",
-  
-  // Newcastle United
-  "newcastle": "Newcastle United",
-  "newcastle united": "Newcastle United",
-  "newcastle utd": "Newcastle United",
-  
-  // Nottingham Forest
-  "nottingham forest": "Nottingham Forest",
-  "nott'm forest": "Nottingham Forest",
-  "nottingham": "Nottingham Forest",
-  
-  // Sunderland
-  "sunderland": "Sunderland",
-  "sunderland afc": "Sunderland",
-  
-  // Tottenham
-  "tottenham": "Tottenham Hotspur",
-  "tottenham hotspur": "Tottenham Hotspur",
-  "spurs": "Tottenham Hotspur",
-  
-  // West Ham
-  "west ham": "West Ham United",
-  "west ham united": "West Ham United",
-  "west ham utd": "West Ham United",
-  
-  // Wolves
-  "wolves": "Wolverhampton Wanderers",
-  "wolverhampton": "Wolverhampton Wanderers",
-  "wolverhampton wanderers": "Wolverhampton Wanderers",
-};
-
-/**
  * Normalize team name to canonical database format
  */
 function normalizeTeamName(name: string): string {
-  const normalized = name.toLowerCase().trim();
-  return TEAM_NAME_MAPPINGS[normalized] || name;
+  return normalizeClubName(name);
 }
 
 /**
