@@ -91,7 +91,6 @@ const staleWhileRevalidate = async (request) => {
 };
 
 self.addEventListener("install", (event) => {
-  console.log('Service Worker installing');
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       return Promise.allSettled(
@@ -108,13 +107,11 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  console.log('Service Worker activating');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== STATIC_CACHE && cacheName !== API_CACHE) {
-            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
