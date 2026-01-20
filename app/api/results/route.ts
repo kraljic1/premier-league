@@ -126,6 +126,16 @@ export async function GET(request: Request) {
     // Log database count for debugging
     console.log(`[Results API] Database returned ${resultsData?.length || 0} finished fixtures${matchweek ? ` for matchweek ${matchweek}` : ''}`);
     
+    // Log competition breakdown for debugging
+    if (resultsData && resultsData.length > 0) {
+      const competitionCounts = resultsData.reduce((acc, row) => {
+        const comp = row.competition || 'null';
+        acc[comp] = (acc[comp] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      console.log(`[Results API] Competition breakdown:`, JSON.stringify(competitionCounts));
+    }
+    
     if (!resultsData || resultsData.length === 0) {
       console.warn(`[Results API] No data in database! This will trigger scraping.`);
     }
@@ -156,6 +166,10 @@ export async function GET(request: Request) {
           competitionRound: row.competition_round
         }));
       const normalizedResults = normalizeAndDedupeFixtures(results);
+      
+      // Log filtering results
+      console.log(`[Results API] After competition filter: ${results.length} results (from ${resultsData?.length || 0} total)`);
+      console.log(`[Results API] After normalization/dedupe: ${normalizedResults.length} results`);
 
       // If data is fresh, return immediately
       if (isDataFresh) {
@@ -163,6 +177,8 @@ export async function GET(request: Request) {
         return NextResponse.json(normalizedResults, {
           headers: {
             "X-Cache": "HIT",
+            "X-DB-Count": String(resultsData?.length || 0),
+            "X-Filtered-Count": String(normalizedResults.length),
             "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
           },
         });
@@ -173,6 +189,8 @@ export async function GET(request: Request) {
       return NextResponse.json(normalizedResults, {
         headers: {
           "X-Cache": "STALE",
+          "X-DB-Count": String(resultsData?.length || 0),
+          "X-Filtered-Count": String(normalizedResults.length),
           "Cache-Control": "public, s-maxage=0, stale-while-revalidate=3600",
         },
       });

@@ -96,14 +96,19 @@ export default function FixturesResultsContent() {
     [fixtures]
   );
 
-  const premierLeagueResults = useMemo(
-    () =>
-      results.filter(
-        (result) =>
-          (result.competition || PREMIER_LEAGUE_COMPETITION) === PREMIER_LEAGUE_COMPETITION
-      ),
-    [results]
-  );
+  const premierLeagueResults = useMemo(() => {
+    const filtered = results.filter(
+      (result) =>
+        (result.competition || PREMIER_LEAGUE_COMPETITION) === PREMIER_LEAGUE_COMPETITION
+    );
+    // Debug logging
+    if (results.length !== filtered.length) {
+      console.log(`[Frontend] Results: ${results.length} total, ${filtered.length} after PL filter`);
+      const nonPL = results.filter(r => (r.competition || PREMIER_LEAGUE_COMPETITION) !== PREMIER_LEAGUE_COMPETITION);
+      console.log(`[Frontend] Non-PL competitions found:`, [...new Set(nonPL.map(r => r.competition))]);
+    }
+    return filtered;
+  }, [results]);
 
   const {
     upcomingFixtures,
