@@ -75,10 +75,18 @@ const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
 });
 
 const REZULTATI_URL = 'https://www.rezultati.com/nogomet/engleska/premier-league/rezultati';
+const FA_CUP_REZULTATI_URL = 'https://www.rezultati.com/nogomet/engleska/fa-cup/rezultati/';
+const FA_CUP_MIDNIGHT_START_HOUR = 23;
+const FA_CUP_MIDNIGHT_END_HOUR = 2;
 
 function log(message: string) {
   const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
   console.log(`[${timestamp}] ${message}`);
+}
+
+function shouldCheckFaCupResults(now: Date): boolean {
+  const hour = now.getHours();
+  return hour >= FA_CUP_MIDNIGHT_START_HOUR || hour <= FA_CUP_MIDNIGHT_END_HOUR;
 }
 
 /**
@@ -225,12 +233,12 @@ function normalizeTeamName(name: string): string {
 /**
  * Scrape recent results from Rezultati.com (first page only - recent matches)
  */
-async function scrapeRecentResults(): Promise<Fixture[]> {
+async function scrapeRecentResults(sourceUrl: string, competitionLabel: string): Promise<Fixture[]> {
   let page;
   
   try {
-    log('Fetching recent results from Rezultati.com...');
-    page = await scrapePage(REZULTATI_URL, undefined, 30000);
+    log(`Fetching recent results from Rezultati.com (${competitionLabel})...`);
+    page = await scrapePage(sourceUrl, undefined, 30000);
     
     // Set viewport for proper rendering
     await page.setViewport({ width: 1920, height: 1080 });
@@ -368,6 +376,7 @@ async function scrapeRecentResults(): Promise<Fixture[]> {
         matchweek: match.matchweek,
         status: 'finished',
         isDerby: isDerby(homeTeam, awayTeam),
+        competition: competitionLabel,
       });
     }
     
@@ -465,7 +474,8 @@ async function updateMatchResults(results: Fixture[]): Promise<number> {
           away_score: result.awayScore,
           matchweek: result.matchweek,
           status: 'finished',
-          is_derby: result.isDerby || false
+          is_derby: result.isDerby || false,
+          competition: result.competition || null
         }, { onConflict: 'id' });
       
       if (insertError) {
@@ -555,8 +565,19 @@ async function main() {
     log(`Found ${scheduledMatches.length} scheduled matches in recent time window`);
     
     // Step 2: Scrape recent results
-    const recentResults = await scrapeRecentResults();
-    log(`Scraped ${recentResults.length} recent results`);
+    const premierLeagueResults = await scrapeRecentResults(REZULTATI_URL, 'Premier League');
+    let recentResults = [...premierLeagueResults];
+    log(`Scraped ${premierLeagueResults.length} Premier League results`);
+
+    const now = new Date();
+    if (shouldCheckFaCupResults(now)) {
+      log('Midnight window detected, checking FA Cup results...');
+      const faCupResults = await scrapeRecentResults(FA_CUP_REZULTATI_URL, 'FA Cup');
+      recentResults = recentResults.concat(faCupResults);
+      log(`Scraped ${faCupResults.length} FA Cup results`);
+    }
+
+    log(`Total results collected: ${recentResults.length}`);
     
     // Step 3: Find matches that need updating
     const matchesToUpdate: Fixture[] = [];

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ClubDropdown } from "./ClubDropdown";
 import { SeasonDropdown } from "./SeasonDropdown";
 import { LoadingSkeleton } from "./LoadingSkeleton";
@@ -13,9 +14,10 @@ import { useCompareTwoClubs } from "@/lib/hooks/useCompareTwoClubs";
 
 interface TwoClubsComparisonProps {
   onClose: () => void;
+  initialClubA?: string | null;
 }
 
-export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
+export function TwoClubsComparison({ onClose, initialClubA }: TwoClubsComparisonProps) {
   const {
     clubA,
     setClubA,
@@ -46,6 +48,12 @@ export function TwoClubsComparison({ onClose }: TwoClubsComparisonProps) {
     setComparisonBasis,
     maxMatchesPlayed,
   } = useCompareTwoClubs();
+
+  useEffect(() => {
+    if (initialClubA && !clubA) {
+      setClubA(initialClubA);
+    }
+  }, [initialClubA, clubA, setClubA]);
 
   const sameSeason = selectedSeasonA === selectedSeasonB;
   const isMatchweekBasis = comparisonBasis === "matchweek";
