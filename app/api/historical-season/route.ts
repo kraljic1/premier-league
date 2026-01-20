@@ -98,6 +98,7 @@ export async function GET(request: NextRequest) {
       homeScore: f.home_score,
       awayScore: f.away_score,
       matchweek: f.matchweek,
+      originalMatchweek: f.original_matchweek ?? undefined,
       status: f.status,
       isDerby: f.is_derby || false,
       season: f.season,

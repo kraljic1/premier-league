@@ -74,9 +74,15 @@ export function useFixturesResultsData({
   }, [baseCurrentMatchweek, upcomingFixtures]);
 
   const currentData = activeTab === "fixtures" ? upcomingFixtures : results;
+  const getDisplayMatchweek = (fixture: Fixture): number => {
+    if (activeTab === "results") {
+      return fixture.originalMatchweek ?? fixture.matchweek;
+    }
+    return fixture.matchweek;
+  };
   const matchweeks = useMemo(
     () =>
-      Array.from(new Set(currentData.map((fixture) => fixture.matchweek))).sort(
+      Array.from(new Set(currentData.map((fixture) => getDisplayMatchweek(fixture)))).sort(
         activeTab === "fixtures" ? (a, b) => a - b : (a, b) => b - a
       ),
     [currentData, activeTab]
@@ -87,7 +93,7 @@ export function useFixturesResultsData({
 
     if (selectedMatchweek) {
       filtered = filtered.filter(
-        (fixture) => fixture.matchweek === selectedMatchweek
+        (fixture) => getDisplayMatchweek(fixture) === selectedMatchweek
       );
     }
 
@@ -106,7 +112,7 @@ export function useFixturesResultsData({
   const groupedByMatchweek = useMemo(
     () =>
       filteredMatches.reduce<Record<number, Fixture[]>>((acc, match) => {
-        const matchweek = match.matchweek;
+        const matchweek = getDisplayMatchweek(match);
         if (!acc[matchweek]) {
           acc[matchweek] = [];
         }
