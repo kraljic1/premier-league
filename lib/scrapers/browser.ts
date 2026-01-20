@@ -1,5 +1,5 @@
-import puppeteer, { Browser, Page } from "puppeteer";
-import puppeteerCore from "puppeteer-core";
+import puppeteer from "puppeteer";
+import puppeteerCore, { Browser, Page } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 
 let browserInstance: Browser | null = null;
@@ -41,7 +41,8 @@ export async function getBrowser(): Promise<Browser> {
     }
 
     try {
-      browserInstance = await puppeteerLib.launch(launchOptions);
+      const launchedBrowser = await puppeteerLib.launch(launchOptions as any) as Browser;
+      browserInstance = launchedBrowser;
       console.log(`[Browser] Browser launched successfully`);
     } catch (error) {
       console.error(`[Browser] Failed to launch browser:`, error);
