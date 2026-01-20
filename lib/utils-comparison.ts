@@ -2,11 +2,7 @@ import { Fixture } from "./types";
 import { normalizeClubName } from "./utils/club-name-utils";
 
 const PREMIER_LEAGUE_COMPETITION = "Premier League";
-
-/**
- * Filters fixtures to Premier League only.
- * Accepts legacy rows where competition is missing and round is not set.
- */
+// Filters fixtures to Premier League only (supports legacy rows).
 export function filterPremierLeagueFixtures(fixtures: Fixture[]): Fixture[] {
   return fixtures.filter((fixture) => {
     if (fixture.competition === PREMIER_LEAGUE_COMPETITION) return true;
@@ -14,16 +10,14 @@ export function filterPremierLeagueFixtures(fixtures: Fixture[]): Fixture[] {
     return fixture.competitionRound === null || fixture.competitionRound === undefined;
   });
 }
-
-/**
- * Calculates points for a club in a given range of matchweeks
- * Win = 3 points, Draw = 1 point, Loss = 0 points
- * 
- * @param fixtures - Array of fixtures to analyze
- * @param clubName - Name of the club to calculate points for
- * @param maxMatchweek - Maximum matchweek to include (inclusive)
- * @returns Object with points, wins, draws, losses, and matches played
- */
+function buildNormalizedFixtureKey(fixture: Fixture): string {
+  const dateOnly = fixture.date.split("T")[0];
+  const normalizedHomeTeam = normalizeClubName(fixture.homeTeam);
+  const normalizedAwayTeam = normalizeClubName(fixture.awayTeam);
+  return `${normalizedHomeTeam}-${normalizedAwayTeam}-${dateOnly}`
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
 export function calculatePointsForClub(
   fixtures: Fixture[],
   clubName: string,
@@ -42,7 +36,6 @@ export function calculatePointsForClub(
   );
   return calculateStatsFromFixtures(clubFixtures, clubName);
 }
-
 export function calculatePointsForClubByMatchesPlayed(
   fixtures: Fixture[],
   clubName: string,
@@ -65,14 +58,23 @@ export function calculatePointsForClubByMatchesPlayed(
 
 export function getFinishedClubFixtures(fixtures: Fixture[], clubName: string): Fixture[] {
   const normalizedClubName = normalizeClubName(clubName);
-  return fixtures.filter(
-    (f) =>
-      (normalizeClubName(f.homeTeam) === normalizedClubName ||
-        normalizeClubName(f.awayTeam) === normalizedClubName) &&
-      f.status === "finished" &&
-      f.homeScore !== null &&
-      f.awayScore !== null
-  );
+  const seen = new Set<string>();
+  return fixtures.filter((fixture) => {
+    const isClubMatch =
+      normalizeClubName(fixture.homeTeam) === normalizedClubName ||
+      normalizeClubName(fixture.awayTeam) === normalizedClubName;
+    const isFinished =
+      fixture.status === "finished" &&
+      fixture.homeScore !== null &&
+      fixture.awayScore !== null;
+
+    if (!isClubMatch || !isFinished) return false;
+
+    const key = buildNormalizedFixtureKey(fixture);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function getComparisonMatchweek(fixture: Fixture): number {
@@ -137,8 +139,10 @@ function calculateStatsFromFixtures(
   let goalsFor = 0;
   let goalsAgainst = 0;
 
+  const normalizedClubName = normalizeClubName(clubName);
+
   clubFixtures.forEach((fixture) => {
-    const isHome = fixture.homeTeam === clubName;
+    const isHome = normalizeClubName(fixture.homeTeam) === normalizedClubName;
     const clubScore = isHome ? fixture.homeScore! : fixture.awayScore!;
     const opponentScore = isHome ? fixture.awayScore! : fixture.homeScore!;
 
@@ -167,14 +171,7 @@ function calculateStatsFromFixtures(
   };
 }
 
-/**
- * Gets the current matchweek based on finished matches
- * Returns the highest matchweek that has at least one finished match
- * 
- * Note: We count ALL finished matches, even if the matchweek isn't complete.
- * This ensures that if Arsenal played in MW22, their result is counted
- * even if other MW22 matches haven't been played yet.
- */
+// Current matchweek = highest matchweek with any finished match.
 export function getCurrentMatchweekFromFixtures(fixtures: Fixture[]): number {
   const finishedMatches = fixtures.filter(
     (f) => f.status === "finished" && f.homeScore !== null && f.awayScore !== null
@@ -187,14 +184,10 @@ export function getCurrentMatchweekFromFixtures(fixtures: Fixture[]): number {
   const finishedMatchweeks = finishedMatches.map((fixture) => getComparisonMatchweek(fixture));
   const maxFinishedMatchweek = Math.max(...finishedMatchweeks);
 
-  // Return the highest matchweek that has any finished matches
-  // This ensures all finished matches are counted in comparisons
   return maxFinishedMatchweek;
 }
 
-/**
- * Gets available seasons from fixtures
- */
+// Gets available seasons from fixtures.
 export function getAvailableSeasons(fixtures: Fixture[]): string[] {
   const seasons = new Set<string>();
   fixtures.forEach((f) => {

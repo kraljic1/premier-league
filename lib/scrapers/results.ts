@@ -1,5 +1,6 @@
 import { Fixture } from "../types";
 import { isDerby } from "../clubs";
+import { normalizeClubName } from "../utils/club-name-utils";
 import { scrapePage } from "./browser";
 
 /**
@@ -523,21 +524,24 @@ async function extractResultsFromPage(page: any, matchweek: number): Promise<Fix
             date = new Date();
           }
           
+      const normalizedHomeTeam = normalizeClubName(resultData.homeTeam);
+      const normalizedAwayTeam = normalizeClubName(resultData.awayTeam);
+
       // Create unique ID using only date (YYYY-MM-DD), not full timestamp
       // Without matchweek to ensure fixtures and results match when status changes
       const dateOnly = date.toISOString().split('T')[0]; // Get just YYYY-MM-DD
-      const fixtureId = `${resultData.homeTeam}-${resultData.awayTeam}-${dateOnly}`;
+      const fixtureId = `${normalizedHomeTeam}-${normalizedAwayTeam}-${dateOnly}`;
           
       results.push({
             id: fixtureId,
             date: date.toISOString(),
-            homeTeam: resultData.homeTeam,
-            awayTeam: resultData.awayTeam,
+            homeTeam: normalizedHomeTeam,
+            awayTeam: normalizedAwayTeam,
             homeScore: resultData.homeScore,
             awayScore: resultData.awayScore,
             matchweek: resultData.matchweek,
             status: "finished",
-            isDerby: isDerby(resultData.homeTeam, resultData.awayTeam),
+            isDerby: isDerby(normalizedHomeTeam, normalizedAwayTeam),
           });
         }
         

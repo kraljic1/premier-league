@@ -3,6 +3,7 @@ import { scrapeResults } from "@/lib/scrapers/results";
 import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
+import { normalizeClubName } from "@/lib/utils/club-name-utils";
 import {
   getCurrentSeasonFilter,
   getCurrentSeasonStartDate,
@@ -21,6 +22,44 @@ type CacheMetaResult = { last_updated: string } | null;
 
 function normalizeCompetition(competition: string | null | undefined): string {
   return competition || "Premier League";
+}
+
+function buildNormalizedFixtureId(
+  homeTeam: string,
+  awayTeam: string,
+  date: string
+): string {
+  const dateOnly = date.split("T")[0];
+  return `${homeTeam}-${awayTeam}-${dateOnly}`.toLowerCase().replace(/\s+/g, "-");
+}
+
+function normalizeAndDedupeFixtures(fixtures: Fixture[]): Fixture[] {
+  const seen = new Set<string>();
+  const normalized: Fixture[] = [];
+
+  for (const fixture of fixtures) {
+    const normalizedHomeTeam = normalizeClubName(fixture.homeTeam);
+    const normalizedAwayTeam = normalizeClubName(fixture.awayTeam);
+    const id = buildNormalizedFixtureId(
+      normalizedHomeTeam,
+      normalizedAwayTeam,
+      fixture.date
+    );
+
+    if (seen.has(id)) {
+      continue;
+    }
+
+    seen.add(id);
+    normalized.push({
+      ...fixture,
+      id,
+      homeTeam: normalizedHomeTeam,
+      awayTeam: normalizedAwayTeam,
+    });
+  }
+
+  return normalized;
 }
 
 // Get current season values dynamically (auto-updates each year)
@@ -115,11 +154,12 @@ export async function GET(request: Request) {
           competition: normalizeCompetition(row.competition),
           competitionRound: row.competition_round
         }));
+      const normalizedResults = normalizeAndDedupeFixtures(results);
 
       // If data is fresh, return immediately
       if (isDataFresh) {
-        console.log(`[Results API] Returning ${results.length} results from database (fresh)${matchweek ? ` for matchweek ${matchweek}` : ''}`);
-        return NextResponse.json(results, {
+        console.log(`[Results API] Returning ${normalizedResults.length} results from database (fresh)${matchweek ? ` for matchweek ${matchweek}` : ''}`);
+        return NextResponse.json(normalizedResults, {
           headers: {
             "X-Cache": "HIT",
             "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
@@ -128,8 +168,8 @@ export async function GET(request: Request) {
       }
 
       // Data exists but is stale - return it immediately (fixtures API will refresh in background)
-      console.log(`[Results API] Returning ${results.length} results from database (stale)${matchweek ? ` for matchweek ${matchweek}` : ''}`);
-      return NextResponse.json(results, {
+      console.log(`[Results API] Returning ${normalizedResults.length} results from database (stale)${matchweek ? ` for matchweek ${matchweek}` : ''}`);
+      return NextResponse.json(normalizedResults, {
         headers: {
           "X-Cache": "STALE",
           "Cache-Control": "public, s-maxage=0, stale-while-revalidate=3600",
@@ -213,11 +253,13 @@ export async function GET(request: Request) {
       if (fetchError) {
         console.error("[Results API] Error fetching all results after upsert:", fetchError);
         // Fallback to returning scraped results if fetch fails
-        const normalizedScrapedResults = scrapedResults.map((result) => ({
-          ...result,
-          competition: "Premier League",
-          competitionRound: null
-        }));
+        const normalizedScrapedResults = normalizeAndDedupeFixtures(
+          scrapedResults.map((result) => ({
+            ...result,
+            competition: "Premier League",
+            competitionRound: null
+          }))
+        );
 
         return NextResponse.json(normalizedScrapedResults, {
           headers: {
@@ -245,10 +287,11 @@ export async function GET(request: Request) {
           competition: normalizeCompetition(row.competition),
           competitionRound: row.competition_round
         }));
+      const normalizedAllResults = normalizeAndDedupeFixtures(allResults);
 
-      console.log(`[Results API] Returning ${allResults.length} total results from database (${scrapedResults.length} newly scraped)`);
+      console.log(`[Results API] Returning ${normalizedAllResults.length} total results from database (${scrapedResults.length} newly scraped)`);
 
-      return NextResponse.json(allResults, {
+      return NextResponse.json(normalizedAllResults, {
         headers: {
           "X-Cache": "MISS-SCRAPED",
           "X-Source": scrapeSource,
@@ -278,8 +321,9 @@ export async function GET(request: Request) {
             competition: normalizeCompetition(row.competition),
             competitionRound: row.competition_round
           }));
+        const normalizedResults = normalizeAndDedupeFixtures(results);
 
-        return NextResponse.json(results, {
+        return NextResponse.json(normalizedResults, {
           headers: {
             "X-Cache": "FALLBACK",
           },
