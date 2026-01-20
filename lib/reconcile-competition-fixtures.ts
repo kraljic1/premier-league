@@ -77,7 +77,7 @@ async function upsertFixtures(
     home_score: null,
     away_score: null,
     matchweek: fixture.matchweek,
-    status: "scheduled",
+    status: "scheduled" as const,
     is_derby: fixture.isDerby || false,
     season: getCurrentSeasonFull(),
     competition: fixture.competition || null,
