@@ -199,6 +199,88 @@ body {
   color: var(--pl-text-secondary);
 }
 
+/* Cup fixtures navigation */
+.cup-links-section {
+  margin-top: 2rem;
+}
+
+.cup-links-section__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--pl-text-primary);
+}
+
+.cup-links {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.cup-link-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--pl-border-light);
+  background: var(--pl-bg-card);
+  box-shadow: 0 8px 24px var(--pl-shadow-light);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cup-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px var(--pl-shadow-medium);
+}
+
+.cup-link-card__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--pl-text-primary);
+}
+
+.cup-link-card__subtitle {
+  font-size: 0.875rem;
+  color: var(--pl-text-secondary);
+}
+
+/* Cup fixtures page */
+.cup-fixtures-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cup-fixtures-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cup-fixtures-page__back-link {
+  font-size: 0.875rem;
+  color: var(--pl-text-secondary);
+  text-decoration: none;
+}
+
+.cup-fixtures-page__back-link:hover {
+  color: var(--pl-text-primary);
+}
+
+.cup-fixtures-page__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--pl-text-primary);
+}
+
+.cup-fixtures-list__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--pl-text-primary);
+}
+
 .pl-caption {
   font-size: 0.75rem;
   font-weight: 600;

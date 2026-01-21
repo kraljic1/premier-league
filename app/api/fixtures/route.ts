@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scrapeFixtures } from "@/lib/scrapers/fixtures";
-import { scrapeFixturesFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
+import {
+  DEFAULT_FIXTURE_COMPETITIONS,
+  PREMIER_LEAGUE_COMPETITION,
+} from "@/lib/competition-sources";
+import { scrapeFixturesForCompetitions } from "@/lib/scrapers/fixtures-aggregator";
 import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
 import {
@@ -9,6 +12,7 @@ import {
   sanitizeError,
   validateEnvironment
 } from "@/lib/security";
+import { isDerby } from "@/lib/clubs";
 import { normalizeClubName } from "@/lib/utils/club-name-utils";
 import {
   getCurrentSeasonFilter,
@@ -19,7 +23,7 @@ import {
 export const revalidate = 1800; // 30 minutes
 
 const CACHE_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
-const DEFAULT_COMPETITIONS = ["Premier League"];
+const DEFAULT_COMPETITIONS = DEFAULT_FIXTURE_COMPETITIONS;
 
 // Get current season values dynamically (auto-updates each year)
 const CURRENT_SEASON_START = getCurrentSeasonStartDate();
@@ -30,7 +34,7 @@ const SEASON_FILTER = getCurrentSeasonFilter();
 type CacheMetaResult = { last_updated: string } | null;
 
 function normalizeCompetition(competition: string | null | undefined): string {
-  return competition || "Premier League";
+  return competition || PREMIER_LEAGUE_COMPETITION;
 }
 
 function buildNormalizedFixtureId(
@@ -65,10 +69,39 @@ function normalizeAndDedupeFixtures(fixtures: Fixture[]): Fixture[] {
       id,
       homeTeam: normalizedHomeTeam,
       awayTeam: normalizedAwayTeam,
+      isDerby: isDerby(normalizedHomeTeam, normalizedAwayTeam),
     });
   }
 
   return normalized;
+}
+
+function mapFixturesForDb(fixtures: Fixture[]) {
+  return fixtures.map((fixture) => ({
+    id: fixture.id,
+    date: fixture.date,
+    home_team: fixture.homeTeam,
+    away_team: fixture.awayTeam,
+    home_score: fixture.homeScore,
+    away_score: fixture.awayScore,
+    matchweek: fixture.matchweek,
+    status: fixture.status,
+    is_derby: fixture.isDerby || false,
+    season: fixture.season || undefined,
+    competition: normalizeCompetition(fixture.competition),
+    competition_round: fixture.competitionRound ?? null,
+  }));
+}
+
+function buildCompetitionSummary(fixtures: Fixture[]): string {
+  const counts = fixtures.reduce<Record<string, number>>((acc, fixture) => {
+    const competition = normalizeCompetition(fixture.competition);
+    acc[competition] = (acc[competition] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts)
+    .map(([competition, count]) => `${competition}: ${count}`)
+    .join(", ");
 }
 
 function parseCompetitions(request: NextRequest): string[] {
@@ -88,7 +121,7 @@ function parseCompetitions(request: NextRequest): string[] {
 /**
  * Background refresh function - scrapes and stores fixtures without blocking the response
  */
-async function refreshFixturesInBackground() {
+async function refreshFixturesInBackground(competitions: string[]) {
   try {
     // Check if Supabase is configured before trying to store data
     const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
@@ -101,33 +134,21 @@ async function refreshFixturesInBackground() {
 
     console.log("[Fixtures API] Background refresh started...");
 
-    // Try OneFootball first (simpler, faster, no Puppeteer needed)
-    let scrapedFixtures: Fixture[] = [];
-
-    try {
-      scrapedFixtures = await scrapeFixturesFromOneFootball();
-      console.log(`[Fixtures API] Background refresh: Successfully scraped ${scrapedFixtures.length} fixtures from OneFootball`);
-    } catch (onefootballError) {
-      console.warn("[Fixtures API] Background refresh: OneFootball failed, trying official site:", onefootballError);
-      scrapedFixtures = await scrapeFixtures();
-      console.log(`[Fixtures API] Background refresh: Successfully scraped ${scrapedFixtures.length} fixtures from official site`);
+    const {
+      fixtures: scrapedFixtures,
+      sources,
+    } = await scrapeFixturesForCompetitions(competitions);
+    if (sources.length > 0) {
+      console.log(
+        `[Fixtures API] Background refresh: Sources used: ${sources.join(", ")}`
+      );
     }
 
     if (scrapedFixtures.length > 0) {
-      const dbFixtures = scrapedFixtures.map(fixture => ({
-        id: fixture.id,
-        date: fixture.date,
-        home_team: fixture.homeTeam,
-        away_team: fixture.awayTeam,
-        home_score: fixture.homeScore,
-        away_score: fixture.awayScore,
-        matchweek: fixture.matchweek,
-        status: fixture.status,
-        is_derby: fixture.isDerby || false,
-        season: fixture.season || undefined,
-        competition: "Premier League",
-        competition_round: null
-      }));
+      console.log(
+        `[Fixtures API] Background refresh storing fixtures in DB: ${buildCompetitionSummary(scrapedFixtures)}`
+      );
+      const dbFixtures = mapFixturesForDb(scrapedFixtures);
 
       const { error: insertError } = await supabaseServer
         .from('fixtures')
@@ -218,10 +239,106 @@ export async function GET(request: NextRequest) {
       const lastUpdated = cacheMeta?.last_updated ? new Date(cacheMeta.last_updated) : null;
       const now = new Date();
       const isDataFresh = lastUpdated && (now.getTime() - lastUpdated.getTime()) < CACHE_DURATION;
+      const competitionsInDb = new Set(
+        (fixturesData || []).map((row) => normalizeCompetition(row.competition))
+      );
+      const missingCompetitions = selectedCompetitions.filter(
+        (competition) => !competitionsInDb.has(competition)
+      );
 
       // If we have data in database (even if stale), return it immediately for fast response
       // Then refresh in background if stale
       if (fixturesData && fixturesData.length > 0) {
+        if (missingCompetitions.length > 0) {
+          console.log(
+            `[Fixtures API] Missing competitions detected: ${missingCompetitions.join(", ")}. Scraping...`
+          );
+          try {
+            const { fixtures: scrapedFixtures, sources } =
+              await scrapeFixturesForCompetitions(missingCompetitions);
+            if (sources.length > 0) {
+              console.log(
+                `[Fixtures API] Missing competitions scraped via: ${sources.join(", ")}`
+              );
+            }
+
+            if (scrapedFixtures.length > 0) {
+              console.log(
+                `[Fixtures API] Storing missing competition fixtures in DB: ${buildCompetitionSummary(scrapedFixtures)}`
+              );
+              const dbFixtures = mapFixturesForDb(scrapedFixtures);
+              const { error: insertError } = await supabaseServer
+                .from("fixtures")
+                .upsert(dbFixtures, { onConflict: "id" });
+
+              if (insertError) {
+                console.error(
+                  "[Fixtures API] Error storing missing competition fixtures:",
+                  insertError
+                );
+              } else {
+                await supabaseServer
+                  .from("cache_metadata")
+                  .upsert(
+                    {
+                      key: "fixtures",
+                      last_updated: new Date().toISOString(),
+                      data_count: scrapedFixtures.length,
+                    },
+                    { onConflict: "key" }
+                  );
+              }
+            }
+
+            const { data: allFixturesData, error: fetchError } =
+              await supabaseServer
+                .from("fixtures")
+                .select("*")
+                .or(SEASON_FILTER)
+                .gte("date", CURRENT_SEASON_START.toISOString())
+                .lte("date", CURRENT_SEASON_END.toISOString())
+                .order("date", { ascending: true });
+
+            if (!fetchError) {
+              const allFixtures: Fixture[] = (allFixturesData || [])
+                .filter((row) =>
+                  selectedCompetitionSet.has(
+                    normalizeCompetition(row.competition)
+                  )
+                )
+                .map((row) => ({
+                  id: row.id,
+                  date: row.date,
+                  homeTeam: row.home_team,
+                  awayTeam: row.away_team,
+                  homeScore: row.home_score,
+                  awayScore: row.away_score,
+                  matchweek: row.matchweek,
+                  originalMatchweek: row.original_matchweek ?? undefined,
+                  status: row.status as Fixture["status"],
+                  isDerby: row.is_derby,
+                  season: row.season || undefined,
+                  competition: normalizeCompetition(row.competition),
+                  competitionRound: row.competition_round,
+                }));
+              const normalizedAllFixtures =
+                normalizeAndDedupeFixtures(allFixtures);
+
+              return NextResponse.json(normalizedAllFixtures, {
+                headers: {
+                  "X-Cache": "MISS-COMPETITION-SCRAPE",
+                  "Cache-Control": "public, s-maxage=1500, stale-while-revalidate=3600",
+                },
+              });
+            }
+          } catch (missingError) {
+            console.error(
+              "[Fixtures API] Failed to scrape missing competitions:",
+              missingError
+            );
+          }
+        }
+
         // Convert database format to app format
         const fixtures: Fixture[] = fixturesData
           .filter((row) => selectedCompetitionSet.has(normalizeCompetition(row.competition)))
@@ -257,7 +374,7 @@ export async function GET(request: NextRequest) {
         console.log(`[Fixtures API] Returning ${normalizedFixtures.length} fixtures from database (stale, refreshing in background)`);
 
         // Start background refresh (don't await - return immediately)
-        refreshFixturesInBackground().catch(err => {
+        refreshFixturesInBackground(selectedCompetitions).catch(err => {
           console.error("[Fixtures API] Background refresh error:", err);
         });
 
@@ -273,42 +390,18 @@ export async function GET(request: NextRequest) {
     // No data in database (or Supabase not configured) - must scrape (this will be slower)
     console.log("[Fixtures API] No data in database or Supabase not configured. Scraping fresh fixtures...");
     try {
-      // Try OneFootball first (simpler, faster, no Puppeteer needed)
-      let scrapedFixtures: Fixture[] = [];
-      let scrapeSource = 'unknown';
-      
-      try {
-        console.log("[Fixtures API] Attempting to scrape from OneFootball...");
-        scrapedFixtures = await scrapeFixturesFromOneFootball();
-        scrapeSource = 'onefootball';
-        console.log(`[Fixtures API] Successfully scraped ${scrapedFixtures.length} fixtures from OneFootball`);
-      } catch (onefootballError) {
-        console.warn("[Fixtures API] OneFootball scraping failed, falling back to official site:", onefootballError);
-        // Fallback to official Premier League site scraper
-        scrapedFixtures = await scrapeFixtures();
-        scrapeSource = 'official-site';
-        console.log(`[Fixtures API] Successfully scraped ${scrapedFixtures.length} fixtures from official site`);
-      }
+      const { fixtures: scrapedFixtures, sources } =
+        await scrapeFixturesForCompetitions(selectedCompetitions);
+      const scrapeSource = sources.length > 0 ? sources.join(", ") : "unknown";
 
       if (scrapedFixtures.length > 0) {
         // Store in database
-        console.log(`[Fixtures API] Storing ${scrapedFixtures.length} scraped fixtures in database...`);
+        console.log(
+          `[Fixtures API] Storing scraped fixtures in DB: ${buildCompetitionSummary(scrapedFixtures)}`
+        );
 
         // Prepare data for database insertion
-        const dbFixtures = scrapedFixtures.map(fixture => ({
-          id: fixture.id,
-          date: fixture.date,
-          home_team: fixture.homeTeam,
-          away_team: fixture.awayTeam,
-          home_score: fixture.homeScore,
-          away_score: fixture.awayScore,
-          matchweek: fixture.matchweek,
-          status: fixture.status,
-          is_derby: fixture.isDerby || false,
-          season: fixture.season || undefined,
-          competition: "Premier League",
-          competition_round: null
-        }));
+        const dbFixtures = mapFixturesForDb(scrapedFixtures);
 
         // Upsert fixtures (update if exists, insert if not)
         // Use server client to bypass RLS for server-side operations
@@ -346,8 +439,8 @@ export async function GET(request: NextRequest) {
         const normalizedScrapedFixtures = normalizeAndDedupeFixtures(
           scrapedFixtures.map((fixture) => ({
             ...fixture,
-            competition: "Premier League",
-            competitionRound: null
+            competition: normalizeCompetition(fixture.competition),
+            competitionRound: fixture.competitionRound ?? null,
           }))
         );
 

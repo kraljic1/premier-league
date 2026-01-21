@@ -16,6 +16,10 @@ import { Fixture, Club } from "@/lib/types";
 import { getCurrentMatchweek } from "@/lib/utils";
 import { getHelpContent } from "@/lib/help-content";
 import {
+  CUP_COMPETITIONS,
+  PREMIER_LEAGUE_COMPETITION,
+} from "@/lib/competition-sources";
+import {
   fetchFixtures,
   getAvailableCompetitionValues,
   getFutureFixtures
@@ -27,15 +31,18 @@ type ClubFixtureData = {
   fixtures: Fixture[];
 };
 
-const COMPETITION_OPTIONS: CompetitionOption[] = [
-  { id: "fa-cup", label: "FA Cup", value: "FA Cup" },
-  { id: "carabao-cup", label: "Carabao Cup", value: "Carabao Cup" },
-  { id: "champions-league", label: "UEFA Champions League", value: "UEFA Champions League" },
-  { id: "europa-league", label: "UEFA Europa League", value: "UEFA Europa League" },
-  { id: "conference-league", label: "UEFA Conference League", value: "UEFA Conference League" }
-];
+const COMPETITION_OPTIONS: CompetitionOption[] = CUP_COMPETITIONS.map(
+  (competition) => ({
+    id: competition.id,
+    label: competition.label,
+    value: competition.value,
+  })
+);
 
-const ALL_COMPETITIONS = ["Premier League", ...COMPETITION_OPTIONS.map((option) => option.value)];
+const ALL_COMPETITIONS = [
+  PREMIER_LEAGUE_COMPETITION,
+  ...COMPETITION_OPTIONS.map((option) => option.value),
+];
 
 export default function ComparePage() {
   const [mounted, setMounted] = useState(false);
@@ -71,7 +78,12 @@ export default function ComparePage() {
   }, [safeMyClubs]);
 
   const leagueFixtures = useMemo(
-    () => fixtures.filter((fixture) => (fixture.competition || "Premier League") === "Premier League"),
+    () =>
+      fixtures.filter(
+        (fixture) =>
+          (fixture.competition || PREMIER_LEAGUE_COMPETITION) ===
+          PREMIER_LEAGUE_COMPETITION
+      ),
     [fixtures]
   );
 
@@ -100,13 +112,15 @@ export default function ComparePage() {
   );
 
   const competitionsToInclude = useMemo(
-    () => ["Premier League", ...includedCompetitions],
+    () => [PREMIER_LEAGUE_COMPETITION, ...includedCompetitions],
     [includedCompetitions]
   );
 
   const filteredFixtures = useMemo(() => {
     const competitionSet = new Set(competitionsToInclude);
-    return fixtures.filter((fixture) => competitionSet.has(fixture.competition || "Premier League"));
+    return fixtures.filter((fixture) =>
+      competitionSet.has(fixture.competition || PREMIER_LEAGUE_COMPETITION)
+    );
   }, [fixtures, competitionsToInclude]);
 
   const currentMatchweek = useMemo(() => getCurrentMatchweek(leagueFixtures), [leagueFixtures]);

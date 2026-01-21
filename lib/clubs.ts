@@ -1,6 +1,8 @@
-import { Club, DerbyPair } from "./types";
+import { Club } from "./types";
+import { normalizeClubName, resolveClubName } from "./utils/club-name";
 
 export type { Club };
+export { isDerby } from "./derbies";
 export const CLUBS: Record<string, Club> = {
   arsenal: {
     id: "arsenal",
@@ -184,55 +186,20 @@ export const CLUBS: Record<string, Club> = {
   },
 };
 
-export const DERBY_PAIRS: DerbyPair[] = [
-  // Arsenal derbies
-  { club1: "Arsenal", club2: "Aston Villa" },
-  { club1: "Arsenal", club2: "Chelsea" },
-  { club1: "Arsenal", club2: "Liverpool" },
-  { club1: "Arsenal", club2: "Manchester City" },
-  { club1: "Arsenal", club2: "Manchester United" },
-  { club1: "Arsenal", club2: "Newcastle United" },
-  { club1: "Arsenal", club2: "Tottenham Hotspur" },
-  // Aston Villa derbies
-  { club1: "Aston Villa", club2: "Chelsea" },
-  { club1: "Aston Villa", club2: "Liverpool" },
-  { club1: "Aston Villa", club2: "Manchester City" },
-  { club1: "Aston Villa", club2: "Manchester United" },
-  { club1: "Aston Villa", club2: "Newcastle United" },
-  { club1: "Aston Villa", club2: "Tottenham Hotspur" },
-  // Chelsea derbies
-  { club1: "Chelsea", club2: "Liverpool" },
-  { club1: "Chelsea", club2: "Manchester City" },
-  { club1: "Chelsea", club2: "Manchester United" },
-  { club1: "Chelsea", club2: "Newcastle United" },
-  { club1: "Chelsea", club2: "Tottenham Hotspur" },
-  // Liverpool derbies
-  { club1: "Liverpool", club2: "Manchester City" },
-  { club1: "Liverpool", club2: "Manchester United" },
-  { club1: "Liverpool", club2: "Newcastle United" },
-  { club1: "Liverpool", club2: "Tottenham Hotspur" },
-  // Manchester City derbies
-  { club1: "Manchester City", club2: "Manchester United" },
-  { club1: "Manchester City", club2: "Newcastle United" },
-  { club1: "Manchester City", club2: "Tottenham Hotspur" },
-  // Manchester United derbies
-  { club1: "Manchester United", club2: "Newcastle United" },
-  { club1: "Manchester United", club2: "Tottenham Hotspur" },
-  // Newcastle United derbies
-  { club1: "Newcastle United", club2: "Tottenham Hotspur" },
-];
-
 export function getClubByName(name: string): Club | undefined {
-  return Object.values(CLUBS).find(
-    (club) => club.name === name || club.shortName === name
-  );
-}
+  const normalizedInput = normalizeClubName(name);
+  const resolvedInput = resolveClubName(name);
 
-export function isDerby(homeTeam: string, awayTeam: string): boolean {
-  return DERBY_PAIRS.some(
-    (pair) =>
-      (pair.club1 === homeTeam && pair.club2 === awayTeam) ||
-      (pair.club1 === awayTeam && pair.club2 === homeTeam)
-  );
+  return Object.values(CLUBS).find((club) => {
+    if (resolveClubName(club.name) === resolvedInput) {
+      return true;
+    }
+
+    if (club.shortName && normalizeClubName(club.shortName) === normalizedInput) {
+      return true;
+    }
+
+    return club.name === name || club.shortName === name;
+  });
 }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Standing, Club } from "@/lib/types";
 import { getClubByName } from "@/lib/clubs";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 type ClubWithLogo = Club & { logoUrlFromDb?: string | null };
 
@@ -36,7 +37,7 @@ export function StandingRow({ standing, clubs, formOverride }: StandingRowProps)
   };
 
   // Find club data and get logo URL with proper fallback chain
-  const clubEntry = Object.values(clubs).find((club) => club.name === standing.club);
+  const clubEntry = findClubEntryByName(clubs, standing.club);
   const hardcodedClub = getClubByName(standing.club);
 
   // Try database logo first, then hardcoded logoUrl, then null

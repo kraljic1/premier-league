@@ -5,6 +5,7 @@ import { CLUBS, getClubByName } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "./SafeImage";
 import { ClubSelectionModal } from "./ClubSelectionModal";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 interface ClubDropdownProps {
   selectedClub: string | null;
@@ -27,7 +28,7 @@ export function ClubDropdown({
     : null;
   
   const selectedClubWithLogo = selectedClub
-    ? Object.values(clubs).find((c) => c.name === selectedClub)
+    ? findClubEntryByName(clubs, selectedClub)
     : null;
   
   const logoUrl = selectedClubWithLogo?.logoUrlFromDb || 

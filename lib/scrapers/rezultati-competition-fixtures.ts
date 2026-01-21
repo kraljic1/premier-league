@@ -68,8 +68,17 @@ export async function scrapeCompetitionFixtures(
     }
 
     const rawData = await page.evaluate(() => {
-      const matches: { homeTeam: string; awayTeam: string; dateStr: string; roundNumber: number | null }[] = [];
-      let currentRound: number | null = null;
+      const matches: {
+        homeTeam: string;
+        awayTeam: string;
+        dateStr: string;
+        roundNumber: number | null;
+        roundLabel: string | null;
+        roundIndex: number | null;
+      }[] = [];
+      let currentRoundNumber: number | null = null;
+      let currentRoundLabel: string | null = null;
+      let roundIndex = 0;
       const container =
         document.querySelector(".sportName.soccer") ||
         document.querySelector(".event--results") ||
@@ -82,7 +91,15 @@ export async function scrapeCompetitionFixtures(
           const text = (el.textContent || "").trim();
           const roundMatch = text.match(/(\d+)\.\s*kolo|round\s*(\d+)/i);
           if (roundMatch) {
-            currentRound = parseInt(roundMatch[1] || roundMatch[2], 10);
+            currentRoundNumber = parseInt(roundMatch[1] || roundMatch[2], 10);
+            currentRoundLabel = text || null;
+            roundIndex = currentRoundNumber || roundIndex;
+          } else if (text) {
+            if (text !== currentRoundLabel) {
+              roundIndex += 1;
+            }
+            currentRoundNumber = null;
+            currentRoundLabel = text;
           }
           return;
         }
@@ -105,7 +122,9 @@ export async function scrapeCompetitionFixtures(
             homeTeam,
             awayTeam,
             dateStr,
-            roundNumber: currentRound,
+            roundNumber: currentRoundNumber,
+            roundLabel: currentRoundLabel,
+            roundIndex: roundIndex > 0 ? roundIndex : null,
           });
         }
       });
@@ -130,6 +149,7 @@ export async function scrapeCompetitionFixtures(
       if (seenIds.has(fixtureId)) continue;
       seenIds.add(fixtureId);
 
+      const matchweek = match.roundNumber || match.roundIndex || 1;
       fixtures.push({
         id: fixtureId,
         date: parsedDate.toISOString(),
@@ -137,10 +157,11 @@ export async function scrapeCompetitionFixtures(
         awayTeam,
         homeScore: null,
         awayScore: null,
-        matchweek: match.roundNumber || 1,
+        matchweek,
         status: "scheduled",
         isDerby: isDerby(homeTeam, awayTeam),
         competition: source.competition,
+        competitionRound: match.roundLabel || null,
       });
     }
 

@@ -7,10 +7,12 @@ import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EmptyState } from "@/components/EmptyState";
 import { FixturesResultsControls } from "@/components/FixturesResultsControls";
 import { FixturesResultsList } from "@/components/FixturesResultsList";
+import { CupCompetitionLinks } from "@/components/CupCompetitionLinks";
 import { Fixture } from "@/lib/types";
 import { useFixturesResultsData } from "@/lib/hooks/useFixturesResultsData";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { useMatchDayRefetch } from "@/lib/hooks/useMatchDayRefetch";
+import { CUP_COMPETITIONS } from "@/lib/competition-sources";
 
 async function fetchFixtures(): Promise<Fixture[]> {
   const res = await fetch("/api/fixtures", {
@@ -185,6 +187,10 @@ export default function FixturesResultsContent() {
           clubs={clubs}
         />
       )}
+      <div className="cup-links-section">
+        <h2 className="cup-links-section__title">Cups</h2>
+        <CupCompetitionLinks competitions={CUP_COMPETITIONS} />
+      </div>
     </div>
   );
 }

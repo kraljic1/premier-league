@@ -3,6 +3,7 @@
 import { SeasonStatsCompact } from "./SeasonStatsCompact";
 import { getClubByName } from "@/lib/clubs";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 interface ClubStatsCardProps {
   clubName: string;
@@ -14,7 +15,7 @@ export function ClubStatsCard({ clubName, stats, season }: ClubStatsCardProps) {
   const { clubs } = useClubs();
 
   // Get logo URL for club
-  const clubEntry = Object.values(clubs).find((c: any) => c.name === clubName);
+  const clubEntry = findClubEntryByName(clubs, clubName);
   const hardcodedClub = getClubByName(clubName);
   const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
 

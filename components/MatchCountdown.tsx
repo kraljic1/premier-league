@@ -5,6 +5,7 @@ import { getTimeUntil } from "@/lib/utils";
 import { Fixture } from "@/lib/types";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { SafeImage } from "@/components/SafeImage";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 interface MatchCountdownProps {
   fixture: Fixture;
@@ -25,10 +26,10 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
   }, [fixture.date]);
   
   // Get logo URLs from clubs object
-  const homeClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
-  const awayClubEntry = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
-  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || null;
-  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || null;
+  const homeClubEntry = findClubEntryByName(clubs, fixture.homeTeam);
+  const awayClubEntry = findClubEntryByName(clubs, fixture.awayTeam);
+  const homeLogoUrl = homeClubEntry?.logoUrlFromDb || homeClubEntry?.logoUrl || "";
+  const awayLogoUrl = awayClubEntry?.logoUrlFromDb || awayClubEntry?.logoUrl || "";
 
   if (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0) {
     return (
@@ -38,10 +39,8 @@ export function MatchCountdown({ fixture }: MatchCountdownProps) {
     );
   }
 
-  const homeClubData = Object.values(clubs).find((c: any) => c.name === fixture.homeTeam);
-  const awayClubData = Object.values(clubs).find((c: any) => c.name === fixture.awayTeam);
-  const homeFinalLogoUrl = homeLogoUrl || homeClubData?.logoUrl || '';
-  const awayFinalLogoUrl = awayLogoUrl || awayClubData?.logoUrl || '';
+  const homeFinalLogoUrl = homeLogoUrl;
+  const awayFinalLogoUrl = awayLogoUrl;
 
   return (
     <div className="match-countdown text-center p-6 rounded-lg">

@@ -9,6 +9,7 @@ import {
 } from "@/lib/utils-comparison";
 import { useClubs } from "@/lib/hooks/useClubs";
 import { getClubByName } from "@/lib/clubs";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 interface ClubMatchResultsProps {
   fixtures: Fixture[];
@@ -47,7 +48,7 @@ export function ClubMatchResults({
 
   // Helper function to get logo URL for a team
   const getTeamLogoUrl = (teamName: string) => {
-    const clubEntry = Object.values(clubs).find((c: any) => c.name === teamName);
+    const clubEntry = findClubEntryByName(clubs, teamName);
     const hardcodedClub = getClubByName(teamName);
     return clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
   };

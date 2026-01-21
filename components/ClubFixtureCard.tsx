@@ -4,6 +4,7 @@ import { Fixture, Club } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { ClubLogo } from "@/components/ClubLogo";
 import { useClubs } from "@/lib/hooks/useClubs";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 interface ClubFixtureCardProps {
   club: string;
@@ -20,7 +21,7 @@ export function ClubFixtureCard({ club, clubData, fixtures }: ClubFixtureCardPro
   const { clubs } = useClubs();
   
   // Get logo URL from clubs object
-  const clubEntry = Object.values(clubs).find((c: any) => c.name === club);
+  const clubEntry = findClubEntryByName(clubs, club);
   const logoUrl = clubEntry?.logoUrlFromDb || null;
   
   return (
@@ -76,7 +77,7 @@ function MatchItem({ fixture, club, clubData, clubs }: MatchItemProps) {
   const roundLabel = fixture.competitionRound || `Round ${fixture.matchweek}`;
   
   // Get logo URL for opponent from clubs object
-  const opponentClubEntry = Object.values(clubs).find((c: any) => c.name === opponent);
+  const opponentClubEntry = findClubEntryByName(clubs, opponent);
   const opponentLogoUrl = opponentClubEntry?.logoUrlFromDb || null;
 
   return (

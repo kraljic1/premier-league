@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CLUBS } from '@/lib/clubs';
+import { findClubKeyByName } from '@/lib/utils/club-name';
 import { Club } from '@/lib/types';
 
 /**
@@ -33,9 +34,7 @@ export function useClubs() {
           
           // Update with database logo URLs
           clubsFromDb.forEach((dbClub: { name: string; logo_url: string | null }) => {
-            const clubKey = Object.keys(CLUBS).find(
-              key => CLUBS[key]?.name === dbClub.name
-            );
+            const clubKey = findClubKeyByName(CLUBS, dbClub.name);
             
             if (clubKey && mergedClubs[clubKey]) {
               mergedClubs[clubKey] = {

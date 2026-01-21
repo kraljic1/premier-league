@@ -1,6 +1,7 @@
 import { Handler, schedule } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import * as cheerio from "cheerio";
+import { isDerby } from "../../lib/derbies";
 import { normalizeClubName } from "../../lib/utils/club-name-utils";
 
 /**
@@ -184,27 +185,6 @@ function parseDate(dateStr: string): Date | null {
   }
   
   return null;
-}
-
-/**
- * Check if two teams are derby rivals
- */
-function isDerby(home: string, away: string): boolean {
-  const h = home.toLowerCase();
-  const a = away.toLowerCase();
-  
-  const derbies = [
-    ["arsenal", "tottenham"],
-    ["arsenal", "chelsea"],
-    ["liverpool", "manchester utd"],
-    ["liverpool", "everton"],
-    ["manchester city", "manchester utd"],
-    ["chelsea", "tottenham"],
-  ];
-  
-  return derbies.some(([t1, t2]) => 
-    (h.includes(t1) && a.includes(t2)) || (h.includes(t2) && a.includes(t1))
-  );
 }
 
 /**

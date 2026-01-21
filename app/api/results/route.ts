@@ -3,6 +3,7 @@ import { scrapeResults } from "@/lib/scrapers/results";
 import { scrapeResultsFromOneFootball } from "@/lib/scrapers/onefootball-fixtures";
 import { supabase, supabaseServer, FixtureRow } from "@/lib/supabase";
 import { Fixture } from "@/lib/types";
+import { isDerby } from "@/lib/clubs";
 import { normalizeClubName } from "@/lib/utils/club-name-utils";
 import {
   getCurrentSeasonFilter,
@@ -56,6 +57,7 @@ function normalizeAndDedupeFixtures(fixtures: Fixture[]): Fixture[] {
       id,
       homeTeam: normalizedHomeTeam,
       awayTeam: normalizedAwayTeam,
+      isDerby: isDerby(normalizedHomeTeam, normalizedAwayTeam),
     });
   }
 

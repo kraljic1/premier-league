@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Fixture } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { getClubByName } from "@/lib/clubs";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 type ClubsMap = Record<string, any>;
 
@@ -9,36 +10,6 @@ interface FixturesResultsMatchCardProps {
   fixture: Fixture;
   isResult: boolean;
   clubs: ClubsMap;
-}
-
-function normalizeClubName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/\b(fc|afc|cf|sc)\b/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function findClubEntryByName(clubs: ClubsMap, name: string) {
-  const clubList = Object.values(clubs);
-  const directMatch = clubList.find((club: any) => club.name === name);
-  if (directMatch) {
-    return directMatch;
-  }
-
-  const normalizedName = normalizeClubName(name);
-  if (!normalizedName) {
-    return undefined;
-  }
-
-  return clubList.find((club: any) => {
-    const normalizedClubName = normalizeClubName(club.name || "");
-    return (
-      normalizedClubName === normalizedName ||
-      normalizedClubName.includes(normalizedName) ||
-      normalizedName.includes(normalizedClubName)
-    );
-  });
 }
 
 export function FixturesResultsMatchCard({

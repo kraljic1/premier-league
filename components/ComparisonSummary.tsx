@@ -2,6 +2,7 @@
 
 import { useClubs } from "@/lib/hooks/useClubs";
 import { getClubByName } from "@/lib/clubs";
+import { findClubEntryByName } from "@/lib/utils/club-name";
 
 interface ComparisonSummaryProps {
   current: {
@@ -37,7 +38,7 @@ export function ComparisonSummary({
   const goalsAgainstDiff = current.goalsAgainst - historical.goalsAgainst;
 
   // Get logo URL for club
-  const clubEntry = Object.values(clubs).find((c: any) => c.name === clubName);
+  const clubEntry = findClubEntryByName(clubs, clubName);
   const hardcodedClub = getClubByName(clubName);
   const logoUrl = clubEntry?.logoUrlFromDb || clubEntry?.logoUrl || hardcodedClub?.logoUrl || null;
 
