@@ -1,7 +1,7 @@
 import { Handler, schedule } from "@netlify/functions";
 import { CUP_COMPETITIONS } from "../../lib/competition-sources";
 
-const handler: Handler = async () => {
+const runDailyCupFixtures: Handler = async () => {
   console.log("[DailyCupFixtures] Starting daily cup fixtures refresh...");
 
   const baseUrl =
@@ -61,4 +61,4 @@ const handler: Handler = async () => {
   }
 };
 
-export const handler = schedule("0 3 * * *", handler);
+export const handler = schedule("0 3 * * *", runDailyCupFixtures);
