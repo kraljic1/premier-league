@@ -69,6 +69,8 @@ const CLUB_NAME_ALIASES: Record<string, string> = {
 function normalizeKey(clubName: string): string {
   return clubName
     .trim()
+    .replace(/\(.*?\)/g, "")
+    .replace(/\[.*?\]/g, "")
     .replace(/['’]/g, "")
     .replace(/[.,()]/g, "")
     .replace(/&/g, "and")
@@ -76,6 +78,7 @@ function normalizeKey(clubName: string): string {
     .replace(/\bafc\b/gi, "")
     .replace(/\bfc\b/gi, "")
     .replace(/\butd\b/gi, "united")
+    .replace(/\b(eng|esp|ita|ger|fra|por|ned|sco|irl|wal)\b/gi, "")
     .replace(/\s+/g, " ")
     .toLowerCase();
 }
