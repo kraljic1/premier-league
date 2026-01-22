@@ -1,4 +1,5 @@
 import { Fixture, Standing } from "@/lib/types";
+import { resolveClubName } from "@/lib/utils/club-name";
 
 const MAX_FORM_RESULTS = 6;
 
@@ -25,7 +26,13 @@ export function buildStandingsFormMap(
   standings: Standing[]
 ): Record<string, string> {
   const formBuckets = new Map<string, string[]>();
-  standings.forEach((standing) => formBuckets.set(standing.club, []));
+  const standingsByKey = new Map<string, string>();
+
+  standings.forEach((standing) => {
+    const clubKey = resolveClubName(standing.club);
+    formBuckets.set(clubKey, []);
+    standingsByKey.set(clubKey, standing.club);
+  });
 
   const finishedFixtures = fixtures
     .filter(
@@ -41,7 +48,8 @@ export function buildStandingsFormMap(
   for (const fixture of finishedFixtures) {
     if (clubsNeedingResults === 0) break;
 
-    const homeBucket = formBuckets.get(fixture.homeTeam);
+    const homeKey = resolveClubName(fixture.homeTeam);
+    const homeBucket = formBuckets.get(homeKey);
     if (homeBucket && homeBucket.length < MAX_FORM_RESULTS) {
       const result = getResultForClub(fixture, fixture.homeTeam);
       if (result) {
@@ -52,7 +60,8 @@ export function buildStandingsFormMap(
       }
     }
 
-    const awayBucket = formBuckets.get(fixture.awayTeam);
+    const awayKey = resolveClubName(fixture.awayTeam);
+    const awayBucket = formBuckets.get(awayKey);
     if (awayBucket && awayBucket.length < MAX_FORM_RESULTS) {
       const result = getResultForClub(fixture, fixture.awayTeam);
       if (result) {
@@ -65,8 +74,9 @@ export function buildStandingsFormMap(
   }
 
   const formMap: Record<string, string> = {};
-  for (const [club, results] of formBuckets.entries()) {
-    formMap[club] = results.join("");
+  for (const [clubKey, results] of formBuckets.entries()) {
+    const clubName = standingsByKey.get(clubKey) || clubKey;
+    formMap[clubName] = results.join("");
   }
   return formMap;
 }
