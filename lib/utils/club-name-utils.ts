@@ -80,6 +80,7 @@ function normalizeKey(clubName: string): string {
     .replace(/\butd\b/gi, "united")
     .replace(/\b(eng|esp|ita|ger|fra|por|ned|sco|irl|wal)\b/gi, "")
     .replace(/\s+/g, " ")
+    .trim()
     .toLowerCase();
 }
 
