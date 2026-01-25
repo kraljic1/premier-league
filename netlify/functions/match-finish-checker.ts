@@ -12,8 +12,7 @@ const REZULTATI_URL =
   "https://www.rezultati.com/nogomet/engleska/premier-league/rezultati/";
 const CHECK_AFTER_MINUTES = 120;
 const LOOKBACK_HOURS = 24;
-const CHECK_CYCLES = 5;
-const CHECK_INTERVAL_MS = 60 * 1000;
+const CHECK_CYCLES = 1;
 interface FixtureRow {
   id: string;
   date: string;
@@ -28,7 +27,6 @@ interface MatchResult {
   awayScore: number;
   date: Date | null;
 }
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function normalizeTeamName(name: string): string {
   const cleaned = name
     .replace(/\d+$/, "")
@@ -161,6 +159,7 @@ export const handler = schedule("*/5 * * * *", async () => {
     };
   }
   const fixturesToCheck = await getFixturesToCheck();
+  console.log(`[FinishChecker] Fixtures to check: ${fixturesToCheck.length}`);
   if (fixturesToCheck.length === 0) {
     return {
       statusCode: 200,
@@ -171,23 +170,34 @@ export const handler = schedule("*/5 * * * *", async () => {
   let pending = fixturesToCheck;
   for (let cycle = 0; cycle < CHECK_CYCLES && pending.length > 0; cycle += 1) {
     const results = await fetchResults();
+    console.log(`[FinishChecker] Results scraped: ${results.length}`);
+    if (results.length > 0) {
+      const sample = results.slice(0, 5).map((result) => {
+        return `${result.homeTeam} vs ${result.awayTeam} (${result.homeScore}-${result.awayScore})`;
+      });
+      console.log(`[FinishChecker] Sample results: ${sample.join(" | ")}`);
+    }
     const nextPending: FixtureRow[] = [];
     for (const fixture of pending) {
+      console.log(
+        `[FinishChecker] Checking: ${fixture.home_team} vs ${fixture.away_team} (${fixture.date})`
+      );
       const matchResult = results.find((result) =>
         isLikelySameMatch(fixture, result)
       );
       if (!matchResult) {
+        console.log(`[FinishChecker] No match found for fixture ${fixture.id}`);
         nextPending.push(fixture);
         continue;
       }
       const updatedOk = await updateFixtureResult(fixture.id, matchResult);
+      console.log(
+        `[FinishChecker] Update ${updatedOk ? "OK" : "FAILED"} for ${fixture.id} -> ${matchResult.homeScore}-${matchResult.awayScore}`
+      );
       if (!updatedOk) nextPending.push(fixture);
       if (updatedOk) updated += 1;
     }
     pending = nextPending;
-    if (pending.length > 0 && cycle < CHECK_CYCLES - 1) {
-      await sleep(CHECK_INTERVAL_MS);
-    }
   }
   await supabase.from("cache_metadata").upsert(
     {
