@@ -20,10 +20,10 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const SEASON_FILES: Record<string, string> = {
-  "2020/21": "epl-2020-GMTStandardTime.csv",
-  "2021/22": "epl-2021-GMTStandardTime.csv",
-  "2022/23": "epl-2022-UTC.csv",
-  "2023/24": "epl-2023-GMTStandardTime.csv",
+  "2020/21": "epl-2020-with-rounds.csv",
+  "2021/22": "epl-2021-with-rounds.csv",
+  "2022/23": "epl-2022-with-rounds.csv",
+  "2023/24": "epl-2023-with-rounds.csv",
   "2024/25": "epl-2024-with-rounds.csv",
   "2025/2026": "epl-2025-with-rounds.csv",
 };
