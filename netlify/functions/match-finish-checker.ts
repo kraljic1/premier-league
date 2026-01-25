@@ -48,6 +48,9 @@ async function getFixturesToCheck(): Promise<FixtureRow[]> {
   const now = new Date();
   const latestStart = new Date(now.getTime() - CHECK_AFTER_MINUTES * 60 * 1000);
   const earliestStart = new Date(now.getTime() - LOOKBACK_HOURS * 60 * 60 * 1000);
+  console.log(
+    `[FinishChecker] Window: ${earliestStart.toISOString()} -> ${latestStart.toISOString()}`
+  );
   const { data, error } = await supabase
     .from("fixtures")
     .select("id, date, home_team, away_team, status, home_score, away_score")
@@ -61,6 +64,40 @@ async function getFixturesToCheck(): Promise<FixtureRow[]> {
     return [];
   }
   return data || [];
+}
+
+async function logFixtureDiagnostics(): Promise<void> {
+  const now = new Date();
+  const latestStart = new Date(now.getTime() - CHECK_AFTER_MINUTES * 60 * 1000);
+  const earliestStart = new Date(now.getTime() - LOOKBACK_HOURS * 60 * 60 * 1000);
+
+  const scheduledLive = await supabase
+    .from("fixtures")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["scheduled", "live"])
+    .gte("date", earliestStart.toISOString())
+    .lte("date", latestStart.toISOString());
+
+  const finishedMissingScores = await supabase
+    .from("fixtures")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "finished")
+    .is("home_score", null)
+    .is("away_score", null)
+    .gte("date", earliestStart.toISOString())
+    .lte("date", latestStart.toISOString());
+
+  if (scheduledLive.error || finishedMissingScores.error) {
+    console.error("[FinishChecker] Diagnostics error:", {
+      scheduledLive: scheduledLive.error,
+      finishedMissingScores: finishedMissingScores.error,
+    });
+    return;
+  }
+
+  console.log(
+    `[FinishChecker] Diagnostics: scheduled/live in window = ${scheduledLive.count ?? 0}, finished with missing scores in window = ${finishedMissingScores.count ?? 0}`
+  );
 }
 async function updateFixtureResult(
   fixtureId: string,
@@ -90,6 +127,7 @@ export const handler = schedule("*/5 * * * *", async () => {
   const fixturesToCheck = await getFixturesToCheck();
   console.log(`[FinishChecker] Fixtures to check: ${fixturesToCheck.length}`);
   if (fixturesToCheck.length === 0) {
+    await logFixtureDiagnostics();
     return {
       statusCode: 200,
       body: JSON.stringify({ success: true, checked: 0, updated: 0 }),
