@@ -26,7 +26,7 @@ interface MatchResult {
   awayTeam: string;
   homeScore: number;
   awayScore: number;
-  date: Date;
+  date: Date | null;
 }
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 function normalizeTeamName(name: string): string {
@@ -65,20 +65,35 @@ async function fetchResults(): Promise<MatchResult[]> {
   const results: MatchResult[] = [];
   $(".event__match").each((_, el) => {
     const $el = $(el);
-    const homeTeam = $el.find(".event__participant--home").text().trim();
-    const awayTeam = $el.find(".event__participant--away").text().trim();
-    const homeScoreText = $el.find(".event__score--home").text().trim();
-    const awayScoreText = $el.find(".event__score--away").text().trim();
-    const dateStr = $el.find(".event__time").text().trim();
+    const homeTeam = $el
+      .find(".event__participant--home, .event__homeParticipant")
+      .first()
+      .text()
+      .trim();
+    const awayTeam = $el
+      .find(".event__participant--away, .event__awayParticipant")
+      .first()
+      .text()
+      .trim();
+    const homeScoreText = $el
+      .find(".event__score--home, [class*='score--home']")
+      .first()
+      .text()
+      .trim();
+    const awayScoreText = $el
+      .find(".event__score--away, [class*='score--away']")
+      .first()
+      .text()
+      .trim();
+    const dateStr = $el.find(".event__time").first().text().trim();
     const homeScore = parseInt(homeScoreText, 10);
     const awayScore = parseInt(awayScoreText, 10);
-  const parsedDate = parseDate(dateStr);
+    const parsedDate = parseDate(dateStr);
     if (
       homeTeam &&
       awayTeam &&
       !isNaN(homeScore) &&
-      !isNaN(awayScore) &&
-      parsedDate
+      !isNaN(awayScore)
     ) {
       results.push({
         homeTeam,
@@ -93,15 +108,16 @@ async function fetchResults(): Promise<MatchResult[]> {
   return results;
 }
 function isLikelySameMatch(fixture: FixtureRow, result: MatchResult): boolean {
-  const fixtureTime = new Date(fixture.date).getTime();
-  const resultTime = result.date.getTime();
-  const diffHours = Math.abs(fixtureTime - resultTime) / (60 * 60 * 1000);
-  if (diffHours > 24) return false;
   const fixtureHome = normalizeTeamName(fixture.home_team);
   const fixtureAway = normalizeTeamName(fixture.away_team);
   const resultHome = normalizeTeamName(result.homeTeam);
   const resultAway = normalizeTeamName(result.awayTeam);
-  return fixtureHome === resultHome && fixtureAway === resultAway;
+  if (fixtureHome !== resultHome || fixtureAway !== resultAway) return false;
+  if (!result.date) return true;
+  const fixtureTime = new Date(fixture.date).getTime();
+  const resultTime = result.date.getTime();
+  const diffHours = Math.abs(fixtureTime - resultTime) / (60 * 60 * 1000);
+  return diffHours <= 24;
 }
 async function getFixturesToCheck(): Promise<FixtureRow[]> {
   const now = new Date();

@@ -6,22 +6,29 @@ let browserInstance: Browser | null = null;
 
 export async function getBrowser(): Promise<Browser> {
   if (!browserInstance) {
-    // Check if we're running on Netlify (production)
-    const isNetlify = Boolean(
+    const isServerlessRuntime = Boolean(
       process.env.NETLIFY ||
-      process.env.NETLIFY_URL
+      process.env.NETLIFY_URL ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV ||
+      process.env.LAMBDA_TASK_ROOT
     );
+    const skipChromiumDownload = process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD === "true";
+    const shouldUseBundledChromium = isServerlessRuntime || skipChromiumDownload;
 
     let launchOptions: any;
-    const puppeteerLib = isNetlify ? puppeteerCore : puppeteer;
+    const puppeteerLib = shouldUseBundledChromium ? puppeteerCore : puppeteer;
 
-    if (isNetlify) {
-      console.log(`[Browser] Netlify environment detected`);
-      const executablePath = await chromium.executablePath();
+    if (shouldUseBundledChromium) {
+      console.log(`[Browser] Serverless Chromium mode enabled`);
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath();
+      if (!executablePath) {
+        throw new Error("Chromium executable path not available in serverless mode.");
+      }
       launchOptions = {
         args: [...chromium.args, "--single-process", "--no-zygote"],
         executablePath,
-        headless: true,
+        headless: chromium.headless,
       };
       console.log(`[Browser] Using bundled Chromium: ${executablePath}`);
     } else {
