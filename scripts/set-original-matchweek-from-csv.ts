@@ -24,10 +24,13 @@ const SEASON_FILES: Record<string, string> = {
   "2021/22": "epl-2021-GMTStandardTime.csv",
   "2022/23": "epl-2022-UTC.csv",
   "2023/24": "epl-2023-GMTStandardTime.csv",
+  "2024/25": "epl-2024-with-rounds.csv",
+  "2025/2026": "epl-2025-with-rounds.csv",
 };
 
 function normalizeTeamName(name: string): string {
-  return normalizeClubName(name);
+  const decoded = name.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+  return normalizeClubName(decoded);
 }
 
 function parseCsvLine(line: string): string[] {
@@ -72,7 +75,7 @@ async function run() {
   const seasonsToProcess = runAll
     ? Object.keys(SEASON_FILES)
     : [
-        seasonArg!.includes("/") && seasonArg!.split("/")[1]?.length === 2
+        seasonArg!.includes("/")
           ? seasonArg!
           : seasonYearToShortFormat(seasonArg!),
       ];
