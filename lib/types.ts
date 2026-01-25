@@ -1,3 +1,29 @@
+export interface Player {
+  name: string;
+  position: string;
+  number: number;
+  nationality: string;
+}
+
+export interface Staff {
+  name: string;
+  role: string;
+}
+
+export interface Trophy {
+  name: string;
+  count: number;
+  years?: string[];
+}
+
+export interface ClubDetails {
+  history: string;
+  fans: string;
+  trophies: Trophy[];
+  squad: Player[];
+  staff: Staff[];
+}
+
 export interface Club {
   id: string;
   name: string;
@@ -7,6 +33,7 @@ export interface Club {
   textColor: string;
   logoUrl?: string;
   logoUrlFromDb?: string | null;
+  details?: ClubDetails;
 }
 
 export interface Fixture {
@@ -45,4 +72,3 @@ export interface DerbyPair {
   club1: string;
   club2: string;
 }
-
