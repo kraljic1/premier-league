@@ -12,7 +12,7 @@ const supabaseKey =
   "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 const CHECK_AFTER_MINUTES = 120;
-const LOOKBACK_HOURS = 24;
+const LOOKBACK_HOURS = 36;
 const CHECK_CYCLES = 1;
 interface FixtureRow {
   id: string;
@@ -20,6 +20,8 @@ interface FixtureRow {
   home_team: string;
   away_team: string;
   status: string;
+  home_score: number | null;
+  away_score: number | null;
 }
 type MatchResult = FinishCheckerResult;
 function normalizeTeamName(name: string): string {
@@ -48,8 +50,10 @@ async function getFixturesToCheck(): Promise<FixtureRow[]> {
   const earliestStart = new Date(now.getTime() - LOOKBACK_HOURS * 60 * 60 * 1000);
   const { data, error } = await supabase
     .from("fixtures")
-    .select("id, date, home_team, away_team, status")
-    .in("status", ["scheduled", "live"])
+    .select("id, date, home_team, away_team, status, home_score, away_score")
+    .or(
+      "status.in.(scheduled,live),and(status.eq.finished,home_score.is.null,away_score.is.null)"
+    )
     .gte("date", earliestStart.toISOString())
     .lte("date", latestStart.toISOString());
   if (error) {
