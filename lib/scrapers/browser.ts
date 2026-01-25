@@ -28,7 +28,7 @@ export async function getBrowser(): Promise<Browser> {
       launchOptions = {
         args: [...chromium.args, "--single-process", "--no-zygote"],
         executablePath,
-        headless: chromium.headless,
+        headless: true,
       };
       console.log(`[Browser] Using bundled Chromium: ${executablePath}`);
     } else {
