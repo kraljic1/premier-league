@@ -1,13 +1,12 @@
 import { ClubDetails } from "./types";
 
 /**
- * Mock data for club details to populate club pages for SEO
- * In a real app, this might come from a CMS or database
+ * Updated data for club details (2025/26 Season - Current as of Jan 2026)
  */
 export const CLUB_DETAILS: Record<string, ClubDetails> = {
   arsenal: {
-    history: "Arsenal Football Club, founded in 1886 in Woolwich, is one of England's most successful and iconic football clubs. Known as 'The Gunners', the club moved to Highbury in 1913 and later to the Emirates Stadium in 2006. Arsenal has a rich tradition of playing attractive, attacking football and is famous for its 'Invincibles' season in 2003-04, where they went unbeaten in the Premier League. The club has consistently competed at the highest level of English and European football, maintaining a loyal global following.",
-    fans: "Arsenal fans, known as 'Gooners', are famous for their passionate support and global reach. The club has one of the largest fanbases in the world, with official supporters' clubs in over 100 countries. The atmosphere at the Emirates Stadium is a blend of traditional North London passion and modern football culture. Fans often sing 'North London Forever' and 'Good Old Arsenal' to show their devotion to the team.",
+    history: "Arsenal Football Club, founded in 1886, remains a cornerstone of English football. Under Mikel Arteta, the club has re-established itself as a perennial title contender, blending a youthful core with world-class signings like Viktor Gyökeres and Martin Zubimendi. The Gunners continue to play their trademark attacking football at the Emirates Stadium, chasing their first league title since the legendary 'Invincibles' season of 2003-04.",
+    fans: "The 'Gooners' are among the most passionate and global fanbases in sport. The Emirates Stadium atmosphere has reached new heights in the 2025/26 season, with 'North London Forever' becoming a powerful pre-match ritual. The club's commitment to its community and its rich history in Highbury remains central to its identity.",
     trophies: [
       { name: "League Titles", count: 13, years: ["1930/31", "1932/33", "1933/34", "1934/35", "1937/38", "1947/48", "1952/53", "1970/71", "1988/89", "1990/91", "1997/98", "2001/02", "2003/04"] },
       { name: "FA Cups", count: 14 },
@@ -21,7 +20,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Declan Rice", position: "Midfielder", number: 41, nationality: "England" },
       { name: "Martin Ødegaard", position: "Midfielder", number: 8, nationality: "Norway" },
       { name: "Bukayo Saka", position: "Forward", number: 7, nationality: "England" },
-      { name: "Kai Havertz", position: "Forward", number: 29, nationality: "Germany" }
+      { name: "Viktor Gyökeres", position: "Forward", number: 9, nationality: "Sweden" }
     ],
     staff: [
       { name: "Mikel Arteta", role: "Manager" },
@@ -30,8 +29,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   astonVilla: {
-    history: "Aston Villa Football Club, based in Birmingham, is one of the oldest and most successful clubs in English football history. Founded in 1874, they were founder members of the Football League in 1888 and the Premier League in 1992. Villa Park has been their home since 1897. The club's greatest achievement came in 1982 when they won the European Cup, defeating Bayern Munich in the final. They have a long-standing rivalry with Birmingham City, known as the Second City derby.",
-    fans: "Aston Villa supporters are known for their deep-rooted loyalty and pride in being Birmingham's premier club. The 'Holte End' at Villa Park is one of the most famous stands in English football, known for its vocal support. The club's anthem 'Hi Ho Silver Lining' and the traditional 'The Bells Are Ringing' are staples of the matchday experience. Villa fans have a strong sense of tradition and community.",
+    history: "Aston Villa's resurgence under Unai Emery has seen the club return to the pinnacle of European football. A founder member of the Football League, Villa Park continues to be a fortress. The 2025/26 season sees the club competing fiercely in the Champions League, honoring their historic 1982 European Cup triumph while building a modern legacy.",
+    fans: "Villa supporters are the heartbeat of Birmingham football. The Holte End remains one of the most iconic stands in the world, famous for its deafening support. The fans' pride in their history, combined with the excitement of their current European journey, makes for one of the best atmospheres in the Premier League.",
     trophies: [
       { name: "League Titles", count: 7 },
       { name: "FA Cups", count: 7 },
@@ -46,7 +45,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Youri Tielemans", position: "Midfielder", number: 8, nationality: "Belgium" },
       { name: "John McGinn", position: "Midfielder", number: 7, nationality: "Scotland" },
       { name: "Ollie Watkins", position: "Forward", number: 11, nationality: "England" },
-      { name: "Leon Bailey", position: "Forward", number: 31, nationality: "Jamaica" }
+      { name: "Morgan Rogers", position: "Forward", number: 27, nationality: "England" }
     ],
     staff: [
       { name: "Unai Emery", role: "Manager" },
@@ -54,8 +53,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   bournemouth: {
-    history: "AFC Bournemouth, known as 'The Cherries', has a remarkable history of rising through the divisions. Based in the coastal town of Bournemouth, the club was founded in 1899 as Boscombe F.C. They spent most of their history in the lower tiers until a dramatic rise under Eddie Howe led them to the Premier League for the first time in 2015. The club plays at the Vitality Stadium (Dean Court), which is known for its intimate and intense atmosphere.",
-    fans: "Bournemouth fans are celebrated for their community-focused support and the 'family' feel of the club. Despite having one of the smaller stadiums in the Premier League, the support is incredibly vocal. The fans have a strong bond with the club, having survived several financial crises in the past. Matchdays at Dean Court are a true community event, with a friendly yet passionate atmosphere.",
+    history: "AFC Bournemouth continues to defy expectations in the Premier League. Under Andoni Iraola, 'The Cherries' have adopted a high-pressing, exciting style of play that has made them one of the league's most dangerous teams. The Vitality Stadium remains a unique and intimate venue where the club's remarkable rise from the brink of insolvency is celebrated every matchday.",
+    fans: "Bournemouth fans are known for their resilience and community spirit. The bond between the players and the local community is exceptionally strong, reflecting the club's journey through the divisions. The atmosphere at Dean Court is consistently positive and supportive, making it a difficult place for any visiting team.",
     trophies: [
       { name: "Championship Winners", count: 1, years: ["2014/15"] },
       { name: "League One Winners", count: 1 },
@@ -76,8 +75,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   brentford: {
-    history: "Brentford Football Club, established in 1889, has a long and storied history in West London. After spending many years in the lower divisions, the club has seen a remarkable rise in recent years, reaching the Premier League for the first time in 2021. Known as 'The Bees', the club moved from their historic Griffin Park to the modern Brentford Community Stadium in 2020. Brentford is widely praised for its innovative use of data and analytics in recruitment and strategy, which has helped them compete with much larger clubs.",
-    fans: "Brentford fans are known for their community spirit and loyal support through the club's various ups and downs. The move to the new stadium has energized the fanbase, creating a vibrant and welcoming atmosphere. The 'Hey Jude' anthem is a staple at home matches, symbolizing the close bond between the club and its supporters. Despite their growth, the club maintains a friendly, 'family club' feel that is highly valued by its fans.",
+    history: "Brentford FC has become a model for modern football management. In the 2025/26 season, the club continues to use data-driven recruitment to compete with the league's giants. Now established in the Premier League, 'The Bees' are known for their tactical flexibility and set-piece prowess, making the Gtech Community Stadium one of the toughest venues for any opponent.",
+    fans: "The Brentford faithful have embraced their new home while keeping the spirit of Griffin Park alive. The atmosphere is vibrant, inclusive, and family-oriented. Fans take immense pride in the club's 'underdog' status and its innovative approach to the game, creating a unique and modern matchday experience.",
     trophies: [
       { name: "Second Division/Championship Winners", count: 1, years: ["1934/35"] },
       { name: "Third Division Winners", count: 2 },
@@ -88,19 +87,18 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Ethan Pinnock", position: "Defender", number: 5, nationality: "Jamaica" },
       { name: "Nathan Collins", position: "Defender", number: 22, nationality: "Ireland" },
       { name: "Christian Nørgaard", position: "Midfielder", number: 6, nationality: "Denmark" },
-      { name: "Mathias Jensen", position: "Midfielder", number: 8, nationality: "Denmark" },
+      { name: "Mikkel Damsgaard", position: "Midfielder", number: 24, nationality: "Denmark" },
       { name: "Bryan Mbeumo", position: "Forward", number: 19, nationality: "Cameroon" },
       { name: "Yoane Wissa", position: "Forward", number: 11, nationality: "DR Congo" }
     ],
     staff: [
-      { name: "Thomas Frank", role: "Head Coach" },
-      { name: "Kevin O'Connor", role: "Assistant Head Coach" },
+      { name: "Keith Andrews", role: "Head Coach" },
       { name: "Phil Giles", role: "Director of Football" }
     ]
   },
   brighton: {
-    history: "Brighton & Hove Albion, nicknamed 'The Seagulls', was founded in 1901. The club has a history of resilience, famously surviving near-extinction in the late 1990s when they lost their home ground, the Goldstone Ground. After years of playing at temporary venues, they moved to the state-of-the-art Amex Stadium in 2011. Since reaching the Premier League in 2017, Brighton has gained a reputation for its progressive style of play and exceptional scouting network, eventually qualifying for European football for the first time in 2023.",
-    fans: "Brighton fans are known for their inclusive and progressive community, reflecting the city's vibrant culture. The support is passionate and has grown significantly since the move to the Amex Stadium. Fans often sing 'Sussex by the Sea' before matches. The club's journey from the brink of collapse to European football has created a deep and emotional bond between the supporters and the team.",
+    history: "Brighton & Hove Albion's ascent continues under Fabian Hürzeler, the youngest permanent manager in Premier League history. The 2025/26 season sees 'The Seagulls' continuing to innovate with their world-class scouting and possession-based football. The Amex Stadium has become a symbol of the club's ambition and its successful integration into the European football elite.",
+    fans: "Brighton fans are celebrated for their loyalty and the inclusive atmosphere they foster. The journey from losing their home ground to competing in Europe has forged a unique bond. The Amex is known for its modern facilities and the passionate support that reflects the city's creative and diverse spirit.",
     trophies: [
       { name: "Third Division Winners", count: 3 },
       { name: "Fourth Division Winners", count: 2 },
@@ -113,7 +111,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Carlos Baleba", position: "Midfielder", number: 20, nationality: "Cameroon" },
       { name: "Kaoru Mitoma", position: "Forward", number: 22, nationality: "Japan" },
       { name: "João Pedro", position: "Forward", number: 9, nationality: "Brazil" },
-      { name: "Danny Welbeck", position: "Forward", number: 18, nationality: "England" }
+      { name: "Yankuba Minteh", position: "Forward", number: 17, nationality: "Gambia" }
     ],
     staff: [
       { name: "Fabian Hürzeler", role: "Head Coach" },
@@ -121,8 +119,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   chelsea: {
-    history: "Chelsea Football Club, founded in 1905, is one of London's most successful clubs. Based at Stamford Bridge, the club saw a period of unprecedented success in the 21st century, winning numerous Premier League titles and two UEFA Champions League trophies. Known as 'The Blues', Chelsea has a reputation for attracting world-class talent and competing at the very top of global football. The club's history is marked by periods of glamour and high-profile success.",
-    fans: "Chelsea fans are known for their loyal and vocal support at Stamford Bridge. The 'Matthew Harding Stand' and the 'Shed End' are the heart of the home support. Fans often sing 'Blue is the Colour' and 'Liquidator' to rally the team. The club has a massive global following and is one of the most supported teams in the world, with a fanbase that expects success and high-quality football.",
+    history: "Chelsea FC enters a new era in 2026 with Liam Rosenior taking charge in January. The club continues its ambitious project of building a squad of elite young talent at Stamford Bridge. Known for its high-pressure environment and expectation of silverware, the 2025/26 season is a critical period for the 'Blues' as they aim to return to the summit of English and European football.",
+    fans: "Chelsea supporters at Stamford Bridge remain some of the most demanding and loyal in the country. The atmosphere in the Matthew Harding Stand and the Shed End is legendary. Fans are eager to see the club's massive investment translate into the trophies that have defined the club's recent history.",
     trophies: [
       { name: "League Titles", count: 6, years: ["1954/55", "2004/05", "2005/06", "2009/10", "2014/15", "2016/17"] },
       { name: "FA Cups", count: 8 },
@@ -140,13 +138,13 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Nicolas Jackson", position: "Forward", number: 15, nationality: "Senegal" }
     ],
     staff: [
-      { name: "Enzo Maresca", role: "Head Coach" },
+      { name: "Liam Rosenior", role: "Head Coach" },
       { name: "Paul Winstanley", role: "Co-Sporting Director" }
     ]
   },
   crystalPalace: {
-    history: "Crystal Palace Football Club, founded in 1905, is based in Selhurst, South London. The club has a long history of being a fixture in the top two tiers of English football. Known as 'The Eagles', they play at Selhurst Park, a stadium famous for its intense and intimidating atmosphere. Palace has a reputation for producing exciting young talent through its academy and for its resilient, hard-working team spirit.",
-    fans: "Crystal Palace fans, particularly the 'Holmesdale Fanatics', are widely regarded as some of the most vocal and passionate in the Premier League. They are famous for their continuous singing, drumming, and elaborate tifo displays, creating a 'European-style' atmosphere that is unique in English football. The support is deeply rooted in the local South London community.",
+    history: "Crystal Palace, under the guidance of Oliver Glasner, has transformed into one of the most exciting attacking teams in the Premier League. The 2025/26 season sees 'The Eagles' leveraging their South London talent pool to compete for European places. Selhurst Park remains one of the most atmospheric and intimidating grounds for any visiting team.",
+    fans: "The Holmesdale Fanatics continue to lead the way in creating a vibrant, ultra-style atmosphere at Selhurst Park. Palace fans are known for their unwavering vocal support and creative displays, making their home ground a true cauldron of noise that reflects the pride of South London.",
     trophies: [
       { name: "Second Division/Championship Winners", count: 2 },
       { name: "Full Members Cup", count: 1, years: ["1991"] }
@@ -166,8 +164,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   everton: {
-    history: "Everton Football Club, founded in 1878, is one of the most historic clubs in England. A founder member of the Football League, they have spent more seasons in the top flight than any other club. Known as 'The Toffees', Everton plays at Goodison Park, one of the world's oldest purpose-built football grounds, and is preparing for a move to a new state-of-the-art stadium at Bramley-Moore Dock. The club has a rich tradition of success, particularly in the 1960s and 1980s.",
-    fans: "Everton fans, known as 'Evertonians', are famous for their deep knowledge of the game and their fierce loyalty. The 'Goodison Roar' is legendary in English football, often cited as one of the most intimidating atmospheres for visiting teams. The fans take great pride in the club's 'People's Club' identity and its extensive community work through Everton in the Community.",
+    history: "Everton FC is in a period of historic transition. As the club prepares to move to its new stadium at Bramley-Moore Dock, David Moyes returned in 2025 to lead the 'Toffees' through their final season at Goodison Park. The 2025/26 campaign is an emotional farewell to one of football's most historic grounds while looking forward to a bright future on the Liverpool waterfront.",
+    fans: "Evertonians are famously loyal and have stood by the club through challenging times. The atmosphere at Goodison Park during this final season is electric and deeply emotional. The fans' commitment to the 'People's Club' identity remains as strong as ever as they prepare for a new chapter in the club's long history.",
     trophies: [
       { name: "League Titles", count: 9, years: ["1890/91", "1914/15", "1927/28", "1931/32", "1938/39", "1962/63", "1969/70", "1984/85", "1986/87"] },
       { name: "FA Cups", count: 5 },
@@ -178,18 +176,18 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "James Tarkowski", position: "Defender", number: 6, nationality: "England" },
       { name: "Jarrad Branthwaite", position: "Defender", number: 32, nationality: "England" },
       { name: "Idrissa Gueye", position: "Midfielder", number: 27, nationality: "Senegal" },
-      { name: "Abdoulaye Doucouré", position: "Midfielder", number: 16, nationality: "Mali" },
+      { name: "Iliman Ndiaye", position: "Midfielder", number: 10, nationality: "Senegal" },
       { name: "Dwight McNeil", position: "Forward", number: 7, nationality: "England" },
       { name: "Dominic Calvert-Lewin", position: "Forward", number: 9, nationality: "England" }
     ],
     staff: [
-      { name: "Sean Dyche", role: "Manager" },
+      { name: "David Moyes", role: "Manager" },
       { name: "Kevin Thelwell", role: "Director of Football" }
     ]
   },
   fulham: {
-    history: "Fulham Football Club, founded in 1879, is London's oldest professional football club. Based at the historic Craven Cottage on the banks of the River Thames, the club is famous for its unique stadium and traditional feel. Fulham has a history of being a 'yo-yo' club in recent years but has also enjoyed periods of stability in the Premier League and famously reached the UEFA Europa League final in 2010.",
-    fans: "Fulham fans are known for their friendly and welcoming nature, often described as having a more 'polite' atmosphere compared to other London rivals. However, the support is loyal and the 'Johnny Haynes Stand' at Craven Cottage is a place of great tradition. The fans take pride in the club's history and its picturesque home ground, which is a favorite for many visiting supporters.",
+    history: "Fulham FC, under Marco Silva, has established itself as a stable and progressive Premier League force. The 2025/26 season sees the club continuing to play attractive football at Craven Cottage, with the new Riverside Stand providing a world-class backdrop to one of the most traditional and picturesque grounds in the world.",
+    fans: "Fulham fans are known for their friendly and inclusive nature, making Craven Cottage a favorite destination for many supporters. The 'neutral' end is a unique feature of the ground, but the home support in the Hammersmith and Putney Ends remains loyal and vocal as the club aims for a top-half finish.",
     trophies: [
       { name: "Second Division/Championship Winners", count: 3, years: ["1948/49", "2000/01", "2021/22"] },
       { name: "Intertoto Cup", count: 1, years: ["2002"] }
@@ -199,7 +197,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Joachim Andersen", position: "Defender", number: 5, nationality: "Denmark" },
       { name: "Calvin Bassey", position: "Defender", number: 3, nationality: "Nigeria" },
       { name: "Andreas Pereira", position: "Midfielder", number: 18, nationality: "Brazil" },
-      { name: "Sander Berge", position: "Midfielder", number: 16, nationality: "Norway" },
+      { name: "Emile Smith Rowe", position: "Midfielder", number: 10, nationality: "England" },
       { name: "Alex Iwobi", position: "Forward", number: 22, nationality: "Nigeria" },
       { name: "Raúl Jiménez", position: "Forward", number: 7, nationality: "Mexico" }
     ],
@@ -209,8 +207,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   liverpool: {
-    history: "Liverpool Football Club, founded in 1892, is one of the most successful and famous clubs in world football. Based at Anfield, the club has won numerous English league titles and is the most successful English club in European competition with six European Cup/Champions League trophies. The club's history is defined by legendary managers like Bill Shankly and Bob Paisley, and its famous 'Boot Room' culture. Liverpool is known for its high-intensity football and its deep connection with the city.",
-    fans: "Liverpool fans are world-renowned for their passion and the atmosphere they create at Anfield, especially on European nights. The 'Kop' is one of the most famous stands in football, and the club's anthem 'You'll Never Walk Alone' is perhaps the most iconic in the sport. The fans have a deep emotional bond with the club, shaped by both great triumphs and the tragedies of Heysel and Hillsborough.",
+    history: "Liverpool FC has transitioned seamlessly into the post-Klopp era under Arne Slot. The 2025/26 season sees 'The Reds' competing at the top of the table with a refined, high-control style of play. Anfield remains a fortress of European football, as the club continues to build on its massive legacy of domestic and international success.",
+    fans: "The Liverpool faithful continue to make Anfield one of the most intimidating venues in world football. 'You'll Never Walk Alone' remains the most powerful anthem in the sport. The fans have quickly embraced Arne Slot's vision, maintaining the deep emotional connection that defines the club's identity.",
     trophies: [
       { name: "League Titles", count: 19, years: ["1900/01", "1905/06", "1921/22", "1922/23", "1946/47", "1963/64", "1965/66", "1972/73", "1975/76", "1976/77", "1978/79", "1979/80", "1981/82", "1982/83", "1983/84", "1985/86", "1987/88", "1989/90", "2019/20"] },
       { name: "FA Cups", count: 8 },
@@ -223,7 +221,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Virgil van Dijk", position: "Defender", number: 4, nationality: "Netherlands" },
       { name: "Trent Alexander-Arnold", position: "Defender", number: 66, nationality: "England" },
       { name: "Alexis Mac Allister", position: "Midfielder", number: 10, nationality: "Argentina" },
-      { name: "Dominik Szoboszlai", position: "Midfielder", number: 8, nationality: "Hungary" },
+      { name: "Ryan Gravenberch", position: "Midfielder", number: 38, nationality: "Netherlands" },
       { name: "Mohamed Salah", position: "Forward", number: 11, nationality: "Egypt" },
       { name: "Luis Díaz", position: "Forward", number: 7, nationality: "Colombia" }
     ],
@@ -233,8 +231,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   manCity: {
-    history: "Manchester City Football Club, founded in 1880 as St. Mark's (West Gorton), has undergone a massive transformation in the 21st century to become a global football powerhouse. Based at the Etihad Stadium, the club has dominated English football in recent years under the management of Pep Guardiola, winning multiple Premier League titles and achieving a historic 'Treble' (Premier League, FA Cup, and Champions League) in 2023. The club is known for its sophisticated, possession-based style of play.",
-    fans: "Manchester City fans, known as 'Cityzens', have supported the club through both its difficult years in the lower divisions and its current era of unprecedented success. The support is characterized by a sense of humor and resilience. The 'Blue Moon' anthem is a staple at home matches. The club's global fanbase has grown exponentially, but the core support remains deeply rooted in the Manchester community.",
+    history: "Manchester City continues its era of dominance under Pep Guardiola. After winning a record-breaking four consecutive Premier League titles, the 2025/26 season sees 'The Cityzens' aiming for even greater heights. With a squad of world-class talent and a sophisticated tactical system, they remain the team to beat in both domestic and European competitions.",
+    fans: "Manchester City fans have enjoyed a golden age of success at the Etihad Stadium. The support is characterized by a blend of long-term loyalty and the excitement of modern success. The 'Blue Moon' anthem reflects the club's journey from local rivals to global superstars, with a fanbase that spans the entire world.",
     trophies: [
       { name: "League Titles", count: 10, years: ["1936/37", "1967/68", "2011/12", "2013/14", "2017/18", "2018/19", "2020/21", "2021/22", "2022/23", "2023/24"] },
       { name: "FA Cups", count: 7 },
@@ -257,8 +255,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   manUnited: {
-    history: "Manchester United Football Club, founded in 1878 as Newton Heath LYR, is one of the most successful and widely supported clubs in the world. Based at the iconic Old Trafford, 'The Theatre of Dreams', the club has a rich history marked by both great success and tragedy, most notably the Munich Air Disaster in 1958. Under Sir Alex Ferguson, the club enjoyed a period of dominance, winning 13 Premier League titles and two Champions League trophies. United is famous for its tradition of attacking football and developing young talent.",
-    fans: "Manchester United has one of the largest and most passionate fanbases in the world, with millions of supporters across every continent. The atmosphere at Old Trafford is steeped in history and expectation. Fans often sing 'Glory Glory Man United' and 'Take Me Home, United Road'. The support is known for its high standards and its deep pride in the club's global stature and historic achievements.",
+    history: "Manchester United is undergoing a major tactical and cultural reset under Rúben Amorim, who joined in late 2024. The 2025/26 season is a defining period as the 'Red Devils' aim to return to the top of English football. With a focus on a new 3-4-3 system and the integration of elite young talents like Kobbie Mainoo and Alejandro Garnacho, Old Trafford is buzzing with renewed hope.",
+    fans: "The Manchester United global fanbase remains the largest in the world. At Old Trafford, the support is vocal and expectant. Fans have quickly taken to Rúben Amorim's charismatic leadership and tactical clarity, creating an atmosphere of renewed optimism as the club seeks to reclaim its place as the dominant force in the Premier League.",
     trophies: [
       { name: "League Titles", count: 20, years: ["1907/08", "1910/11", "1951/52", "1955/56", "1956/57", "1964/65", "1966/67", "1992/93", "1993/94", "1995/96", "1996/97", "1998/99", "1999/00", "2000/01", "2002/03", "2006/07", "2007/08", "2008/09", "2010/11", "2012/13"] },
       { name: "FA Cups", count: 13 },
@@ -281,8 +279,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   newcastle: {
-    history: "Newcastle United Football Club, founded in 1892, is the pride of Tyneside. Based at St James' Park, which towers over the city center, the club has a long and passionate history. Known as 'The Magpies', Newcastle has a reputation for its incredibly loyal fanbase and its desire for attacking, entertaining football. The club enjoyed a famous period in the 1990s as 'The Entertainers' under Kevin Keegan and is currently undergoing a new era of ambition and investment.",
-    fans: "Newcastle fans, known as the 'Toon Army', are widely considered some of the most passionate and loyal in football. St James' Park is famous for its intense atmosphere, with fans often described as living and breathing the club. The support is deeply tied to the identity of the city of Newcastle. Fans often sing 'Local Hero' and 'Blaydon Races' to show their Tyneside pride.",
+    history: "Newcastle United continues its ambitious journey under Eddie Howe. The 2025/26 season sees 'The Magpies' leveraging their significant investment to compete for Champions League places. St James' Park remains the emotional heart of the city, with the team playing a high-intensity, attacking brand of football that has re-energized the entire Tyneside region.",
+    fans: "The Toon Army is famously one of the most passionate and loyal fanbases in football. The atmosphere at St James' Park is consistently one of the best in the Premier League, with the fans' deep connection to the club and the city creating a unique and powerful matchday experience that is feared by visiting teams.",
     trophies: [
       { name: "League Titles", count: 4, years: ["1904/05", "1906/07", "1908/09", "1926/27"] },
       { name: "FA Cups", count: 6 },
@@ -303,8 +301,8 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ]
   },
   nottingham: {
-    history: "Nottingham Forest Football Club, founded in 1865, is one of the oldest and most historic clubs in the world. Based at the City Ground on the banks of the River Trent, the club achieved legendary status under Brian Clough in the late 1970s and early 1980s, winning back-to-back European Cups—a feat that remains one of the greatest achievements in football history. After a long period away from the top flight, Forest returned to the Premier League in 2022.",
-    fans: "Nottingham Forest fans are known for their deep sense of history and pride in the club's European achievements. The atmosphere at the City Ground is famous for its passion, especially during the 'Mull of Kintyre' anthem before kickoff. The support is loyal and has remained strong even during the club's many years in the lower divisions. Forest fans have a strong local identity and a deep connection to the city of Nottingham.",
+    history: "Nottingham Forest, under the charismatic leadership of Ange Postecoglou who joined in 2025, has become one of the most entertaining teams in the league. The 2025/26 season sees 'The Reds' playing an ultra-aggressive, attacking style that honors the club's historic European Cup-winning legacy while looking firmly toward a modern, ambitious future.",
+    fans: "The City Ground atmosphere has been transformed by 'Angeball'. The fans' traditional passion, exemplified by the 'Mull of Kintyre' anthem, has been matched by the excitement of the team's new attacking identity. Forest fans remain some of the most loyal and proud in the country, celebrating their rich history at every match.",
     trophies: [
       { name: "League Titles", count: 1, years: ["1977/78"] },
       { name: "FA Cups", count: 2 },
@@ -322,13 +320,13 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Callum Hudson-Odoi", position: "Forward", number: 14, nationality: "England" }
     ],
     staff: [
-      { name: "Nuno Espírito Santo", role: "Head Coach" },
+      { name: "Ange Postecoglou", role: "Head Coach" },
       { name: "Ross Wilson", role: "Chief Football Officer" }
     ]
   },
   tottenham: {
-    history: "Tottenham Hotspur Football Club, founded in 1882, is based in North London. Known as 'Spurs', the club has a long tradition of playing stylish, attacking football, encapsulated in their motto 'To Dare Is To Do'. They were the first club in the 20th century to achieve the League and FA Cup Double in 1961. The club moved into the world-class Tottenham Hotspur Stadium in 2019, which is widely considered one of the best stadiums in the world. Spurs have a fierce rivalry with North London neighbors Arsenal.",
-    fans: "Tottenham fans are known for their high expectations of attractive football and their loyal support. The 'South Stand' at the new stadium is the largest single-tier stand in the UK, creating a massive wall of sound. Fans often sing 'When the Spurs Go Marching In' and 'Glory Glory Tottenham Hotspur'. The club has a large global following and a deep-rooted community in North London.",
+    history: "Tottenham Hotspur enters a new chapter in 2026 with Thomas Frank taking charge in January. The club continues to leverage its world-class stadium and elite facilities to compete at the top of the Premier League. The 2025/26 season is a period of tactical evolution as Spurs aim to finally translate their consistent top-four presence into major silverware.",
+    fans: "Spurs fans at the Tottenham Hotspur Stadium create a massive wall of sound, particularly from the iconic South Stand. The support is demanding but loyal, with fans eager to see Thomas Frank's tactical ingenuity bring success to North London. The atmosphere remains one of the most modern and intense in world football.",
     trophies: [
       { name: "League Titles", count: 2, years: ["1950/51", "1960/61"] },
       { name: "FA Cups", count: 8 },
@@ -346,13 +344,13 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Dominic Solanke", position: "Forward", number: 19, nationality: "England" }
     ],
     staff: [
-      { name: "Ange Postecoglou", role: "Head Coach" },
+      { name: "Thomas Frank", role: "Head Coach" },
       { name: "Johan Lange", role: "Technical Director" }
     ]
   },
   westHam: {
-    history: "West Ham United Football Club, founded in 1895 as Thames Ironworks, is based in East London. Known as 'The Hammers' or 'The Irons', the club has a rich history of producing world-class talent, most notably the trio of Bobby Moore, Geoff Hurst, and Martin Peters who were instrumental in England's 1966 World Cup win. After many years at the historic Upton Park, the club moved to the London Stadium in 2016. West Ham recently achieved European success by winning the UEFA Europa Conference League in 2023.",
-    fans: "West Ham fans are famous for their passionate and sometimes defiant support, deeply rooted in the working-class culture of East London. The club's anthem 'I'm Forever Blowing Bubbles' is one of the most famous and atmospheric in football. The support is known for its loyalty and its pride in the club's identity as the 'Academy of Football'.",
+    history: "West Ham United, under Nuno Espírito Santo who took over in 2025, is focused on defensive solidity and explosive counter-attacking. The 2025/26 season sees 'The Hammers' competing for European places, building on their 2023 Conference League success. The London Stadium has become a true home for the club, reflecting its status as a major Premier League force.",
+    fans: "The West Ham faithful continue to bring the spirit of East London to the London Stadium. 'I'm Forever Blowing Bubbles' remains one of the most iconic sights and sounds in football. The fans' pride in the 'Academy of Football' identity and their recent European success has created a resilient and optimistic atmosphere.",
     trophies: [
       { name: "FA Cups", count: 3 },
       { name: "European Cup Winners' Cup", count: 1, years: ["1965"] },
@@ -369,13 +367,13 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Mohammed Kudus", position: "Forward", number: 14, nationality: "Ghana" }
     ],
     staff: [
-      { name: "Julen Lopetegui", role: "Head Coach" },
+      { name: "Nuno Espírito Santo", role: "Head Coach" },
       { name: "Tim Steidten", role: "Technical Director" }
     ]
   },
   wolves: {
-    history: "Wolverhampton Wanderers, commonly known as 'Wolves', was founded in 1877 and was a founder member of the Football League. Based at Molineux Stadium since 1889, the club enjoyed a golden era in the 1950s under manager Stan Cullis, winning three league titles and being pioneers of European club football. After periods in the lower divisions, Wolves returned to the Premier League in 2018 and established themselves as a competitive force with a strong international identity.",
-    fans: "Wolves fans are known for their fierce loyalty and the intense atmosphere they create at Molineux. The 'South Bank' is the heart of the home support, famous for its vocal backing. Fans often sing 'Hi Ho Wolverhampton' (a variation of Hi Ho Silver Lining). The support is deeply tied to the city of Wolverhampton and its industrial heritage.",
+    history: "Wolverhampton Wanderers enters 2026 with Vitor Pereira taking charge in January. The club continues to evolve its squad with a blend of international experience and exciting young talent. The 2025/26 season is a period of tactical transition at Molineux, as 'Wolves' aim to re-establish themselves as a top-half Premier League team with a new, progressive identity.",
+    fans: "The Molineux support remains one of the most loyal and vocal in the country. The South Bank continues to lead the way in creating an intense and supportive atmosphere. Fans are eager to see Vitor Pereira's tactical vision take shape, maintaining the deep pride in the club's historic status as pioneers of European football.",
     trophies: [
       { name: "League Titles", count: 3, years: ["1953/54", "1957/58", "1958/59"] },
       { name: "FA Cups", count: 4 },
@@ -383,7 +381,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
     ],
     squad: [
       { name: "José Sá", position: "Goalkeeper", number: 1, nationality: "Portugal" },
-      { name: "Max Kilman", position: "Defender", number: 23, nationality: "England" },
+      { name: "Santiago Bueno", position: "Defender", number: 4, nationality: "Uruguay" },
       { name: "Toti Gomes", position: "Defender", number: 24, nationality: "Portugal" },
       { name: "Mario Lemina", position: "Midfielder", number: 5, nationality: "Gabon" },
       { name: "João Gomes", position: "Midfielder", number: 8, nationality: "Brazil" },
@@ -391,8 +389,70 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Hwang Hee-chan", position: "Forward", number: 11, nationality: "South Korea" }
     ],
     staff: [
-      { name: "Gary O'Neil", role: "Head Coach" },
+      { name: "Vitor Pereira", role: "Head Coach" },
       { name: "Matt Hobbs", role: "Sporting Director" }
+    ]
+  },
+  leeds: {
+    history: "Leeds United, back in the Premier League for the 2025/26 season, continues its journey under Daniel Farke. The club's return to the top flight has re-energized Elland Road, with the team playing a high-possession, attacking style of football. Leeds remains one of the most historic and well-supported clubs in England, aiming to re-establish its place among the elite.",
+    fans: "Leeds fans are famously some of the most loyal and vocal in the world. Elland Road is a true cauldron of noise, with 'Marching On Together' echoing through the stadium. The fans' pride in their club and their city is unmatched, creating an atmosphere that is both intimidating for opponents and inspiring for the team.",
+    trophies: [
+      { name: "League Titles", count: 3, years: ["1968/69", "1973/74", "1991/92"] },
+      { name: "FA Cups", count: 1 },
+      { name: "League Cups", count: 1 },
+      { name: "Inter-Cities Fairs Cup", count: 2 }
+    ],
+    squad: [
+      { name: "Illan Meslier", position: "Goalkeeper", number: 1, nationality: "France" },
+      { name: "Pascal Struijk", position: "Defender", number: 21, nationality: "Netherlands" },
+      { name: "Joe Rodon", position: "Defender", number: 6, nationality: "Wales" },
+      { name: "Ethan Ampadu", position: "Midfielder", number: 4, nationality: "Wales" },
+      { name: "Ilia Gruev", position: "Midfielder", number: 44, nationality: "Bulgaria" },
+      { name: "Wilfried Gnonto", position: "Forward", number: 29, nationality: "Italy" },
+      { name: "Mateo Joseph", position: "Forward", number: 19, nationality: "Spain" }
+    ],
+    staff: [
+      { name: "Daniel Farke", role: "Manager" }
+    ]
+  },
+  burnley: {
+    history: "Burnley FC, under Scott Parker, has returned to the Premier League with a new, more expansive style of play. The 2025/26 season sees 'The Clarets' leveraging their strong team spirit and tactical discipline to compete at the highest level. Turf Moor remains a historic and challenging venue for any visiting team, as the club continues to build on its rich heritage.",
+    fans: "Burnley fans are known for their deep-rooted loyalty and the close-knit community that surrounds the club. The atmosphere at Turf Moor is traditional and passionate, with fans taking great pride in the club's status as a founder member of the Football League and its resilient identity in the modern Premier League.",
+    trophies: [
+      { name: "League Titles", count: 2, years: ["1920/21", "1959/60"] },
+      { name: "FA Cups", count: 1 }
+    ],
+    squad: [
+      { name: "James Trafford", position: "Goalkeeper", number: 1, nationality: "England" },
+      { name: "Maxime Estève", position: "Defender", number: 5, nationality: "France" },
+      { name: "Jordan Beyer", position: "Defender", number: 15, nationality: "Germany" },
+      { name: "Josh Brownhill", position: "Midfielder", number: 8, nationality: "England" },
+      { name: "Luca Koleosho", position: "Forward", number: 30, nationality: "Italy" },
+      { name: "Lyle Foster", position: "Forward", number: 17, nationality: "South Africa" },
+      { name: "Jaidon Anthony", position: "Forward", number: 12, nationality: "England" }
+    ],
+    staff: [
+      { name: "Scott Parker", role: "Head Coach" }
+    ]
+  },
+  sunderland: {
+    history: "Sunderland AFC, back in the Premier League for the 2025/26 season under Régis Le Bris, is one of the most historic and well-supported clubs in the North East. The Stadium of Light is once again a Premier League venue, with a young and exciting team playing a progressive style of football that has captured the imagination of the Wearside public.",
+    fans: "Sunderland fans are famously passionate and loyal, with the Stadium of Light often seeing some of the highest attendances in the country. The support is deeply tied to the identity of the city and the region. Fans often sing 'Wise Men Say' to show their devotion to the team, creating a massive wall of sound that reflects the club's historic stature.",
+    trophies: [
+      { name: "League Titles", count: 6, years: ["1891/92", "1892/93", "1894/95", "1901/02", "1912/13", "1935/36"] },
+      { name: "FA Cups", count: 2 }
+    ],
+    squad: [
+      { name: "Anthony Patterson", position: "Goalkeeper", number: 1, nationality: "England" },
+      { name: "Luke O'Nien", position: "Defender", number: 13, nationality: "England" },
+      { name: "Dan Ballard", position: "Defender", number: 5, nationality: "Northern Ireland" },
+      { name: "Jobe Bellingham", position: "Midfielder", number: 7, nationality: "England" },
+      { name: "Chris Rigg", position: "Midfielder", number: 11, nationality: "England" },
+      { name: "Patrick Roberts", position: "Forward", number: 10, nationality: "England" },
+      { name: "Romaine Mundle", position: "Forward", number: 12, nationality: "England" }
+    ],
+    staff: [
+      { name: "Régis Le Bris", role: "Head Coach" }
     ]
   }
 };
