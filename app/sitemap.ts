@@ -29,5 +29,26 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...sitemapEntries, ...clubPages];
+  // Add comparison pages (unique pairs)
+  const comparisonPages: MetadataRoute.Sitemap = [];
+  const clubsList = Object.values(CLUBS);
+  
+  for (let i = 0; i < clubsList.length; i++) {
+    for (let j = i + 1; j < clubsList.length; j++) {
+      const club1 = clubsList[i];
+      const club2 = clubsList[j];
+      
+      // Sort alphabetically to ensure canonical URL
+      const [team1, team2] = [club1.id, club2.id].sort();
+      
+      comparisonPages.push({
+        url: `${baseUrl}/compare-season?team1=${team1}&team2=${team2}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.6,
+      });
+    }
+  }
+
+  return [...sitemapEntries, ...clubPages, ...comparisonPages];
 }

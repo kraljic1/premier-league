@@ -1,0 +1,128 @@
+.hero {
+  background-color: var(--club-hero-color, #37003c);
+}
+
+.hero-default {
+  --club-hero-color: #37003c;
+}
+
+.hero-arsenal {
+  --club-hero-color: #ef0107;
+}
+
+.hero-astonVilla {
+  --club-hero-color: #95bfe5;
+}
+
+.hero-bournemouth {
+  --club-hero-color: #da020e;
+}
+
+.hero-brentford {
+  --club-hero-color: #e30613;
+}
+
+.hero-brighton {
+  --club-hero-color: #0057b8;
+}
+
+.hero-burnley {
+  --club-hero-color: #6c1d45;
+}
+
+.hero-chelsea {
+  --club-hero-color: #034694;
+}
+
+.hero-crystalPalace {
+  --club-hero-color: #1b458f;
+}
+
+.hero-everton {
+  --club-hero-color: #003399;
+}
+
+.hero-fulham {
+  --club-hero-color: #000000;
+}
+
+.hero-leeds {
+  --club-hero-color: #ffcd00;
+}
+
+.hero-liverpool {
+  --club-hero-color: #c8102e;
+}
+
+.hero-manCity {
+  --club-hero-color: #6cabdd;
+}
+
+.hero-manUnited {
+  --club-hero-color: #da020e;
+}
+
+.hero-newcastle {
+  --club-hero-color: #241f20;
+}
+
+.hero-nottingham {
+  --club-hero-color: #e53233;
+}
+
+.hero-sunderland {
+  --club-hero-color: #eb172b;
+}
+
+.hero-tottenham {
+  --club-hero-color: #132257;
+}
+
+.hero-westHam {
+  --club-hero-color: #7a263a;
+}
+
+.hero-wolves {
+  --club-hero-color: #fdb913;
+}
+
+.staffList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.staffCard {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background-color: rgba(15, 23, 42, 0.04);
+}
+
+.staffRole {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.staffName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+:global(.dark) .staffCard {
+  border-color: rgba(148, 163, 184, 0.15);
+  background-color: rgba(15, 23, 42, 0.45);
+}
+
+:global(.dark) .staffRole {
+  color: #94a3b8;
+}
+
+:global(.dark) .staffName {
+  color: #f8fafc;
+}

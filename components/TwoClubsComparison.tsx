@@ -15,9 +15,10 @@ import { useCompareTwoClubs } from "@/lib/hooks/useCompareTwoClubs";
 interface TwoClubsComparisonProps {
   onClose: () => void;
   initialClubA?: string | null;
+  initialClubB?: string | null;
 }
 
-export function TwoClubsComparison({ onClose, initialClubA }: TwoClubsComparisonProps) {
+export function TwoClubsComparison({ onClose, initialClubA, initialClubB }: TwoClubsComparisonProps) {
   const {
     clubA,
     setClubA,
@@ -53,7 +54,10 @@ export function TwoClubsComparison({ onClose, initialClubA }: TwoClubsComparison
     if (initialClubA && !clubA) {
       setClubA(initialClubA);
     }
-  }, [initialClubA, clubA, setClubA]);
+    if (initialClubB && !clubB) {
+      setClubB(initialClubB);
+    }
+  }, [initialClubA, initialClubB, clubA, clubB, setClubA, setClubB]);
 
   const sameSeason = selectedSeasonA === selectedSeasonB;
   const isMatchweekBasis = comparisonBasis === "matchweek";

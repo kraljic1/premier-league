@@ -4,6 +4,7 @@ import { CLUBS } from "@/lib/clubs";
 import { getClubDetails } from "@/lib/club-details";
 import { getStadiumByClubId } from "@/lib/stadiums";
 import { generateMetadata as generateBaseMetadata } from "@/lib/seo/metadata";
+import { getClubSquad } from "@/lib/club-squad";
 import { 
   ClubHero, 
   ClubSection, 
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default function ClubPage({ params }: Props) {
+export default async function ClubPage({ params }: Props) {
   const club = CLUBS[params.id];
   
   if (!club) {
@@ -41,13 +42,15 @@ export default function ClubPage({ params }: Props) {
 
   const details = getClubDetails(params.id);
   const stadium = getStadiumByClubId(params.id);
+  const squad = await getClubSquad(params.id);
+  const squadToShow = squad.length > 0 ? squad : details.squad;
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
       <ClubHero 
+        clubId={club.id}
         clubName={club.name} 
         logoUrl={club.logoUrl} 
-        primaryColor={club.primaryColor} 
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -69,7 +72,7 @@ export default function ClubPage({ params }: Props) {
           </ClubSection>
 
           <ClubSection title="Current Squad">
-            <SquadList players={details.squad} />
+            <SquadList players={squadToShow} />
           </ClubSection>
         </div>
 

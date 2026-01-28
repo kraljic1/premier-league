@@ -41,3 +41,6 @@ logs/
 
 # Local Netlify folder
 .netlify
+
+# Google Search Console Keys
+keys.json

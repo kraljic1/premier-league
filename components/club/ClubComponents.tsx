@@ -1,11 +1,21 @@
 import { ClubDetails, Trophy, Player, Staff } from "@/lib/types";
 import { Stadium } from "@/lib/stadiums";
+import styles from "./ClubComponents.module.css";
 
-export function ClubHero({ clubName, logoUrl, primaryColor }: { clubName: string, logoUrl?: string, primaryColor: string }) {
+export function ClubHero({
+  clubId,
+  clubName,
+  logoUrl
+}: {
+  clubId: string;
+  clubName: string;
+  logoUrl?: string;
+}) {
+  const heroClass = styles[`hero-${clubId}`] ?? styles["hero-default"];
+
   return (
     <div 
-      className="relative py-12 px-6 rounded-xl overflow-hidden mb-8"
-      style={{ backgroundColor: primaryColor }}
+      className={`relative py-12 px-6 rounded-xl overflow-hidden mb-8 ${styles.hero} ${heroClass}`}
     >
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
       <div className="relative flex flex-col md:flex-row items-center gap-8">
@@ -74,7 +84,9 @@ export function SquadList({ players }: { players: Player[] }) {
         <tbody>
           {players.map((player, idx) => (
             <tr key={idx} className="border-b border-gray-50 dark:border-gray-900 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
-              <td className="py-3 px-4 font-mono text-purple-600 dark:text-purple-400">{player.number}</td>
+              <td className="py-3 px-4 font-mono text-purple-600 dark:text-purple-400">
+                {player.number ? player.number : "—"}
+              </td>
               <td className="py-3 px-4 font-medium">{player.name}</td>
               <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{player.position}</td>
               <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{player.nationality}</td>
@@ -88,11 +100,11 @@ export function SquadList({ players }: { players: Player[] }) {
 
 export function StaffList({ staff }: { staff: Staff[] }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={styles.staffList}>
       {staff.map((member, idx) => (
-        <div key={idx} className="flex flex-col p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border-l-4 border-purple-500">
-          <span className="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">{member.role}</span>
-          <span className="text-lg font-bold text-gray-900 dark:text-white">{member.name}</span>
+        <div key={idx} className={styles.staffCard}>
+          <div className={styles.staffRole}>{member.role}</div>
+          <div className={styles.staffName}>{member.name}</div>
         </div>
       ))}
     </div>

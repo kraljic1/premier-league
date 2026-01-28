@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { getCurrentSeasonShort } from "@/lib/utils/season-utils";
 
 // Note: Client components can't export metadata directly in Next.js
@@ -17,8 +18,19 @@ import { CompareSeasonSingleClub } from "./CompareSeasonSingleClub";
 type CompareMode = "single-club" | "two-clubs";
 
 export function CompareSeasonClient() {
+  const searchParams = useSearchParams();
+  const team1 = searchParams.get("team1");
+  const team2 = searchParams.get("team2");
+
   const [compareMode, setCompareMode] = useState<CompareMode>("single-club");
   const [mounted, setMounted] = useState(false);
+
+  // Initialize from URL
+  useEffect(() => {
+    if (team1 && team2) {
+      setCompareMode("two-clubs");
+    }
+  }, [team1, team2]);
 
   // Get current season only on client-side to prevent hydration mismatch
   const currentSeasonLabel = useMemo(() => {
@@ -47,6 +59,13 @@ export function CompareSeasonClient() {
     refetchCurrent,
     refetchHistorical,
   } = useCompareSeason();
+
+  // Handle single team URL param
+  useEffect(() => {
+    if (team1 && !team2 && !selectedClub) {
+      setSelectedClub(team1);
+    }
+  }, [team1, team2, selectedClub, setSelectedClub]);
 
   // Get selected club's color
   const selectedClubColor = useMemo(() => {
@@ -80,7 +99,8 @@ export function CompareSeasonClient() {
       {compareMode === "two-clubs" ? (
         <TwoClubsComparison
           onClose={() => setCompareMode("single-club")}
-          initialClubA={selectedClub}
+          initialClubA={team1 || selectedClub}
+          initialClubB={team2}
         />
       ) : (
         <CompareSeasonSingleClub

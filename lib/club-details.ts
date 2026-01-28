@@ -23,9 +23,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Viktor Gyökeres", position: "Forward", number: 9, nationality: "Sweden" }
     ],
     staff: [
-      { name: "Mikel Arteta", role: "Manager" },
-      { name: "Albert Stuivenberg", role: "Assistant Coach" },
-      { name: "Edu Gaspar", role: "Sporting Director" }
+      { name: "Mikel Arteta", role: "Manager" }
     ]
   },
   astonVilla: {
@@ -48,8 +46,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Morgan Rogers", position: "Forward", number: 27, nationality: "England" }
     ],
     staff: [
-      { name: "Unai Emery", role: "Manager" },
-      { name: "Monchi", role: "President of Football Operations" }
+      { name: "Unai Emery", role: "Manager" }
     ]
   },
   bournemouth: {
@@ -70,8 +67,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Evanilson", position: "Forward", number: 9, nationality: "Brazil" }
     ],
     staff: [
-      { name: "Andoni Iraola", role: "Head Coach" },
-      { name: "Tiago Pinto", role: "President of Football Operations" }
+      { name: "Andoni Iraola", role: "Manager" }
     ]
   },
   brentford: {
@@ -92,8 +88,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Yoane Wissa", position: "Forward", number: 11, nationality: "DR Congo" }
     ],
     staff: [
-      { name: "Keith Andrews", role: "Head Coach" },
-      { name: "Phil Giles", role: "Director of Football" }
+      { name: "Keith Andrews", role: "Manager" }
     ]
   },
   brighton: {
@@ -114,8 +109,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Yankuba Minteh", position: "Forward", number: 17, nationality: "Gambia" }
     ],
     staff: [
-      { name: "Fabian Hürzeler", role: "Head Coach" },
-      { name: "Tony Bloom", role: "Chairman" }
+      { name: "Fabian Hürzeler", role: "Manager" }
     ]
   },
   chelsea: {
@@ -138,8 +132,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Nicolas Jackson", position: "Forward", number: 15, nationality: "Senegal" }
     ],
     staff: [
-      { name: "Liam Rosenior", role: "Head Coach" },
-      { name: "Paul Winstanley", role: "Co-Sporting Director" }
+      { name: "Liam Rosenior", role: "Manager" }
     ]
   },
   crystalPalace: {
@@ -159,8 +152,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Eddie Nketiah", position: "Forward", number: 9, nationality: "England" }
     ],
     staff: [
-      { name: "Oliver Glasner", role: "Manager" },
-      { name: "Dougie Freedman", role: "Sporting Director" }
+      { name: "Oliver Glasner", role: "Manager" }
     ]
   },
   everton: {
@@ -181,8 +173,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Dominic Calvert-Lewin", position: "Forward", number: 9, nationality: "England" }
     ],
     staff: [
-      { name: "David Moyes", role: "Manager" },
-      { name: "Kevin Thelwell", role: "Director of Football" }
+      { name: "David Moyes", role: "Manager" }
     ]
   },
   fulham: {
@@ -202,8 +193,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Raúl Jiménez", position: "Forward", number: 7, nationality: "Mexico" }
     ],
     staff: [
-      { name: "Marco Silva", role: "Head Coach" },
-      { name: "Tony Khan", role: "Director of Football" }
+      { name: "Marco Silva", role: "Manager" }
     ]
   },
   liverpool: {
@@ -226,8 +216,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Luis Díaz", position: "Forward", number: 7, nationality: "Colombia" }
     ],
     staff: [
-      { name: "Arne Slot", role: "Head Coach" },
-      { name: "Richard Hughes", role: "Sporting Director" }
+      { name: "Arne Slot", role: "Manager" }
     ]
   },
   manCity: {
@@ -250,13 +239,12 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Phil Foden", position: "Forward", number: 47, nationality: "England" }
     ],
     staff: [
-      { name: "Pep Guardiola", role: "Manager" },
-      { name: "Txiki Begiristain", role: "Director of Football" }
+      { name: "Pep Guardiola", role: "Manager" }
     ]
   },
   manUnited: {
-    history: "Manchester United is undergoing a major tactical and cultural reset under Rúben Amorim, who joined in late 2024. The 2025/26 season is a defining period as the 'Red Devils' aim to return to the top of English football. With a focus on a new 3-4-3 system and the integration of elite young talents like Kobbie Mainoo and Alejandro Garnacho, Old Trafford is buzzing with renewed hope.",
-    fans: "The Manchester United global fanbase remains the largest in the world. At Old Trafford, the support is vocal and expectant. Fans have quickly taken to Rúben Amorim's charismatic leadership and tactical clarity, creating an atmosphere of renewed optimism as the club seeks to reclaim its place as the dominant force in the Premier League.",
+    history: "Manchester United is undergoing a major tactical and cultural reset under Michael Carrick. The 2025/26 season is a defining period as the 'Red Devils' aim to return to the top of English football. With a focus on a new 3-4-3 system and the integration of elite young talents like Kobbie Mainoo and Alejandro Garnacho, Old Trafford is buzzing with renewed hope.",
+    fans: "The Manchester United global fanbase remains the largest in the world. At Old Trafford, the support is vocal and expectant. Fans have quickly taken to Michael Carrick's leadership and tactical clarity, creating an atmosphere of renewed optimism as the club seeks to reclaim its place as the dominant force in the Premier League.",
     trophies: [
       { name: "League Titles", count: 20, years: ["1907/08", "1910/11", "1951/52", "1955/56", "1956/57", "1964/65", "1966/67", "1992/93", "1993/94", "1995/96", "1996/97", "1998/99", "1999/00", "2000/01", "2002/03", "2006/07", "2007/08", "2008/09", "2010/11", "2012/13"] },
       { name: "FA Cups", count: 13 },
@@ -274,8 +262,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Alejandro Garnacho", position: "Forward", number: 17, nationality: "Argentina" }
     ],
     staff: [
-      { name: "Rúben Amorim", role: "Head Coach" },
-      { name: "Dan Ashworth", role: "Sporting Director" }
+      { name: "Michael Carrick", role: "Manager" }
     ]
   },
   newcastle: {
@@ -296,13 +283,12 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Anthony Gordon", position: "Forward", number: 10, nationality: "England" }
     ],
     staff: [
-      { name: "Eddie Howe", role: "Head Coach" },
-      { name: "Paul Mitchell", role: "Sporting Director" }
+      { name: "Eddie Howe", role: "Manager" }
     ]
   },
   nottingham: {
-    history: "Nottingham Forest, under the charismatic leadership of Ange Postecoglou who joined in 2025, has become one of the most entertaining teams in the league. The 2025/26 season sees 'The Reds' playing an ultra-aggressive, attacking style that honors the club's historic European Cup-winning legacy while looking firmly toward a modern, ambitious future.",
-    fans: "The City Ground atmosphere has been transformed by 'Angeball'. The fans' traditional passion, exemplified by the 'Mull of Kintyre' anthem, has been matched by the excitement of the team's new attacking identity. Forest fans remain some of the most loyal and proud in the country, celebrating their rich history at every match.",
+    history: "Nottingham Forest, under Sean Dyche, is aiming to build a resilient Premier League identity while honoring the club's historic European Cup-winning legacy. The 2025/26 season sees 'The Reds' focusing on structure and intensity as they push toward a modern, ambitious future.",
+    fans: "The City Ground atmosphere remains among the most traditional and intimidating in the league. The fans' passion, exemplified by the 'Mull of Kintyre' anthem, fuels a proud matchday culture that celebrates Forest's rich history at every match.",
     trophies: [
       { name: "League Titles", count: 1, years: ["1977/78"] },
       { name: "FA Cups", count: 2 },
@@ -320,8 +306,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Callum Hudson-Odoi", position: "Forward", number: 14, nationality: "England" }
     ],
     staff: [
-      { name: "Ange Postecoglou", role: "Head Coach" },
-      { name: "Ross Wilson", role: "Chief Football Officer" }
+      { name: "Sean Dyche", role: "Manager" }
     ]
   },
   tottenham: {
@@ -344,8 +329,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Dominic Solanke", position: "Forward", number: 19, nationality: "England" }
     ],
     staff: [
-      { name: "Thomas Frank", role: "Head Coach" },
-      { name: "Johan Lange", role: "Technical Director" }
+      { name: "Thomas Frank", role: "Manager" }
     ]
   },
   westHam: {
@@ -367,13 +351,12 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Mohammed Kudus", position: "Forward", number: 14, nationality: "Ghana" }
     ],
     staff: [
-      { name: "Nuno Espírito Santo", role: "Head Coach" },
-      { name: "Tim Steidten", role: "Technical Director" }
+      { name: "Nuno Espírito Santo", role: "Manager" }
     ]
   },
   wolves: {
-    history: "Wolverhampton Wanderers enters 2026 with Vitor Pereira taking charge in January. The club continues to evolve its squad with a blend of international experience and exciting young talent. The 2025/26 season is a period of tactical transition at Molineux, as 'Wolves' aim to re-establish themselves as a top-half Premier League team with a new, progressive identity.",
-    fans: "The Molineux support remains one of the most loyal and vocal in the country. The South Bank continues to lead the way in creating an intense and supportive atmosphere. Fans are eager to see Vitor Pereira's tactical vision take shape, maintaining the deep pride in the club's historic status as pioneers of European football.",
+    history: "Wolverhampton Wanderers enters 2026 with Rob Edwards in charge. The club continues to evolve its squad with a blend of international experience and exciting young talent. The 2025/26 season is a period of tactical transition at Molineux, as 'Wolves' aim to re-establish themselves as a top-half Premier League team with a new, progressive identity.",
+    fans: "The Molineux support remains one of the most loyal and vocal in the country. The South Bank continues to lead the way in creating an intense and supportive atmosphere. Fans are eager to see Rob Edwards' tactical vision take shape, maintaining the deep pride in the club's historic status as pioneers of European football.",
     trophies: [
       { name: "League Titles", count: 3, years: ["1953/54", "1957/58", "1958/59"] },
       { name: "FA Cups", count: 4 },
@@ -389,8 +372,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Hwang Hee-chan", position: "Forward", number: 11, nationality: "South Korea" }
     ],
     staff: [
-      { name: "Vitor Pereira", role: "Head Coach" },
-      { name: "Matt Hobbs", role: "Sporting Director" }
+      { name: "Rob Edwards", role: "Manager" }
     ]
   },
   leeds: {
@@ -432,7 +414,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Jaidon Anthony", position: "Forward", number: 12, nationality: "England" }
     ],
     staff: [
-      { name: "Scott Parker", role: "Head Coach" }
+      { name: "Scott Parker", role: "Manager" }
     ]
   },
   sunderland: {
@@ -452,7 +434,7 @@ export const CLUB_DETAILS: Record<string, ClubDetails> = {
       { name: "Romaine Mundle", position: "Forward", number: 12, nationality: "England" }
     ],
     staff: [
-      { name: "Régis Le Bris", role: "Head Coach" }
+      { name: "Régis Le Bris", role: "Manager" }
     ]
   }
 };
