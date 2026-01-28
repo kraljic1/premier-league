@@ -100,8 +100,10 @@ function correctMatchweekNumbers(fixtures: Fixture[]): Fixture[] {
     // Calculate correct matchweek: currentMatchweek + groupIndex
     const correctMatchweek = currentMatchweek + groupIndex;
     
-    // Only update if the stored matchweek is clearly wrong
-    if (fixture.matchweek <= maxFinishedMatchweek || fixture.matchweek < correctMatchweek) {
+    // Update matchweek if it differs from the calculated one based on date sequence
+    // This ensures that matches played on the same weekend are grouped into the same matchweek
+    // and fulfills the requirement that "every matchweek must have 10 matches"
+    if (fixture.matchweek !== correctMatchweek) {
       console.log(`[OneFootball] Correcting matchweek for ${fixture.homeTeam} vs ${fixture.awayTeam}: ${fixture.matchweek} -> ${correctMatchweek}`);
       return { ...fixture, matchweek: correctMatchweek };
     }
